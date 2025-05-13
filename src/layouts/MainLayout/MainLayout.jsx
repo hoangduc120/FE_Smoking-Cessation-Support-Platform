@@ -1,10 +1,10 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
-
+import HeaderAuth from "../../components/Header/HeaderAuth";
 export default function MainLayout() {
   return (
     <div>
-      <h1>Main Layout</h1>
+     <HeaderAuth/>
       <Outlet />
     </div>
   )
