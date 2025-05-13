@@ -7,7 +7,6 @@ import {
 } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import logo from "../../../assets/sRXsrwcNxAZFoPzKym7hvY3SL72Ru0S7l3C51j_Nw_k.webp";
 import "./LoginPage.css";
 import { Link } from "react-router-dom";
 import { PATH } from '../../../routes/path';
@@ -33,11 +32,12 @@ export default function LoginPage() {
         <Grid item size={6} className="login-left">
           <Box className="login-container">
             <Box className="login-logo">
-              <img
+              {/* <img
                 src={logo}
                 alt="QuitSmoke Logo"
                 style={{ width: "20%", height: "20%", borderRadius: "50%" }}
-              />
+              /> */}
+              🌿
               <Typography
                 variant="h4"
                 sx={{

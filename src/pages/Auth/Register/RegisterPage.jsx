@@ -5,7 +5,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import logo from "../../../assets/sRXsrwcNxAZFoPzKym7hvY3SL72Ru0S7l3C51j_Nw_k.webp";
 import "../Login/LoginPage";
 import { Link } from "react-router-dom";
 import { useState } from "react";
@@ -48,11 +47,11 @@ export default function RegisterPage() {
         <Grid item size={6} className="login-left"> 
           <Box className="login-container">
             <Box className="login-logo">
-              <img
+              {/* <img
                 src={logo}
                 alt="QuitSmoke Logo"
                 style={{ width: "20%", height: "20%", borderRadius: "50%" }}
-              />
+              /> */}🌿
               <Typography
                 variant="h4"
                 sx={{

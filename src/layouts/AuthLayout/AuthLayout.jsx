@@ -1,11 +1,12 @@
-import React from 'react'
-import { Outlet } from 'react-router-dom'
+import React from "react";
+import { Outlet } from "react-router-dom";
+import HeaderAuth from "../../components/Header/HeaderAuth";
 
 export default function AuthLayout() {
   return (
     <div>
-      <h1>Auth Layout</h1>
-      <Outlet/>
+      <HeaderAuth />
+      <Outlet />
     </div>
-  )
+  );
 }

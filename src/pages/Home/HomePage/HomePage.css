@@ -1,0 +1,78 @@
+
+.banner {
+  margin: 30px 0px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.banner_girdLeft {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; 
+  padding: 20px; 
+}
+
+.banner_girdRight {
+  display: flex;
+  justify-content: center; 
+  align-items: flex-start;
+}
+
+.banner_girdRight img {
+  width: 400px;
+  height: 400px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+
+.homePage {
+  padding: 40px 150px;
+}
+
+.girdLeft__title {
+  font-size: 3.75rem !important;
+  line-height: 65px !important;
+}
+
+.girdLeft__content {
+  font-size: 1.25rem;
+  color: #526467;
+}
+
+.girdLeft__button {
+  display: flex;
+  margin-top: 20px;
+}
+
+button.button_start {
+  background-color: #209d4b;
+  color: white;
+  border: 10px;
+  text-transform: none;
+  padding: 10px !important;
+}
+
+button.button__more {
+  background-color: white;
+  color: black;
+  border: solid 1px #e8e8e8;
+  margin-left: 20px;
+  text-transform: none;
+  padding: 10px !important;
+}
+
+/* feature */
+
+.feature {
+    display: flex;
+    margin-top: 20px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+
+.feature__card {
+    margin-top: 40px;
+}
