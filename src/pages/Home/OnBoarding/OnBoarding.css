@@ -1,0 +1,114 @@
+.quit-smoke-onboarding {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #e8f5e9, #ffffff);
+}
+.onboarding-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+}
+.onboarding-logo {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #2e7d32;
+}
+.onboarding-back-link {
+  display: flex;
+  align-items: center;
+  color: #616161;
+  text-decoration: none;
+}
+.onboarding-back-link:hover {
+  color: #212121;
+}
+.onboarding-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.step-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  margin-bottom: 32px;
+}
+.progress-container {
+  margin-bottom: 32px;
+}
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.form-field {
+  margin-bottom: 16px;
+}
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 32px;
+}
+.benefits-section {
+  margin-top: 32px;
+}
+.benefits-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+.benefits-tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #616161;
+}
+.summary-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.summary-stats-card {
+  background: #e8f5e9;
+  border-radius: 8px;
+  padding: 24px;
+}
+.stat-item-card {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+  align-items: center;
+}
+.goal-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+}
+@media (max-width: 600px) {
+  .step-card {
+    padding: 16px;
+  }
+  .button-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

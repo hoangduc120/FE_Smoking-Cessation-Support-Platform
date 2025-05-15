@@ -1,16 +1,16 @@
 export const PATH = {
-    // AUTH
-    AUTH: "/auth",
-    LOGIN: "/auth/login",
-    REGISTER: "/auth/register",
+  // AUTH
+  AUTH: "/auth",
+  LOGIN: "/auth/login",
+  REGISTER: "/auth/register",
 
-    // HOME
-    HOME: "/",
+  // HOME
+  HOME: "/",
+  ONBOARDING: "/onboarding",
 
+  // COACHES
+  COACHES: "/coaches",
 
-    // COACHES
-    COACHES: "/coaches",
-
-    // ADMIN
-    ADMIN: "/admin",
-}
+  // ADMIN
+  ADMIN: "/admin",
+};
