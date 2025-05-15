@@ -282,3 +282,89 @@ button.button__more {
   color: #555;
   line-height: 1.6;
 }
+
+.swiper {
+  width: 100%;
+  padding: 20px 0;
+}
+
+.swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.swiper-button-prev,
+.swiper-button-next {
+  color: #209d4b !important;
+}
+
+.swiper-pagination-bullet {
+  background: #209d4b !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #1aa146 !important;
+}
+
+/* Ensure consistent card alignment and spacing */
+.swiper-wrapper {
+  align-items: stretch !important;
+}
+
+
+.quit-smoking-banner {
+  background-color: #1aa146;
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.quit-smoking-banner-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.quit-smoking-banner-description {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.quit-smoking-banner-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.quit-smoking-banner-button {
+  text-transform: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+}
+
+
+
+.quit-smoking-banner-button.register {
+  background-color: white;
+  color: #1aa146;
+}
+
+.quit-smoking-banner-button.learn {
+  border-color: white;
+  color: white;
+}
+
+.quit-smoking-banner-button.register:hover {
+  background-color: #e0e0e0;
+}
+
+.quit-smoking-banner-button.learn:hover {
+  border-color: #e0e0e0;
+  color: #e0e0e0;
+}
