@@ -9,6 +9,7 @@ import HomePage from "../pages/Home/HomePage/HomePage";
 import CoachesPage from "../pages/Coacher/CoachesPage/CoachesPage";
 import DashBoardAdmin from "../pages/Admin/DashBoard/DashBoardAdmin";
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
+import OnBoarding from "../pages/Home/OnBoarding/OnBoarding";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -35,6 +36,10 @@ export default function useRouterElement() {
         {
           index: true,
           element: <HomePage />,
+        },
+        {
+          path: PATH.ONBOARDING,
+          element: <OnBoarding />,
         },
       ],
     },
