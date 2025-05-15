@@ -58,7 +58,7 @@ export default function HomePage() {
     },
   ];
 
-  // Sample data for features (unchanged)
+  // Sample data for features
   const features = [
     {
       title: "Theo dõi tiến trình",
@@ -85,7 +85,6 @@ export default function HomePage() {
       title: "Thưởng thành tích",
       description: "Nhận huy hiệu khi đạt các cột mốc quan trọng.",
     },
-
   ];
 
   const steps = [
@@ -125,12 +124,12 @@ export default function HomePage() {
     {
       question: "QuitSmoke có hỗ trợ cai thuốc lá điện tử không?",
       answer:
-        "Có, QuitSmoke hỗ trợ cai thuốc lá truyền thống và thuốc lá điện tử. Bạn có thể tuỳ chỉnh loại thuốc lá trong phần cài đặt.",
+        "Có, QuitSmoke hỗ trợ cai thuốc lá truyền thống và thuốc lá điện tử. Bạn có thể tùy chỉnh loại thuốc lá trong phần cài đặt.",
     },
     {
       question: "Dữ liệu của tôi có được bảo mật không?",
       answer:
-        "Chúng tôi cam kết bảo mật dữ liệu người dùng. Tất cả thông tin cá nhân đều được mã hoá và chỉ bạn mới có quyền truy cập.",
+        "Chúng tôi cam kết bảo mật dữ liệu người dùng. Tất cả thông tin cá nhân đều được mã hóa và chỉ bạn mới có quyền truy cập.",
     },
     {
       question: "Tôi có thể kết nối với bác sĩ qua ứng dụng không?",
@@ -142,137 +141,78 @@ export default function HomePage() {
       answer:
         "QuitSmoke cung cấp nhiều mẹo và kỹ thuật để vượt qua cơn thèm thuốc, cùng với công cụ theo dõi và phân tích cơn thèm.",
     },
-
   ];
 
   return (
-    <>
-
-      <Box className="homePage">
-        <Box className="banner">
-          <Box sx={{ marginTop: "70px" }}>
-            <Box>
-              <Typography className="girdLeft__title">
-                Bắt đầu hành trình <br />
-                <span style={{ color: "#1aa146" }}>cai thuốc lá</span> của bạn
-              </Typography>
-            </Box>
-            <Box>
-              <Typography className="girdLeft__content">
-                Theo dõi tiến trình, nhận hỗ trợ và khám phá một cuộc
-                <br /> sống khỏe mạnh hơn không có thuốc lá với QuitSmoke.
-              </Typography>
-            </Box>
-            <Box className="girdLeft__button">
-              <Button className="button_start">
-                <Link to={PATH.ONBOARDING} className="link-button">
-                  Bắt đầu ngay
-                </Link>
-              </Button>
-              <Button className="button__more">Tìm hiểu thêm</Button>
-            </Box>
-          </Box>
-
     <Box className="homePage">
+      {/* Banner Section */}
       <Box className="banner">
         <Box sx={{ marginTop: "70px" }}>
-          <Box>
-            <Typography className="girdLeft__title">
-              Bắt đầu hành trình <br />
-              <span style={{ color: "#1aa146" }}>cai thuốc lá</span> của bạn
-            </Typography>
-          </Box>
-          <Box>
-            <Typography className="girdLeft__content">
-              Theo dõi tiến trình, nhận hỗ trợ và khám phá một cuộc
-              <br /> sống khỏe mạnh hơn không có thuốc lá với QuitSmoke.
-            </Typography>
-          </Box>
+          <Typography className="girdLeft__title">
+            Bắt đầu hành trình <br />
+            <span style={{ color: "#1aa146" }}>cai thuốc lá</span> của bạn
+          </Typography>
+          <Typography className="girdLeft__content">
+            Theo dõi tiến trình, nhận hỗ trợ và khám phá một cuộc
+            <br /> sống khỏe mạnh hơn không có thuốc lá với QuitSmoke.
+          </Typography>
           <Box className="girdLeft__button">
-            <Button className="button_start">Bắt đầu miễn phí</Button>
+            <Button className="button_start">
+              <Link to={PATH.ONBOARDING} className="link-button">
+                Bắt đầu ngay
+              </Link>
+            </Button>
             <Button className="button__more">Tìm hiểu thêm</Button>
           </Box>
         </Box>
-
-
-          <Box className="banner_girdRight">
-            <img src={image} alt="hình ảnh" />
-          </Box>
+        <Box className="banner_girdRight">
+          <img src={image} alt="hình ảnh" />
         </Box>
+      </Box>
 
+      {/* Steps Section */}
+      <Box className="quit-container">
+        <Typography
+          variant="h4"
+          className="quit-title"
+          sx={{ fontWeight: "bold" }}
+        >
+          Cách thức hoạt động
+        </Typography>
+        <Typography variant="body1" className="quit-subtitle">
+          QuitSmoke giúp bạn cai thuốc lá một cách hiệu quả thông qua 4 bước đơn
+          giản
+        </Typography>
+        <Box className="steps-wrapper">
+          {steps.map((step, index) => (
+            <Box key={index} className="step-item">
+              <Box className="step-circle">{step.number}</Box>
+              {index !== steps.length - 1 && <div className="line" />}
+              <Typography className="step浪title">{step.title}</Typography>
+              <Typography className="step-desc">{step.description}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
 
-        <Box className="quit-container">
-          <Typography
-            variant="h4"
-            className="quit-title"
-            sx={{ fontWeight: "bold" }}
-          >
-            Cách thức hoạt động
-
+      {/* Features Section */}
       <Box className="feature">
         <Box className="featute__title">
-          <Typography variant="h4" sx={{ marginLeft: "22%", color: "#209d4b" }}>
+          <Typography
+            variant="h4"
+            sx={{ marginLeft: "22%", color: "#1e1520", fontWeight: "bold" }}
+          >
             Tính năng nổi bật
-
           </Typography>
-          <Typography variant="body1" className="quit-subtitle">
-            QuitSmoke giúp bạn cai thuốc lá một cách hiệu quả thông qua 4 bước
-            đơn giản
+          <Typography sx={{ color: "#526467", marginTop: "10px" }}>
+            QuitSmoke cung cấp đầy đủ công cụ để hỗ trợ bạn trong hành trình cai
+            thuốc lá
           </Typography>
-
-          <Box className="steps-wrapper">
-            {steps.map((step, index) => (
-              <Box key={index} className="step-item">
-                <Box className="step-circle">{step.number}</Box>
-                {index !== steps.length - 1 && <div className="line" />}
-                <Typography className="step-title">{step.title}</Typography>
-                <Typography className="step-desc">
-                  {step.description}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
         </Box>
-
-
-        <Box className="feature">
-          <Box className="featute__title">
-            <Typography
-              variant="h4"
-              sx={{ marginLeft: "22%", color: "#1e1520", fontWeight: "bold" }}
-            >
-              Tính năng nổi bật
-            </Typography>
-            <Typography sx={{ color: "#526467", marginTop: "10px" }}>
-              QuitSmoke cung cấp đầy đủ công cụ để hỗ trợ bạn trong hành trình
-              cai thuốc lá
-            </Typography>
-          </Box>
-          <Box className="feature__card">
-            <Grid container spacing={10}>
-              {features.map((feature, index) => (
-                <Grid item size={4} key={index}>
-                  <Card
-                    sx={{
-                      height: "100%",
-                      boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px",
-                    }}
-                  >
-                    <CardActionArea
-                      sx={{
-                        alignItems: "center",
-                        textAlign: "center",
-                        height: "150px",
-                        "&[data-active]": {
-                          backgroundColor: "action.selected",
-                          "&:hover": {
-                            backgroundColor: "action.selectedHover",
-                          },
-
         <Box className="feature__card">
           <Grid container spacing={10}>
             {features.map((feature, index) => (
-              <Grid item size={4} key={index}>
+              <Grid item xs={12} sm={6} md={4} key={index}>
                 <Card
                   sx={{
                     height: "100%",
@@ -284,203 +224,21 @@ export default function HomePage() {
                       alignItems: "center",
                       textAlign: "center",
                       height: "150px",
-                      "&[data-active]": {
-                        backgroundColor: "action.selected",
-                        "&:hover": {
-                          backgroundColor: "action.selectedHover",
-
-                        },
-                      }}
-                    >
-                      <CardContent>
-                        <Typography variant="h5" component="div">
-                          {feature.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {feature.description}
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </Box>
-
-        {/* Carousel Section */}
-        <Box sx={{ textAlign: "center", padding: "150px 150px 0px 150px" }}>
-          <Typography
-            variant="h4"
-            sx={{ color: "#1e1520", marginBottom: "20px", fontWeight: "bold" }}
-          >
-            Ứng dụng cai thuốc lá được thiết kế dành cho bạn và cùng bạn!
-          </Typography>
-          <Swiper
-            modules={[Navigation, Pagination]}
-            spaceBetween={50}
-            slidesPerView={3}
-            // pagination={{ clickable: true }}
-            loop={true}
-            breakpoints={{
-              0: { slidesPerView: 1 },
-              768: { slidesPerView: 2 },
-              1024: { slidesPerView: 3 },
-            }}
-          >
-            {testimonials.map((testimonial, index) => (
-              <SwiperSlide key={index}>
-                <Card
-                  sx={{
-                    width: 400,
-                    height: 350,
-                    padding: "20px",
-                    boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px",
-                    borderRadius: "10px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <CardContent
-                    sx={{
-                      flexGrow: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
                     }}
                   >
-
-                    <Box>
-                      <Typography
-                        variant="body1"
-                        color="text.secondary"
-                        sx={{
-                          position: "relative",
-                          minHeight: "120px",
-                          "&:before": {
-                            content: '"“"',
-                            color: "#1aa146",
-                            fontSize: "2rem",
-                            position: "absolute",
-                            left: "-20px",
-                            top: "-10px",
-                          },
-                          "&:after": {
-                            content: '"”"',
-                            color: "#1aa146",
-                            fontSize: "2rem",
-                            position: "absolute",
-                            right: "-20px",
-                            bottom: "-10px",
-                          },
-                        }}
-                      >
-                        {testimonial.quote}
-
                     <CardContent>
                       <Typography variant="h5" component="div">
                         {feature.title}
-
                       </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginTop: "20px",
-                      }}
-                    >
-                      <img
-                        src={testimonial.avatar}
-                        alt={`${testimonial.author} avatar`}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          borderRadius: "50%",
-                          marginRight: "10px",
-                        }}
-                      />
-                      <Typography variant="h6" sx={{ color: "#209d4b" }}>
-                        {testimonial.author}
+                      <Typography variant="body2" color="text.secondary">
+                        {feature.description}
                       </Typography>
-                    </Box>
-                    <Button
-                      variant="text"
-                      sx={{
-                        color: "#1aa146",
-                        marginTop: "10px",
-                        alignSelf: "center",
-                      }}
-                    >
-                      Read more
-                    </Button>
-                  </CardContent>
+                    </CardContent>
+                  </CardActionArea>
                 </Card>
-              </SwiperSlide>
+              </Grid>
             ))}
-          </Swiper>
-        </Box>
-      </Box>
-      <Box className="quit-smoking-banner">
-        <Typography variant="h4" className="quit-smoking-banner-title">
-          Bắt đầu hành trình cai thuốc lá ngay hôm nay
-        </Typography>
-        <Typography variant="body1" className="quit-smoking-banner-description">
-          Đăng ký miễn phí và tham gia cùng hàng ngàn người dùng trên toàn cầu
-          để
-          <br /> cải thiện sức khỏe và cuộc sống không khói thuốc.
-        </Typography>
-        <Box className="quit-smoking-banner-buttons">
-          <Button
-            variant="contained"
-            className="quit-smoking-banner-button register"
-          >
-            Đăng ký ngay
-          </Button>
-          <Button
-            variant="outlined"
-            className="quit-smoking-banner-button learn"
-          >
-            Tìm hiểu thêm
-          </Button>
-        </Box>
-      </Box>
-
-      <Box className="faq-container">
-        <Typography
-          variant="h4"
-          className="faq-title"
-          sx={{ fontWeight: "bold", marginBottom: "10px" }}
-        >
-          Câu hỏi thường gặp
-        </Typography>
-        <Typography
-          variant="body1"
-          className="faq-subtitle"
-          sx={{ marginBottom: "50px" }}
-        >
-          Giải đáp những thắc mắc phổ biến về QuitSmoke và quá trình cai thuốc
-          lá
-        </Typography>
-
-        <Box className="faq-grid">
-          {faqData.map((item, index) => (
-            <Box key={index} className="faq-item">
-              <Typography
-                className="faq-question"
-                sx={{ fontWeight: "bold", marginBottom: "10px" }}
-              >
-                {item.question}
-              </Typography>
-              <Typography
-                className="faq-answer"
-                sx={{ fontSize: "15px", color: "#828795" }}
-              >
-                {item.answer}
-              </Typography>
-            </Box>
-          ))}
+          </Grid>
         </Box>
       </Box>
 
@@ -496,7 +254,6 @@ export default function HomePage() {
           modules={[Navigation, Pagination]}
           spaceBetween={50}
           slidesPerView={3}
-          // pagination={{ clickable: true }}
           loop={true}
           breakpoints={{
             0: { slidesPerView: 1 },
@@ -532,7 +289,7 @@ export default function HomePage() {
                       color="text.secondary"
                       sx={{
                         position: "relative",
-                        minHeight: "120px", 
+                        minHeight: "120px",
                         "&:before": {
                           content: '"“"',
                           color: "#1aa146",
@@ -591,24 +348,69 @@ export default function HomePage() {
           ))}
         </Swiper>
       </Box>
-    </Box>
-    <Box className="quit-smoking-banner">
-      <Typography variant="h4" className="quit-smoking-banner-title">
-        Bắt đầu hành trình cai thuốc lá ngay hôm nay
-      </Typography>
-      <Typography variant="body1" className="quit-smoking-banner-description">
-        Đăng ký miễn phí và tham gia cùng hàng ngàn người dùng trên toàn cầu để
-        <br /> cải thiện sức khỏe và cuộc sống không khói thuốc.
-      </Typography>
-      <Box className="quit-smoking-banner-buttons">
-        <Button variant="contained" className="quit-smoking-banner-button register">
-          Đăng ký ngay
-        </Button>
-        <Button variant="outlined" className="quit-smoking-banner-button learn">
-          Tìm hiểu thêm
-        </Button>
+
+      {/* FAQ Section */}
+      <Box className="faq-container">
+        <Typography
+          variant="h4"
+          className="faq-title"
+          sx={{ fontWeight: "bold", marginBottom: "10px" }}
+        >
+          Câu hỏi thường gặp
+        </Typography>
+        <Typography
+          variant="body1"
+          className="faq-subtitle"
+          sx={{ marginBottom: "50px" }}
+        >
+          Giải đáp những thắc mắc phổ biến về QuitSmoke và quá trình cai thuốc
+          lá
+        </Typography>
+        <Box className="faq-grid">
+          {faqData.map((item, index) => (
+            <Box key={index} className="faq-item">
+              <Typography
+                className="faq-question"
+                sx={{ fontWeight: "bold", marginBottom: "10px" }}
+              >
+                {item.question}
+              </Typography>
+              <Typography
+                className="faq-answer"
+                sx={{ fontSize: "15px", color: "#828795" }}
+              >
+                {item.answer}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      {/* Quit Smoking Banner Section */}
+      <Box className="quit-smoking-banner">
+        <Typography variant="h4" className="quit-smoking-banner-title">
+          Bắt đầu hành trình cai thuốc lá ngay hôm nay
+        </Typography>
+        <Typography variant="body1" className="quit-smoking-banner-description">
+          Đăng ký miễn phí và tham gia cùng hàng ngàn người dùng trên toàn cầu
+          để
+          <br /> cải thiện sức khỏe và cuộc sống không khói thuốc.
+        </Typography>
+        <Box className="quit-smoking-banner-buttons">
+          <Button
+            variant="contained"
+            className="quit-smoking-banner-button register"
+          >
+            Đăng ký ngay
+          </Button>
+          <Button
+            variant="outlined"
+            className="quit-smoking-banner-button learn"
+          >
+            Tìm hiểu thêm
+          </Button>
+        </Box>
       </Box>
     </Box>
-    </>
   );
 }
