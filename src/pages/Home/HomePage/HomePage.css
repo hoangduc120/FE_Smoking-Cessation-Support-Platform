@@ -250,7 +250,7 @@ button.button__more {
 
 .faq-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 items per row */
+  grid-template-columns: repeat(2, 1fr); 
   gap: 20px;
   max-width: 1100px;
   margin: 0 auto;
@@ -328,12 +328,12 @@ button.button__more {
 .quit-smoking-banner-title {
   font-size: 2rem;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 10px !important;
 }
 
 .quit-smoking-banner-description {
   font-size: 1rem;
-  margin-bottom: 20px;
+  margin-bottom: 20px !important;
   line-height: 1.5;
 }
 
