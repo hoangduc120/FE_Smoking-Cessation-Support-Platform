@@ -10,6 +10,7 @@ import CoachesPage from "../pages/Coacher/CoachesPage/CoachesPage";
 import DashBoardAdmin from "../pages/Admin/DashBoard/DashBoardAdmin";
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import OnBoarding from "../pages/Home/OnBoarding/OnBoarding";
+import UpgradeMember from "../pages/Home/UpgradeMember/UpgradeMember";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -40,6 +41,10 @@ export default function useRouterElement() {
         {
           path: PATH.ONBOARDING,
           element: <OnBoarding />,
+        },
+          {
+          path: PATH.UPGRADEMEMBER,
+          element: <UpgradeMember />,
         },
       ],
     },

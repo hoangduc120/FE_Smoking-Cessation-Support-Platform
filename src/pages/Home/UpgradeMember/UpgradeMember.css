@@ -1,0 +1,96 @@
+.subscription-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+
+}
+
+.tabs span {
+  padding: 10px 20px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.tabs span:hover {
+  border-bottom-color: #1976d2;
+}
+
+.plans-container {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  /* flex-wrap: wrap; */
+}
+
+.plan-card {
+    position: relative;
+  width: 500px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+  border: solid 1px black
+}
+
+.plan-card:hover {
+  transform: translateY(-5px);
+}
+
+.highlighted {
+  border: 2px solid #ff9800;
+  background-color: #fff3e0;
+}
+
+.features-list {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.features-list li {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.check-mark {
+  color: #4caf50;
+  margin-right: 10px;
+}
+
+button.choose-button {
+  margin-top: 20px;
+  width: 100%;
+  background-color: #18181a;
+  color: white !important;
+  border: 1px solid #ccc;
+}
+
+.choose-button:hover {
+  background-color: black;
+}
+
+button.continue-button {
+  margin-top: 20px;
+  padding: 10px 30px;
+  background-color: #000;
+}
+
+@media (max-width: 600px) {
+  .plans-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .plan-card {
+    width: 100%;
+  }
+}
