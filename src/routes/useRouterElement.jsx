@@ -11,6 +11,7 @@ import DashBoardAdmin from "../pages/Admin/DashBoard/DashBoardAdmin";
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import UpgradeMember from "../pages/Home/UpgradeMember/UpgradeMember";
 import AssessmentPage from "../pages/Home/AsseementPage/AssessmentPage";
+import PlanCustomization from "../pages/Home/PlanCustomization/PlanCustomization";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -42,9 +43,13 @@ export default function useRouterElement() {
           path: PATH.ASSESSMENTPAGE,
           element: <AssessmentPage />,
         },
-          {
+        {
           path: PATH.UPGRADEMEMBER,
           element: <UpgradeMember />,
+        },
+          {
+          path: PATH.PLANCUSTOMIZATION,
+          element: <PlanCustomization />,
         },
       ],
     },

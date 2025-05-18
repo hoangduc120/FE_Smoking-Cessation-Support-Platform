@@ -31,9 +31,9 @@ const authSlice = createSlice({
             toast.success("Logout successful")
         },
     },
-    extraReducers: (builder) => {
-        // add extra reducers here
-    }
+    // extraReducers: (builder) => {
+    //     // add extra reducers here
+    // }
        
 })
 
