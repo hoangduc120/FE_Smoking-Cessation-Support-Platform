@@ -22,6 +22,10 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import "./AssessmentPage.css";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { saveAssessment } from "../../../store/slices/quitSmokingSlice";
+import toast from "react-hot-toast";
 
 // Validation schema
 const schema = yup.object().shape({
@@ -42,9 +46,7 @@ const schema = yup.object().shape({
     .required("Thời điểm hút điếu đầu tiên là bắt buộc"),
   difficultPlacesNoSmoking: yup.boolean(),
   smokeDuringSickness: yup.boolean(),
-  previousAttempts: yup
-    .string()
-    .required("Số lần cố gắng cai là bắt buộc"),
+  previousAttempts: yup.string().required("Số lần cố gắng cai là bắt buộc"),
   longestQuitDuration: yup.string().when("previousAttempts", {
     is: (value) => value !== "0",
     then: (schema) => schema.required("Thời gian cai lâu nhất là bắt buộc"),
@@ -92,13 +94,18 @@ const schema = yup.object().shape({
     .string()
     .required("Hình thức giao tiếp là bắt buộc"),
   coachGender: yup.string().required("Giới tính huấn luyện viên là bắt buộc"),
-  coachSpecialty: yup.string().required("Chuyên môn huấn luyện viên là bắt buộc"),
+  coachSpecialty: yup
+    .string()
+    .required("Chuyên môn huấn luyện viên là bắt buộc"),
   additionalInfo: yup.string(),
 });
 
 export default function AssessmentPage() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isLoading } = useSelector((state) => state.quitSmoking);
   const [step, setStep] = useState(1);
-  const totalSteps = 5;
+  const totalSteps = 4;
 
   const {
     control,
@@ -150,10 +157,39 @@ export default function AssessmentPage() {
     }
   };
 
-  const onSubmit = async (data) => {
-    console.log("Form data submitted:", data);
+const onSubmit = async (data) => {
+  if (step === totalSteps) {
+    // Tạo object chỉ chứa các trường cần thiết
+    const assessmentData = {
+      id: data.id || "1", // Nếu không có id thì mặc định là "1" (dựa trên mock API)
+      CigarettesPerDay: data.cigarettesPerDay,
+      SmokingYears: data.smokingYears,
+      CigarettePrice: data.cigarettePrice,
+      FirstCigaretteTime: data.firstCigaretteTime,
+      PreviousAttempts: data.previousAttempts,
+      LongestQuitDuration: data.previousAttempts !== "0" ? data.longestQuitDuration : null,
+      QuitMethods: data.previousAttempts !== "0" ? data.quitMethods : [],
+      RelapseTriggers: data.previousAttempts !== "0" ? data.relapseTriggers : [],
+      MainReason: data.mainReason,
+      HealthConcerns: data.mainReason === "health" ? data.healthConcerns : [],
+      GoalTimeframe: data.goalTimeframe,
+      PreferredApproach: data.preferredApproach,
+      CreatedAt: new Date().toISOString(),
+      UpdatedAt: new Date().toISOString(),
+    };
+    console.log("Dữ liệu gửi đi:", assessmentData);
 
-  };
+    try {
+      await dispatch(saveAssessment(assessmentData)).unwrap();
+      await toast.success("Đánh giá thành công!");
+      setTimeout(() => {
+        navigate("/planCustomization");
+      }, 2000);
+    } catch (error) {
+      toast.error("Đánh giá thất bại! Vui lòng thử lại.");
+    }
+  }
+};
 
   return (
     <Box className="assessment-page">
@@ -162,12 +198,15 @@ export default function AssessmentPage() {
           Đánh Giá Thói Quen Hút Thuốc
         </Typography>
         <Typography align="center" color="textSecondary" paragraph>
-          Hãy cung cấp thông tin chi tiết để chúng tôi có thể tạo kế hoạch cai thuốc phù hợp nhất cho bạn
+          Hãy cung cấp thông tin chi tiết để chúng tôi có thể tạo kế hoạch cai
+          thuốc phù hợp nhất cho bạn
         </Typography>
 
         <Box className="progress-container">
           <Box className="progress-info">
-            <span>Bước {step}/{totalSteps}</span>
+            <span>
+              Bước {step}/{totalSteps}
+            </span>
             <span>{Math.round((step / totalSteps) * 100)}% hoàn thành</span>
           </Box>
           <LinearProgress
@@ -219,7 +258,9 @@ export default function AssessmentPage() {
                 />
               </Box>
               {errors.cigarettesPerDay && (
-                <Typography color="error">{errors.cigarettesPerDay.message}</Typography>
+                <Typography color="error">
+                  {errors.cigarettesPerDay.message}
+                </Typography>
               )}
 
               <FormLabel>Bạn đã hút thuốc được bao lâu?</FormLabel>
@@ -248,7 +289,9 @@ export default function AssessmentPage() {
                 />
               </Box>
               {errors.smokingYears && (
-                <Typography color="error">{errors.smokingYears.message}</Typography>
+                <Typography color="error">
+                  {errors.smokingYears.message}
+                </Typography>
               )}
 
               <FormLabel>Giá một bao thuốc lá (VNĐ)</FormLabel>
@@ -277,15 +320,22 @@ export default function AssessmentPage() {
                 />
               </Box>
               {errors.cigarettePrice && (
-                <Typography color="error">{errors.cigarettePrice.message}</Typography>
+                <Typography color="error">
+                  {errors.cigarettePrice.message}
+                </Typography>
               )}
 
-              <FormLabel>Bạn hút điếu thuốc đầu tiên của ngày vào thời điểm nào?</FormLabel>
+              <FormLabel>
+                Bạn hút điếu thuốc đầu tiên của ngày vào thời điểm nào?
+              </FormLabel>
               <Controller
                 name="firstCigaretteTime"
                 control={control}
                 render={({ field }) => (
-                  <RadioGroup {...field} onChange={(_, value) => field.onChange(value)}>
+                  <RadioGroup
+                    {...field}
+                    onChange={(_, value) => field.onChange(value)}
+                  >
                     <FormControlLabel
                       value="within5min"
                       control={<Radio />}
@@ -310,30 +360,10 @@ export default function AssessmentPage() {
                 )}
               />
               {errors.firstCigaretteTime && (
-                <Typography color="error">{errors.firstCigaretteTime.message}</Typography>
+                <Typography color="error">
+                  {errors.firstCigaretteTime.message}
+                </Typography>
               )}
-
-              {/* <Controller
-                name="difficultPlacesNoSmoking"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
-                    label="Bạn có thấy khó khăn khi không được hút thuốc ở những nơi cấm hút thuốc không?"
-                  />
-                )}
-              /> */}
-
-              {/* <Controller
-                name="smokeDuringSickness"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
-                    label="Bạn có hút thuốc khi bị ốm và phải nằm trên giường cả ngày không?"
-                  />
-                )}
-              /> */}
             </CardContent>
             <Box className="button-container">
               <Button
@@ -365,31 +395,59 @@ export default function AssessmentPage() {
               </Typography>
             </CardHeader>
             <CardContent className="form-container">
-              <FormLabel>Bạn đã từng cố gắng cai thuốc lá bao nhiêu lần?</FormLabel>
+              <FormLabel>
+                Bạn đã từng cố gắng cai thuốc lá bao nhiêu lần?
+              </FormLabel>
               <Controller
                 name="previousAttempts"
                 control={control}
                 render={({ field }) => (
-                  <RadioGroup {...field} onChange={(_, value) => field.onChange(value)}>
-                    <FormControlLabel value="0" control={<Radio />} label="Đây là lần đầu tiên" />
-                    <FormControlLabel value="1-2" control={<Radio />} label="1-2 lần" />
-                    <FormControlLabel value="3-5" control={<Radio />} label="3-5 lần" />
-                    <FormControlLabel value="5+" control={<Radio />} label="Hơn 5 lần" />
+                  <RadioGroup
+                    {...field}
+                    onChange={(_, value) => field.onChange(value)}
+                  >
+                    <FormControlLabel
+                      value="0"
+                      control={<Radio />}
+                      label="Đây là lần đầu tiên"
+                    />
+                    <FormControlLabel
+                      value="1-2"
+                      control={<Radio />}
+                      label="1-2 lần"
+                    />
+                    <FormControlLabel
+                      value="3-5"
+                      control={<Radio />}
+                      label="3-5 lần"
+                    />
+                    <FormControlLabel
+                      value="5+"
+                      control={<Radio />}
+                      label="Hơn 5 lần"
+                    />
                   </RadioGroup>
                 )}
               />
               {errors.previousAttempts && (
-                <Typography color="error">{errors.previousAttempts.message}</Typography>
+                <Typography color="error">
+                  {errors.previousAttempts.message}
+                </Typography>
               )}
 
               {previousAttempts !== "0" && (
                 <>
-                  <FormLabel>Thời gian dài nhất bạn đã cai thuốc thành công là bao lâu?</FormLabel>
+                  <FormLabel>
+                    Thời gian dài nhất bạn đã cai thuốc thành công là bao lâu?
+                  </FormLabel>
                   <Controller
                     name="longestQuitDuration"
                     control={control}
                     render={({ field }) => (
-                      <RadioGroup {...field} onChange={(_, value) => field.onChange(value)}>
+                      <RadioGroup
+                        {...field}
+                        onChange={(_, value) => field.onChange(value)}
+                      >
                         <FormControlLabel
                           value="less1week"
                           control={<Radio />}
@@ -414,19 +472,32 @@ export default function AssessmentPage() {
                     )}
                   />
                   {errors.longestQuitDuration && (
-                    <Typography color="error">{errors.longestQuitDuration.message}</Typography>
+                    <Typography color="error">
+                      {errors.longestQuitDuration.message}
+                    </Typography>
                   )}
 
-                  <FormLabel>Bạn đã sử dụng phương pháp nào để cai thuốc?</FormLabel>
+                  <FormLabel>
+                    Bạn đã sử dụng phương pháp nào để cai thuốc?
+                  </FormLabel>
                   <Controller
                     name="quitMethods"
                     control={control}
                     render={({ field }) => (
                       <Box className="checkbox-grid">
                         {[
-                          { id: "cold-turkey", label: "Cai thuốc hoàn toàn (Cold Turkey)" },
-                          { id: "gradual-reduction", label: "Giảm dần số lượng" },
-                          { id: "nicotine-replacement", label: "Liệu pháp thay thế nicotine" },
+                          {
+                            id: "cold-turkey",
+                            label: "Cai thuốc hoàn toàn (Cold Turkey)",
+                          },
+                          {
+                            id: "gradual-reduction",
+                            label: "Giảm dần số lượng",
+                          },
+                          {
+                            id: "nicotine-replacement",
+                            label: "Liệu pháp thay thế nicotine",
+                          },
                           { id: "medication", label: "Thuốc kê đơn" },
                           { id: "counseling", label: "Tư vấn/Trị liệu" },
                           { id: "app", label: "Ứng dụng cai thuốc" },
@@ -439,7 +510,9 @@ export default function AssessmentPage() {
                                 onChange={(e) => {
                                   const newValue = e.target.checked
                                     ? [...field.value, method.id]
-                                    : field.value.filter((v) => v !== method.id);
+                                    : field.value.filter(
+                                        (v) => v !== method.id
+                                      );
                                   field.onChange(newValue);
                                 }}
                               />
@@ -451,10 +524,14 @@ export default function AssessmentPage() {
                     )}
                   />
                   {errors.quitMethods && (
-                    <Typography color="error">{errors.quitMethods.message}</Typography>
+                    <Typography color="error">
+                      {errors.quitMethods.message}
+                    </Typography>
                   )}
 
-                  <FormLabel>Yếu tố nào khiến bạn quay lại hút thuốc?</FormLabel>
+                  <FormLabel>
+                    Yếu tố nào khiến bạn quay lại hút thuốc?
+                  </FormLabel>
                   <Controller
                     name="relapseTriggers"
                     control={control}
@@ -476,7 +553,9 @@ export default function AssessmentPage() {
                                 onChange={(e) => {
                                   const newValue = e.target.checked
                                     ? [...field.value, trigger.id]
-                                    : field.value.filter((v) => v !== trigger.id);
+                                    : field.value.filter(
+                                        (v) => v !== trigger.id
+                                      );
                                   field.onChange(newValue);
                                 }}
                               />
@@ -488,7 +567,9 @@ export default function AssessmentPage() {
                     )}
                   />
                   {errors.relapseTriggers && (
-                    <Typography color="error">{errors.relapseTriggers.message}</Typography>
+                    <Typography color="error">
+                      {errors.relapseTriggers.message}
+                    </Typography>
                   )}
                 </>
               )}
@@ -522,22 +603,29 @@ export default function AssessmentPage() {
               </Typography>
             </CardHeader>
             <CardContent className="form-container">
-              <FormLabel>Lý do chính khiến bạn muốn cai thuốc lá là gì?</FormLabel>
+              <FormLabel>
+                Lý do chính khiến bạn muốn cai thuốc lá là gì?
+              </FormLabel>
               <Controller
                 name="mainReason"
                 control={control}
                 render={({ field }) => (
-                  <RadioGroup {...field} onChange={(_, value) => field.onChange(value)}>
+                  <RadioGroup
+                    {...field}
+                    onChange={(_, value) => field.onChange(value)}
+                  >
                     {[
                       {
                         value: "health",
                         label: "Vì sức khỏe",
-                        description: "Tôi muốn cải thiện sức khỏe và sống lâu hơn",
+                        description:
+                          "Tôi muốn cải thiện sức khỏe và sống lâu hơn",
                       },
                       {
                         value: "money",
                         label: "Tiết kiệm tiền",
-                        description: "Tôi muốn tiết kiệm tiền đang chi cho thuốc lá",
+                        description:
+                          "Tôi muốn tiết kiệm tiền đang chi cho thuốc lá",
                       },
                       {
                         value: "family",
@@ -547,7 +635,8 @@ export default function AssessmentPage() {
                       {
                         value: "appearance",
                         label: "Cải thiện ngoại hình",
-                        description: "Tôi muốn có làn da, hơi thở và ngoại hình tốt hơn",
+                        description:
+                          "Tôi muốn có làn da, hơi thở và ngoại hình tốt hơn",
                       },
                       {
                         value: "other",
@@ -555,13 +644,19 @@ export default function AssessmentPage() {
                         description: "Tôi có lý do riêng để cai thuốc lá",
                       },
                     ].map((reason) => (
-                      <Card key={reason.value} sx={{ mb: 1, p: 2 }} variant="outlined">
+                      <Card
+                        key={reason.value}
+                        sx={{ mb: 1, p: 2 }}
+                        variant="outlined"
+                      >
                         <FormControlLabel
                           value={reason.value}
                           control={<Radio />}
                           label={
                             <Box>
-                              <Typography variant="subtitle1">{reason.label}</Typography>
+                              <Typography variant="subtitle1">
+                                {reason.label}
+                              </Typography>
                               <Typography variant="body2" color="textSecondary">
                                 {reason.description}
                               </Typography>
@@ -574,12 +669,16 @@ export default function AssessmentPage() {
                 )}
               />
               {errors.mainReason && (
-                <Typography color="error">{errors.mainReason.message}</Typography>
+                <Typography color="error">
+                  {errors.mainReason.message}
+                </Typography>
               )}
 
               {mainReason === "health" && (
                 <>
-                  <FormLabel>Vấn đề sức khỏe cụ thể nào khiến bạn lo ngại?</FormLabel>
+                  <FormLabel>
+                    Vấn đề sức khỏe cụ thể nào khiến bạn lo ngại?
+                  </FormLabel>
                   <Controller
                     name="healthConcerns"
                     control={control}
@@ -590,7 +689,10 @@ export default function AssessmentPage() {
                           { id: "heart", label: "Bệnh tim mạch" },
                           { id: "cancer", label: "Nguy cơ ung thư" },
                           { id: "energy", label: "Thiếu năng lượng/Mệt mỏi" },
-                          { id: "existing-condition", label: "Bệnh lý hiện tại" },
+                          {
+                            id: "existing-condition",
+                            label: "Bệnh lý hiện tại",
+                          },
                           { id: "prevention", label: "Phòng ngừa bệnh tật" },
                         ].map((concern) => (
                           <FormControlLabel
@@ -601,7 +703,9 @@ export default function AssessmentPage() {
                                 onChange={(e) => {
                                   const newValue = e.target.checked
                                     ? [...field.value, concern.id]
-                                    : field.value.filter((v) => v !== concern.id);
+                                    : field.value.filter(
+                                        (v) => v !== concern.id
+                                      );
                                   field.onChange(newValue);
                                 }}
                               />
@@ -613,17 +717,24 @@ export default function AssessmentPage() {
                     )}
                   />
                   {errors.healthConcerns && (
-                    <Typography color="error">{errors.healthConcerns.message}</Typography>
+                    <Typography color="error">
+                      {errors.healthConcerns.message}
+                    </Typography>
                   )}
                 </>
               )}
 
-              <FormLabel>Bạn muốn cai thuốc lá hoàn toàn trong khoảng thời gian nào?</FormLabel>
+              <FormLabel>
+                Bạn muốn cai thuốc lá hoàn toàn trong khoảng thời gian nào?
+              </FormLabel>
               <Controller
                 name="goalTimeframe"
                 control={control}
                 render={({ field }) => (
-                  <RadioGroup {...field} onChange={(_, value) => field.onChange(value)}>
+                  <RadioGroup
+                    {...field}
+                    onChange={(_, value) => field.onChange(value)}
+                  >
                     <FormControlLabel
                       value="1month"
                       control={<Radio />}
@@ -648,46 +759,10 @@ export default function AssessmentPage() {
                 )}
               />
               {errors.goalTimeframe && (
-                <Typography color="error">{errors.goalTimeframe.message}</Typography>
+                <Typography color="error">
+                  {errors.goalTimeframe.message}
+                </Typography>
               )}
-
-              {/* <FormLabel>Mức độ tự tin của bạn về khả năng cai thuốc thành công? (1-10)</FormLabel>
-              <Box display="flex" alignItems="center" gap={2}>
-                <Controller
-                  name="confidenceLevel"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Slider
-                        {...field}
-                        min={1}
-                        max={10}
-                        step={1}
-                        onChange={(_, value) => field.onChange(value)}
-                        sx={{
-                          flex: 1,
-                          "& .MuiSlider-track": { backgroundColor: "#2d7e32" },
-                          "& .MuiSlider-rail": { backgroundColor: "#e0e0e0" },
-                          "& .MuiSlider-thumb": { backgroundColor: "#2d7e32" },
-                        }}
-                      />
-                      <Typography>{field.value}/10</Typography>
-                    </>
-                  )}
-                />
-              </Box>
-              {errors.confidenceLevel && (
-                <Typography color="error">{errors.confidenceLevel.message}</Typography>
-              )}
-              <Typography color="textSecondary">
-                {watch("confidenceLevel") <= 3 &&
-                  "Đừng lo lắng, chúng tôi sẽ giúp bạn xây dựng sự tự tin!"}
-                {watch("confidenceLevel") > 3 &&
-                  watch("confidenceLevel") <= 7 &&
-                  "Bạn đã có sự tự tin nhất định, chúng tôi sẽ giúp bạn tăng cường nó!"}
-                {watch("confidenceLevel") > 7 &&
-                  "Tuyệt vời! Bạn đã rất tự tin, đây là một dấu hiệu tốt cho sự thành công!"}
-              </Typography> */}
             </CardContent>
             <Box className="button-container">
               <Button
@@ -712,102 +787,10 @@ export default function AssessmentPage() {
         {step === 4 && (
           <Card className="step-card">
             <CardHeader>
-              <Typography variant="h5">Hệ thống hỗ trợ</Typography>
-              <Typography color="textSecondary">
-                Cho chúng tôi biết về hệ thống hỗ trợ của bạn
-              </Typography>
-            </CardHeader>
-            <CardContent className="form-container">
-              <FormLabel>Ai sẽ hỗ trợ bạn trong hành trình cai thuốc?</FormLabel>
-              <Controller
-                name="supportSystem"
-                control={control}
-                render={({ field }) => (
-                  <Box className="checkbox-grid">
-                    {[
-                      { id: "family", label: "Gia đình" },
-                      { id: "friends", label: "Bạn bè" },
-                      { id: "partner", label: "Vợ/chồng/bạn đời" },
-                      { id: "colleagues", label: "Đồng nghiệp" },
-                      { id: "healthcare", label: "Nhân viên y tế" },
-                      { id: "none", label: "Không có ai hỗ trợ" },
-                    ].map((support) => (
-                      <FormControlLabel
-                        key={support.id}
-                        control={
-                          <Checkbox
-                            checked={field.value.includes(support.id)}
-                            onChange={(e) => {
-                              let newValue;
-                              if (support.id === "none") {
-                                newValue = e.target.checked ? ["none"] : [];
-                              } else {
-                                newValue = e.target.checked
-                                  ? [...field.value.filter((v) => v !== "none"), support.id]
-                                  : field.value.filter((v) => v !== support.id);
-                              }
-                              field.onChange(newValue);
-                            }}
-                          />
-                        }
-                        label={support.label}
-                      />
-                    ))}
-                  </Box>
-                )}
-              />
-              {errors.supportSystem && (
-                <Typography color="error">{errors.supportSystem.message}</Typography>
-              )}
-
-              {/* <Controller
-                name="livesWithSmokers"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
-                    label="Bạn có sống cùng với người hút thuốc không?"
-                  />
-                )}
-              /> */}
-
-              {/* <Controller
-                name="workWithSmokers"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
-                    label="Bạn có làm việc với những người hút thuốc không?"
-                  />
-                )}
-              /> */}
-            </CardContent>
-            <Box className="button-container">
-              <Button
-                variant="outlined"
-                onClick={prevStep}
-                startIcon={<ArrowBack />}
-              >
-                Quay lại
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleSubmit(nextStep)}
-                endIcon={<ArrowForward />}
-              >
-                Tiếp tục
-              </Button>
-            </Box>
-          </Card>
-        )}
-
-        {step === 5 && (
-          <Card className="step-card">
-            <CardHeader>
               <Typography variant="h5">Tùy chọn cá nhân</Typography>
               <Typography color="textSecondary">
-                Cho chúng tôi biết về sở thích của bạn để tìm huấn luyện viên phù hợp
+                Cho chúng tôi biết về sở thích của bạn để tìm huấn luyện viên
+                phù hợp
               </Typography>
             </CardHeader>
             <CardContent className="form-container">
@@ -816,7 +799,10 @@ export default function AssessmentPage() {
                 name="preferredApproach"
                 control={control}
                 render={({ field }) => (
-                  <RadioGroup {...field} onChange={(_, value) => field.onChange(value)}>
+                  <RadioGroup
+                    {...field}
+                    onChange={(_, value) => field.onChange(value)}
+                  >
                     {[
                       {
                         value: "cold-turkey",
@@ -846,16 +832,23 @@ export default function AssessmentPage() {
                       {
                         value: "unsure",
                         label: "Tôi không chắc chắn",
-                        description: "Tôi muốn được tư vấn về phương pháp phù hợp nhất",
+                        description:
+                          "Tôi muốn được tư vấn về phương pháp phù hợp nhất",
                       },
                     ].map((approach) => (
-                      <Card key={approach.value} sx={{ mb: 1, p: 2 }} variant="outlined">
+                      <Card
+                        key={approach.value}
+                        sx={{ mb: 1, p: 2 }}
+                        variant="outlined"
+                      >
                         <FormControlLabel
                           value={approach.value}
                           control={<Radio />}
                           label={
                             <Box>
-                              <Typography variant="subtitle1">{approach.label}</Typography>
+                              <Typography variant="subtitle1">
+                                {approach.label}
+                              </Typography>
                               <Typography variant="body2" color="textSecondary">
                                 {approach.description}
                               </Typography>
@@ -868,55 +861,62 @@ export default function AssessmentPage() {
                 )}
               />
               {errors.preferredApproach && (
-                <Typography color="error">{errors.preferredApproach.message}</Typography>
+                <Typography color="error">
+                  {errors.preferredApproach.message}
+                </Typography>
               )}
 
-              <FormLabel>Bạn thích hình thức trao đổi nào với huấn luyện viên?</FormLabel>
+              <FormLabel>
+                Bạn thích hình thức trao đổi nào với huấn luyện viên?
+              </FormLabel>
               <Controller
                 name="preferredCommunication"
                 control={control}
                 render={({ field }) => (
-                  <RadioGroup {...field} onChange={(_, value) => field.onChange(value)}>
+                  <RadioGroup
+                    {...field}
+                    onChange={(_, value) => field.onChange(value)}
+                  >
                     <FormControlLabel
                       value="inperson"
                       control={<Radio />}
                       label="Gặp mặt trực tiếp"
                     />
-                    {/* <FormControlLabel
-                      value="video"
-                      control={<Radio />}
-                      label="Cuộc gọi video"
-                    /> */}
-                    {/* <FormControlLabel
-                      value="phone"
-                      control={<Radio />}
-                      label="Cuộc gọi điện thoại"
-                    /> */}
                     <FormControlLabel
                       value="chat"
                       control={<Radio />}
                       label="Nhắn tin"
                     />
-                    {/* <FormControlLabel
-                      value="flexible"
-                      control={<Radio />}
-                      label="Linh hoạt (kết hợp nhiều hình thức)"
-                    /> */}
                   </RadioGroup>
                 )}
               />
               {errors.preferredCommunication && (
-                <Typography color="error">{errors.preferredCommunication.message}</Typography>
+                <Typography color="error">
+                  {errors.preferredCommunication.message}
+                </Typography>
               )}
 
-              <FormLabel>Bạn có sở thích về giới tính của huấn luyện viên không?</FormLabel>
+              <FormLabel>
+                Bạn có sở thích về giới tính của huấn luyện viên không?
+              </FormLabel>
               <Controller
                 name="coachGender"
                 control={control}
                 render={({ field }) => (
-                  <RadioGroup {...field} onChange={(_, value) => field.onChange(value)}>
-                    <FormControlLabel value="male" control={<Radio />} label="Nam" />
-                    <FormControlLabel value="female" control={<Radio />} label="Nữ" />
+                  <RadioGroup
+                    {...field}
+                    onChange={(_, value) => field.onChange(value)}
+                  >
+                    <FormControlLabel
+                      value="male"
+                      control={<Radio />}
+                      label="Nam"
+                    />
+                    <FormControlLabel
+                      value="female"
+                      control={<Radio />}
+                      label="Nữ"
+                    />
                     <FormControlLabel
                       value="no-preference"
                       control={<Radio />}
@@ -926,10 +926,14 @@ export default function AssessmentPage() {
                 )}
               />
               {errors.coachGender && (
-                <Typography color="error">{errors.coachGender.message}</Typography>
+                <Typography color="error">
+                  {errors.coachGender.message}
+                </Typography>
               )}
 
-              <FormLabel>Bạn muốn huấn luyện viên có chuyên môn về lĩnh vực nào?</FormLabel>
+              <FormLabel>
+                Bạn muốn huấn luyện viên có chuyên môn về lĩnh vực nào?
+              </FormLabel>
               <Controller
                 name="coachSpecialty"
                 control={control}
@@ -953,10 +957,14 @@ export default function AssessmentPage() {
                 )}
               />
               {errors.coachSpecialty && (
-                <Typography color="error">{errors.coachSpecialty.message}</Typography>
+                <Typography color="error">
+                  {errors.coachSpecialty.message}
+                </Typography>
               )}
 
-              <FormLabel>Thông tin bổ sung bạn muốn chia sẻ với huấn luyện viên</FormLabel>
+              <FormLabel>
+                Thông tin bổ sung bạn muốn chia sẻ với huấn luyện viên
+              </FormLabel>
               <Controller
                 name="additionalInfo"
                 control={control}
