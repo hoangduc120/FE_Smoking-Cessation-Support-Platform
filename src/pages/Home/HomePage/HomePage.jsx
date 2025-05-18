@@ -160,7 +160,7 @@ export default function HomePage() {
             </Typography>
             <Box className="girdLeft__button">
               <Button className="button_start">
-                <Link to={PATH.ONBOARDING} className="link-button">
+                <Link to={PATH.ASSESSMENTPAGE} className="link-button">
                   Bắt đầu ngay
                 </Link>
               </Button>

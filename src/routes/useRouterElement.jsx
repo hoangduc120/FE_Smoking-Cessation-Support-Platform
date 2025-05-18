@@ -9,8 +9,8 @@ import HomePage from "../pages/Home/HomePage/HomePage";
 import CoachesPage from "../pages/Coacher/CoachesPage/CoachesPage";
 import DashBoardAdmin from "../pages/Admin/DashBoard/DashBoardAdmin";
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
-import OnBoarding from "../pages/Home/OnBoarding/OnBoarding";
 import UpgradeMember from "../pages/Home/UpgradeMember/UpgradeMember";
+import AssessmentPage from "../pages/Home/AsseementPage/AssessmentPage";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -39,8 +39,8 @@ export default function useRouterElement() {
           element: <HomePage />,
         },
         {
-          path: PATH.ONBOARDING,
-          element: <OnBoarding />,
+          path: PATH.ASSESSMENTPAGE,
+          element: <AssessmentPage />,
         },
           {
           path: PATH.UPGRADEMEMBER,

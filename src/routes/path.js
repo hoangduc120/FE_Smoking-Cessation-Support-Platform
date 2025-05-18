@@ -6,7 +6,7 @@ export const PATH = {
 
   // HOME
   HOME: "/",
-  ONBOARDING: "/onboarding",
+  ASSESSMENTPAGE: "/assessment",
   UPGRADEMEMBER:"/upgradeMember",
 
   // COACHES
