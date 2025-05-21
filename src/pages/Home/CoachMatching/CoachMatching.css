@@ -1,0 +1,119 @@
+.coaching {
+  padding: 20px;
+}
+
+.coaching__title {
+  text-align: start;
+  margin-bottom: 20px;
+}
+
+.coaching__title--sub {
+  display: block;
+  font-size: 16px;
+  color: #555;
+  margin-top: 8px;
+}
+
+.coaching__content {
+  margin-top: 20px;
+}
+
+.coaching__tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+  justify-content: start;
+}
+
+.coaching__card {
+  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.coaching__card:hover {
+  transform: scale(1.02);
+}
+
+.coaching__card-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  background-color: #f9f9f9;
+}
+
+.coaching__avatar {
+  width: 80px !important;
+  height: 80px !important;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.coaching__recommended-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #1976d2;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.coaching__card-content {
+  padding: 16px;
+  text-align: center;
+}
+
+.coaching__name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.coaching__rating {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.coaching__star {
+  color: #f5c518;
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+.coaching__info {
+  margin-bottom: 16px;
+}
+
+.coaching__info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.coaching__highlight {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.coaching__button {
+  width: 100%;
+  padding: 10px;
+  background-color: #000 !important;
+  color: #fff !important;
+  border-radius: 4px;
+  text-transform: none !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.coaching__button:hover {
+  background-color: #333 !important;
+}
