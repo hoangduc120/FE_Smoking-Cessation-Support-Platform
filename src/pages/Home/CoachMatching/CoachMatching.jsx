@@ -16,12 +16,13 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  Avatar,
 } from "@mui/material";
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useState } from "react";
 import "./CoachMatching.css";
 
-// Sample coach data with additional fields to match the image
+// Sample coach data with unique roadmaps
 const coaches = [
   {
     id: 1,
@@ -34,6 +35,18 @@ const coaches = [
     language: "Tiếng Việt",
     image:
       "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/482752rhD/anh-mo-ta.png",
+    roadmap: {
+      title: "Lộ trình Cai Thuốc Lá Tăng Cường Ý Chí",
+      description:
+        "Tập trung vào xây dựng ý chí mạnh mẽ và thay đổi thói quen thông qua các kỹ thuật tâm lý và hỗ trợ cá nhân hóa.",
+      steps: [
+        "Đánh giá mức độ nghiện và thiết lập mục tiêu cá nhân.",
+        "Thực hành kỹ thuật kiểm soát căng thẳng không dùng thuốc lá.",
+        "Tham gia các buổi tư vấn 1:1 hàng tuần để duy trì động lực.",
+        "Xây dựng kế hoạch thay thế thói quen hút thuốc bằng hoạt động tích cực.",
+        "Theo dõi tiến độ và điều chỉnh chiến lược sau 30 ngày.",
+      ],
+    },
   },
   {
     id: 2,
@@ -45,6 +58,18 @@ const coaches = [
     averageHours: 108,
     language: "Tiếng Việt",
     image: "https://via.placeholder.com/150",
+    roadmap: {
+      title: "Lộ trình Cai Thuốc Lá Tâm Lý Chuyên Sâu",
+      description:
+        "Sử dụng liệu pháp nhận thức hành vi (CBT) để thay đổi tư duy và hành vi liên quan đến thuốc lá.",
+      steps: [
+        "Phân tích nguyên nhân tâm lý dẫn đến hút thuốc.",
+        "Áp dụng kỹ thuật CBT để thay đổi suy nghĩ tiêu cực.",
+        "Thực hành thiền định để giảm căng thẳng và lo âu.",
+        "Tạo nhật ký hành vi để theo dõi tiến trình cai thuốc.",
+        "Đánh giá và củng cố kết quả sau mỗi 2 tuần.",
+      ],
+    },
   },
   {
     id: 3,
@@ -56,6 +81,18 @@ const coaches = [
     averageHours: 155,
     language: "Tiếng Việt",
     image: "https://via.placeholder.com/150",
+    roadmap: {
+      title: "Lộ trình Cai Thuốc Lá Toàn Diện",
+      description:
+        "Kết hợp dinh dưỡng, tập luyện và tư vấn để cải thiện sức khỏe tổng thể, hỗ trợ cai thuốc hiệu quả.",
+      steps: [
+        "Đánh giá sức khỏe tổng quát và mức độ nghiện nicotine.",
+        "Xây dựng chế độ ăn uống tăng cường năng lượng và giảm thèm thuốc.",
+        "Kế hoạch tập thể dục nhẹ nhàng để cải thiện tâm trạng.",
+        "Tham gia nhóm hỗ trợ để chia sẻ kinh nghiệm.",
+        "Kiểm tra sức khỏe định kỳ và điều chỉnh lộ trình sau 4 tuần.",
+      ],
+    },
   },
   {
     id: 4,
@@ -67,6 +104,18 @@ const coaches = [
     averageHours: 76,
     language: "Tiếng Việt",
     image: "https://via.placeholder.com/150",
+    roadmap: {
+      title: "Lộ trình Cai Thuốc Lá Qua Tập Luyện",
+      description:
+        "Sử dụng các bài tập thể chất để giảm căng thẳng và thay thế thói quen hút thuốc bằng lối sống năng động.",
+      steps: [
+        "Khởi động với các bài tập thể dục nhẹ nhàng (yoga, đi bộ).",
+        "Tăng cường độ tập luyện để cải thiện sức khỏe tim mạch.",
+        "Tham gia các buổi tập nhóm để duy trì động lực.",
+        "Học kỹ thuật hít thở sâu để kiểm soát cơn thèm thuốc.",
+        "Đánh giá tiến độ sau 3 tuần và điều chỉnh kế hoạch.",
+      ],
+    },
   },
   {
     id: 5,
@@ -78,6 +127,18 @@ const coaches = [
     averageHours: 112,
     language: "Tiếng Việt",
     image: "https://via.placeholder.com/150",
+    roadmap: {
+      title: "Lộ trình Cai Thuốc Lá Qua Dinh Dưỡng",
+      description:
+        "Tập trung vào chế độ ăn uống lành mạnh để giảm cảm giác thèm nicotine và cải thiện sức khỏe tổng thể.",
+      steps: [
+        "Đánh giá thói quen ăn uống và mức độ nghiện thuốc.",
+        "Xây dựng thực đơn giàu vitamin và khoáng chất để hỗ trợ cơ thể.",
+        "Hướng dẫn sử dụng thực phẩm thay thế khi thèm thuốc.",
+        "Tư vấn dinh dưỡng cá nhân hóa mỗi tuần.",
+        "Theo dõi và đánh giá hiệu quả sau 1 tháng.",
+      ],
+    },
   },
   {
     id: 6,
@@ -89,6 +150,18 @@ const coaches = [
     averageHours: 187,
     language: "Tiếng Việt",
     image: "https://via.placeholder.com/150",
+    roadmap: {
+      title: "Lộ trình Cai Thuốc Lá Qua Thiền Định",
+      description:
+        "Sử dụng thiền và các kỹ thuật thư giãn để kiểm soát tâm trí, giảm căng thẳng và cai thuốc lá bền vững.",
+      steps: [
+        "Học kỹ thuật thiền cơ bản để kiểm soát tâm trí.",
+        "Thực hành các bài tập thư giãn mỗi ngày (10-15 phút).",
+        "Tham gia các buổi thiền nhóm để tăng cường động lực.",
+        "Sử dụng ứng dụng theo dõi thiền để duy trì thói quen.",
+        "Đánh giá mức độ thèm thuốc và điều chỉnh sau 2 tuần.",
+      ],
+    },
   },
 ];
 
@@ -280,70 +353,108 @@ export default function CoachMatching() {
           fullWidth
         >
           <DialogTitle>
-            <Typography variant="h5">{selectedCoach?.name}</Typography>
+            <Box>
+              <Typography
+                variant="body1"
+                sx={{ fontSize: "20px", fontWeight: "bold" }}
+              >
+                Lộ trình cai thuốc được đề xuất
+              </Typography>
+              <span style={{ fontSize: "14px", color: "#666" }}>
+                Dựa trên đánh giá và kế hoạch của bạn, chúng tôi đề xuất lộ
+                trình cai thuốc sau
+              </span>
+            </Box>
+            <Box className="coaching__modal-header">
+              <Avatar src={selectedCoach?.image} />
+              <Typography
+                variant="h5"
+                sx={{ marginLeft: "20px", fontSize: "18px" }}
+              >
+                {selectedCoach?.name}
+              </Typography>
+            </Box>
           </DialogTitle>
           <DialogContent>
-            <Typography variant="body1" paragraph>
-              <strong>Tỷ lệ thành công:</strong>{" "}
-              {selectedCoach?.successRate || 91}% trong số người được huấn luyện
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Phù hợp:</strong> 75% phù hợp với nhu cầu của bạn
-            </Typography>
-            <Typography variant="body1" paragraph>
-              <strong>Kinh nghiệm:</strong> {selectedCoach?.experience || 10}{" "}
-              năm kinh nghiệm trong việc huấn luyện cai thuốc lá
-            </Typography>
-            <Typography variant="h6" sx={{ mt: 2 }}>
-              Lợi ích:
-            </Typography>
-            <List>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircleIcon color="success" />
-                </ListItemIcon>
-                <ListItemText primary="Hỗ trợ từ xa" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircleIcon color="success" />
-                </ListItemIcon>
-                <ListItemText primary="Hỗ trợ từ huấn luyện viên" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircleIcon color="success" />
-                </ListItemIcon>
-                <ListItemText primary="Giảm thiểu căng thẳng" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircleIcon color="success" />
-                </ListItemIcon>
-                <ListItemText primary="Hỗ trợ cai thuốc thành công" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircleIcon color="success" />
-                </ListItemIcon>
-                <ListItemText primary="Tài liệu và bài tập hỗ trợ" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircleIcon color="success" />
-                </ListItemIcon>
-                <ListItemText primary="Theo dõi tiến trình hàng ngày" />
-              </ListItem>
-            </List>
+            <Box className="coaching__modal-content">
+              <Box className="coaching__modal-title">
+                <Typography
+                  variant="body1"
+                  paragraph
+                  sx={{ fontWeight: "bold", fontSize: "16px" }}
+                >
+                  {selectedCoach?.roadmap.title}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  paragraph
+                  sx={{
+                    padding: "2px 8px",
+                    width: "auto",
+                    height: "20px",
+                    lineHeight: "20px",
+                    backgroundColor: "#d3fde1",
+                    color: "#538766",
+                    borderRadius: "10px",
+                    textAlign: "center",
+                    marginLeft: "10px",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  98% phù hợp
+                </Typography>
+              </Box>
+              <Box className="coaching__modal-sup">
+                <Typography className="coaching__modal-sup-des">
+                  {" "}
+                  12 tuần
+                </Typography>
+                <Typography
+                  className="coaching__modal-sup-des"
+                  sx={{ marginLeft: "20px" }}
+                >
+                  {selectedCoach?.successRate || 91}% thành công
+                </Typography>
+              </Box>
+              <Typography variant="body1" paragraph>
+                {selectedCoach?.roadmap.description}
+              </Typography>
+              <List>
+                {selectedCoach?.roadmap.steps.map((step, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      <CheckCircleIcon color="success" />
+                    </ListItemIcon>
+                    <ListItemText primary={step} />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleViewOtherCoach} color="primary">
+          <DialogActions sx={{ padding: "20px" }}>
+            <Button
+              onClick={handleViewOtherCoach}
+              color="primary"
+              sx={{
+                color: "black",
+                border: "1px solid #ccc",
+                textTransform: "none",
+              }}
+            >
               Xem huấn luyện viên khác
             </Button>
             <Button
               onClick={handleChooseCoach}
               color="success"
               variant="contained"
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#4caf50",
+                "&:hover": {
+                  backgroundColor: "#388e3c",
+                },
+              }}
             >
               Chọn huấn luyện viên này
             </Button>
