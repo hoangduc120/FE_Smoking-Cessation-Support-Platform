@@ -9,6 +9,7 @@ export const PATH = {
   ASSESSMENTPAGE: "/assessment",
   UPGRADEMEMBER:"/upgradeMember",
   PLANCUSTOMIZATION: "/planCustomization",
+  COASHMATCHING: "/coachMatching",
 
   // COACHES
   COACHES: "/coaches",

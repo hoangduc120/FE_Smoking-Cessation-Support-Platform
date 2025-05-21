@@ -115,7 +115,7 @@ function PlanCustomizationPage() {
   };
 
   const handleFindCoaches = () => {
-    navigate("/member/coach-matching");
+    navigate("/coachMatching");
   };
 
   const handleTabChange = (event, newValue) => {
