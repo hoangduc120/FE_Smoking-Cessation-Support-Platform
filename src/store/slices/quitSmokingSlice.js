@@ -1,13 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Lấy thông tin đánh giá
+// Lấy thông tin đánh giá theo id
 export const fetchAssessment = createAsyncThunk(
   "quitSmoking/fetchAssessment",
-  async (_, { rejectWithValue }) => {
+  async (userId = "1", { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "https://67dabbe235c87309f52dc7a7.mockapi.io/assessment"
+      const response = await axios.get(
+        `https://67dabbe235c87309f52dc7a7.mockapi.io/assessment/${userId}`
       );
       return response.data;
     } catch (error) {
@@ -63,7 +63,7 @@ export const quitSmokingSlice = createSlice({
     isError: false,
     errorMessage: null,
   },
-  reducers: {}, // Xóa clearSnackbar
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchAssessment.pending, (state) => {

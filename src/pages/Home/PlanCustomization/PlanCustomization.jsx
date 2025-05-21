@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -29,10 +29,16 @@ import {
   Info as InfoIcon,
   Flag as TargetIcon,
 } from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
 import "./PlanCustomization.css";
+import { fetchAssessment } from "../../../store/slices/quitSmokingSlice";
 
 function PlanCustomizationPage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { assessmentData, isLoading, isError, errorMessage } = useSelector(
+    (state) => state.quitSmoking
+  );
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [planSaved, setPlanSaved] = useState(false);
@@ -41,20 +47,15 @@ function PlanCustomizationPage() {
     open: false,
     title: "",
     description: "",
-    severity: "success", // success or error
+    severity: "success",
   });
 
-  // Mock assessment data
-  const assessmentData = {
-    cigarettesPerDay: 15,
-    smokingYears: 8,
-    cigarettePrice: 25000,
-    mainReason: "health",
-    goalTimeframe: "3months",
-    preferredApproach: "gradual",
-  };
+  // Gọi API để lấy dữ liệu đánh giá
+  useEffect(() => {
+    dispatch(fetchAssessment("1")); // Lấy bản ghi với id: "1"
+  }, [dispatch]);
 
-  // Plan state
+  // Plan state với dữ liệu khởi tạo từ assessmentData
   const [planData, setPlanData] = useState({
     startDate: new Date().toISOString().split("T")[0],
     endDate: (() => {
@@ -62,20 +63,36 @@ function PlanCustomizationPage() {
       date.setMonth(date.getMonth() + 3);
       return date.toISOString().split("T")[0];
     })(),
-    approach: "gradual",
+    approach: assessmentData?.PreferredApproach || "gradual",
     initialReductionPercent: 25,
     weeklyReductionPercent: 15,
-    dailyGoals: [12, 10, 8, 6, 5, 3, 2, 0],
-    triggers: ["afterMeals", "withCoffee", "stress", "socialGatherings"],
-    alternativeActivities: ["walking", "drinking water", "deep breathing", "chewing gum"],
-    supportMethods: ["nicotineGum", "app", "coaching"],
-    milestones: [
-      { days: 3, description: "72 giờ không có nicotine trong cơ thể" },
-      { days: 7, description: "1 tuần không hút thuốc" },
-      { days: 14, description: "2 tuần không hút thuốc" },
-      { days: 30, description: "1 tháng không hút thuốc" },
-      { days: 90, description: "3 tháng không hút thuốc" },
+    dailyGoals: assessmentData?.CigarettesPerDay
+      ? [
+          Math.round(assessmentData.CigarettesPerDay * 0.75),
+          Math.round(assessmentData.CigarettesPerDay * 0.65),
+          Math.round(assessmentData.CigarettesPerDay * 0.55),
+          Math.round(assessmentData.CigarettesPerDay * 0.45),
+          Math.round(assessmentData.CigarettesPerDay * 0.35),
+          Math.round(assessmentData.CigarettesPerDay * 0.25),
+          Math.round(assessmentData.CigarettesPerDay * 0.15),
+          0,
+        ]
+      : [12, 10, 8, 6, 5, 3, 2, 0],
+    triggers: assessmentData?.RelapseTriggers || [
+      "afterMeals",
+      "withCoffee",
+      "stress",
+      "socialGatherings",
     ],
+    alternativeActivities: ["walking", "drinking water", "deep breathing", "chewing gum"],
+    supportMethods: assessmentData?.QuitMethods || ["nicotineGum", "app", "coaching"],
+    // milestones: [
+    //   { days: 3, description: "72 giờ không có nicotine trong cơ thể" },
+    //   { days: 7, description: "1 tuần không hút thuốc" },
+    //   { days: 14, description: "2 tuần không hút thuốc" },
+    //   { days: 30, description: "1 tháng không hút thuốc" },
+    //   { days: 90, description: "3 tháng không hút thuốc" },
+    // ],
     reminders: true,
     reminderFrequency: "daily",
     reminderTime: "20:00",
@@ -88,7 +105,6 @@ function PlanCustomizationPage() {
   const handleSavePlan = async () => {
     setIsSaving(true);
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setIsEditing(false);
       setPlanSaved(true);
@@ -121,6 +137,43 @@ function PlanCustomizationPage() {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Box className="plan-container">
+        <Alert severity="error">
+          <Typography variant="h6">Lỗi</Typography>
+          <Typography>{errorMessage || "Không thể tải dữ liệu đánh giá."}</Typography>
+        </Alert>
+      </Box>
+    );
+  }
+
+  if (!assessmentData) {
+    return (
+      <Box className="plan-container">
+        <Alert severity="warning">
+          <Typography variant="h6">Không tìm thấy dữ liệu</Typography>
+          <Typography>Vui lòng hoàn thành đánh giá trước khi tùy chỉnh kế hoạch.</Typography>
+          <Button
+            variant="contained"
+            onClick={() => navigate("/assessment")}
+            sx={{ mt: 2 }}
+          >
+            Quay lại trang đánh giá
+          </Button>
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box className="plan-container">
@@ -194,7 +247,6 @@ function PlanCustomizationPage() {
           <Tab label="Hỗ trợ" value="support" />
         </Tabs>
 
-        {/* Overview Tab */}
         {tabValue === "overview" && (
           <Card className="plan-card">
             <CardHeader>
@@ -252,20 +304,26 @@ function PlanCustomizationPage() {
                       <Typography variant="body2" color="textSecondary">
                         Số điếu mỗi ngày:
                       </Typography>
-                      <Typography variant="body2">{assessmentData.cigarettesPerDay} điếu</Typography>
+                      <Typography variant="body2">
+                        {assessmentData?.CigarettesPerDay ?? "Chưa có dữ liệu"} điếu
+                      </Typography>
                     </Box>
                     <Box className="plan-info-row">
                       <Typography variant="body2" color="textSecondary">
                         Thời gian hút thuốc:
                       </Typography>
-                      <Typography variant="body2">{assessmentData.smokingYears} năm</Typography>
+                      <Typography variant="body2">
+                        {assessmentData?.SmokingYears ?? "Chưa có dữ liệu"} năm
+                      </Typography>
                     </Box>
                     <Box className="plan-info-row">
                       <Typography variant="body2" color="textSecondary">
                         Giá một bao thuốc:
                       </Typography>
                       <Typography variant="body2">
-                        {assessmentData.cigarettePrice.toLocaleString()} đ
+                        {typeof assessmentData?.CigarettePrice === 'number'
+                          ? assessmentData.CigarettePrice.toLocaleString() + ' đ'
+                          : "Chưa có dữ liệu"}
                       </Typography>
                     </Box>
                     <Box className="plan-info-row">
@@ -273,10 +331,12 @@ function PlanCustomizationPage() {
                         Chi phí hàng tháng:
                       </Typography>
                       <Typography variant="body2">
-                        {Math.round(
-                          (assessmentData.cigarettesPerDay / 20) * assessmentData.cigarettePrice * 30
-                        ).toLocaleString()}{" "}
-                        đ
+                        {typeof assessmentData?.CigarettesPerDay === 'number' &&
+                        typeof assessmentData?.CigarettePrice === 'number'
+                          ? Math.round(
+                              (assessmentData.CigarettesPerDay / 20) * assessmentData.CigarettePrice * 30
+                            ).toLocaleString() + ' đ'
+                          : "Chưa có dữ liệu"}
                       </Typography>
                     </Box>
                   </Box>
@@ -288,25 +348,29 @@ function PlanCustomizationPage() {
                     <Box className="plan-info-row">
                       <CheckCircleIcon color="success" sx={{ mr: 1 }} />
                       <Typography variant="body2">
-                        {assessmentData.mainReason === "health" && "Cải thiện sức khỏe"}
-                        {assessmentData.mainReason === "money" && "Tiết kiệm tiền"}
-                        {assessmentData.mainReason === "family" && "Vì gia đình"}
-                        {assessmentData.mainReason === "appearance" && "Cải thiện ngoại hình"}
-                        {assessmentData.mainReason === "other" && "Lý do khác"}
+                        {assessmentData?.MainReason === "health" && "Cải thiện sức khỏe"}
+                        {assessmentData?.MainReason === "money" && "Tiết kiệm tiền"}
+                        {assessmentData?.MainReason === "family" && "Vì gia đình"}
+                        {assessmentData?.MainReason === "appearance" && "Cải thiện ngoại hình"}
+                        {assessmentData?.MainReason === "other" && "Lý do khác"}
+                        {!assessmentData?.MainReason && "Chưa có dữ liệu"}
                       </Typography>
                     </Box>
-                    {assessmentData.mainReason === "health" && (
-                      <>
-                        <Box className="plan-info-row">
+                    {assessmentData?.MainReason === "health" &&
+                      assessmentData?.HealthConcerns?.map((concern, index) => (
+                        <Box key={index} className="plan-info-row">
                           <CheckCircleIcon color="success" sx={{ mr: 1 }} />
-                          <Typography variant="body2">Cải thiện hệ hô hấp</Typography>
+                          <Typography variant="body2">
+                            {concern === "breathing" && "Cải thiện hệ hô hấp"}
+                            {concern === "heart" && "Giảm nguy cơ bệnh tim mạch"}
+                            {concern === "cancer" && "Giảm nguy cơ ung thư"}
+                            {concern === "energy" && "Tăng năng lượng"}
+                            {concern === "existing-condition" && "Cải thiện bệnh lý hiện tại"}
+                            {concern === "prevention" && "Phòng ngừa bệnh tật"}
+                            {!concern && "Chưa có dữ liệu"}
+                          </Typography>
                         </Box>
-                        <Box className="plan-info-row">
-                          <CheckCircleIcon color="success" sx={{ mr: 1 }} />
-                          <Typography variant="body2">Giảm nguy cơ bệnh tim mạch</Typography>
-                        </Box>
-                      </>
-                    )}
+                      ))}
                   </Box>
 
                   <Typography variant="h6" sx={{ mt: 4 }}>
@@ -336,10 +400,12 @@ function PlanCustomizationPage() {
                         Sau 1 tháng:
                       </Typography>
                       <Typography variant="body2">
-                        {Math.round(
-                          (assessmentData.cigarettesPerDay / 20) * assessmentData.cigarettePrice * 30
-                        ).toLocaleString()}{" "}
-                        đ
+                        {typeof assessmentData?.CigarettesPerDay === 'number' &&
+                        typeof assessmentData?.CigarettePrice === 'number'
+                          ? Math.round(
+                              (assessmentData.CigarettesPerDay / 20) * assessmentData.CigarettePrice * 30
+                            ).toLocaleString() + ' đ'
+                          : "Chưa có dữ liệu"}
                       </Typography>
                     </Box>
                     <Box className="plan-info-row">
@@ -347,10 +413,12 @@ function PlanCustomizationPage() {
                         Sau 3 tháng:
                       </Typography>
                       <Typography variant="body2">
-                        {Math.round(
-                          (assessmentData.cigarettesPerDay / 20) * assessmentData.cigarettePrice * 90
-                        ).toLocaleString()}{" "}
-                        đ
+                        {typeof assessmentData?.CigarettesPerDay === 'number' &&
+                        typeof assessmentData?.CigarettePrice === 'number'
+                          ? Math.round(
+                              (assessmentData.CigarettesPerDay / 20) * assessmentData.CigarettePrice * 90
+                            ).toLocaleString() + ' đ'
+                          : "Chưa có dữ liệu"}
                       </Typography>
                     </Box>
                     <Box className="plan-info-row">
@@ -358,10 +426,12 @@ function PlanCustomizationPage() {
                         Sau 1 năm:
                       </Typography>
                       <Typography variant="body2">
-                        {Math.round(
-                          (assessmentData.cigarettesPerDay / 20) * assessmentData.cigarettePrice * 365
-                        ).toLocaleString()}{" "}
-                        đ
+                        {typeof assessmentData?.CigarettesPerDay === 'number' &&
+                        typeof assessmentData?.CigarettePrice === 'number'
+                          ? Math.round(
+                              (assessmentData.CigarettesPerDay / 20) * assessmentData.CigarettePrice * 365
+                            ).toLocaleString() + ' đ'
+                          : "Chưa có dữ liệu"}
                       </Typography>
                     </Box>
                   </Box>
@@ -371,7 +441,7 @@ function PlanCustomizationPage() {
           </Card>
         )}
 
-        {/* Schedule Tab */}
+        {/* Các tab khác giữ nguyên */}
         {tabValue === "schedule" && (
           <Card className="plan-card">
             <CardHeader>
@@ -398,7 +468,7 @@ function PlanCustomizationPage() {
                           updatePlanData("dailyGoals", newGoals);
                         }}
                         disabled={!isEditing}
-                        inputProps={{ min: 0, max: assessmentData.cigarettesPerDay }}
+                        inputProps={{ min: 0, max: assessmentData?.CigarettesPerDay || 20 }}
                         sx={{ flex: 1 }}
                       />
                       <Typography variant="body2" sx={{ width: "80px", textAlign: "right" }}>
@@ -408,7 +478,7 @@ function PlanCustomizationPage() {
                   ))}
                 </Box>
 
-                <Typography variant="h6" sx={{ mt: 4 }}>
+                {/* <Typography variant="h6" sx={{ mt: 4 }}>
                   Các mốc quan trọng
                 </Typography>
                 <Box className="plan-section">
@@ -429,13 +499,12 @@ function PlanCustomizationPage() {
                       />
                     </Box>
                   ))}
-                </Box>
+                </Box> */}
               </Box>
             </CardContent>
           </Card>
         )}
 
-        {/* Strategies Tab */}
         {tabValue === "strategies" && (
           <Card className="plan-card">
             <CardHeader>
@@ -521,7 +590,6 @@ function PlanCustomizationPage() {
           </Card>
         )}
 
-        {/* Support Tab */}
         {tabValue === "support" && (
           <Card className="plan-card">
             <CardHeader>
@@ -626,7 +694,6 @@ function PlanCustomizationPage() {
           </Box>
         )}
 
-        {/* Snackbar for toast notifications */}
         <Snackbar
           open={snackbar.open}
           autoHideDuration={6000}

@@ -7,6 +7,12 @@
   margin-bottom: 20px;
 }
 
+.coaching__modal-header{
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+}
+
 .coaching__title--sub {
   display: block;
   font-size: 16px;
@@ -18,10 +24,35 @@
   margin-top: 20px;
 }
 
+.coaching__modal-content {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+}
+.coaching__modal-title {
+  display: flex;
+  justify-content: space-between;
+}
+
+.coaching__modal-sup {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.coaching__modal-sup-des {
+  border: 1px solid #ddd;
+  padding: 2px;
+  border-radius: 8px;
+  width: auto;
+  background-color: #fefefe;
+  font-size: 12px !important;
+  margin-top: -10px !important;
+}
+
 .coaching__tabs {
   display: flex;
   border-bottom: 1px solid #ddd;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   justify-content: start;
 }
 
