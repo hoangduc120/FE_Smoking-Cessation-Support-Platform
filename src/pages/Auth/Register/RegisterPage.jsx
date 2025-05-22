@@ -1,57 +1,81 @@
-import {
-  Box,
-  Button,
-  Grid,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Grid, TextField, Typography } from "@mui/material";
 import "../Login/LoginPage";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { use, useEffect, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { PATH } from "../../../routes/path";
 
 import { useForm } from "react-hook-form";
-import { yupResolver } from '@hookform/resolvers/yup';
+import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { useDispatch, useSelector } from "react-redux";
+import { registerApi } from "../../../store/slices/authSlice";
+import toast from "react-hot-toast";
 
 const schema = yup.object({
   userName: yup.string().required("Họ và Tên không được để trống"),
-  email: yup.string()
+  email: yup
+    .string()
     .required("Email không được để trống")
     .email("Email không đúng định dạng"),
-  password: yup.string()
+  password: yup
+    .string()
     .required("Mật khẩu không được để trống")
     .min(6, "Mật khẩu phải dài hơn 6 ký tự"),
-});
-export default function RegisterPage() {
- 
-  const {register, handleSubmit, formState: {errors}} = useForm({
-    resolver: yupResolver(schema)
-  })
 
-// handle form submit
+  confirmPassword: yup
+    .string()
+    .required("Xác nhận mật khẩu không được để trống")
+    .oneOf([yup.ref("password"), null], "Mật khẩu không khớp"),
+});
+
+export default function RegisterPage() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
+  // handle form submit
   const onSubmit = async (data) => {
-    console.log(data)
-  }
+    try {
+      dispatch(registerApi(data));
+      toast.success("Đăng ký thành công!");
+      navigate(PATH.LOGIN);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const handleClickShowPassword = () => {
     setShowPassword((prev) => !prev);
+  };
+
+  const handleClickShowConfirmPassword = () => {
+    setShowConfirmPassword((prev) => !prev);
   };
 
   return (
     <Box className="login-page" sx={{ width: "100%", minHeight: "100vh" }}>
       <Grid container spacing={0} sx={{ height: "100%" }}>
-        <Grid item size={6} className="login-left"> 
+        <Grid item size={6} className="login-left">
           <Box className="login-container">
             <Box className="login-logo">
               {/* <img
                 src={logo}
                 alt="QuitSmoke Logo"
                 style={{ width: "20%", height: "20%", borderRadius: "50%" }}
-              /> */}🌿
+              /> */}
+              🌿
               <Typography
                 variant="h4"
                 sx={{
@@ -107,7 +131,7 @@ export default function RegisterPage() {
                 <TextField
                   id="password"
                   label="Mật khẩu"
-                  type={showPassword ? "text" : "password"} 
+                  type={showPassword ? "text" : "password"}
                   variant="outlined"
                   fullWidth
                   margin="normal"
@@ -126,6 +150,36 @@ export default function RegisterPage() {
                         edge="end"
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    ),
+                  }}
+                />
+                <TextField
+                  id="confirmPassword"
+                  label="Xác nhận mật khẩu"
+                  type={showConfirmPassword ? "text" : "password"}
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  {...register("confirmPassword")}
+                  error={!!errors.confirmPassword}
+                  helperText={errors.confirmPassword?.message}
+                  sx={{
+                    mb: 2,
+                    "& .MuiOutlinedInput-root": { borderRadius: "8px" },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowConfirmPassword}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
                       </IconButton>
                     ),
                   }}
