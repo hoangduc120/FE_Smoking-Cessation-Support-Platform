@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -24,8 +24,9 @@ import * as yup from "yup";
 import "./AssessmentPage.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { saveAssessment } from "../../../store/slices/quitSmokingSlice";
+import { fetchAssessment, saveAssessment } from "../../../store/slices/quitSmokingSlice";
 import toast from "react-hot-toast";
+import { PATH } from "../../../routes/path";
 
 // Validation schema
 const schema = yup.object().shape({
@@ -106,6 +107,19 @@ export default function AssessmentPage() {
   const { isLoading } = useSelector((state) => state.quitSmoking);
   const [step, setStep] = useState(1);
   const totalSteps = 4;
+
+  // Kiểm tra trạng thái đăng nhập
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+useEffect(() => {
+  console.log("useEffect triggered, isLoading:", isLoading);
+  if (!currentUser || !currentUser.token) {
+    console.log("Chưa đăng nhập, chuyển hướng đến login");
+    toast.error("Vui lòng đăng nhập để tiếp tục!");
+    navigate(PATH.LOGIN);
+    return;
+  }
+}, [currentUser ]);
 
   const {
     control,
