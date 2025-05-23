@@ -12,7 +12,7 @@ import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import UpgradeMember from "../pages/Home/UpgradeMember/UpgradeMember";
 import AssessmentPage from "../pages/Home/AsseementPage/AssessmentPage";
 import PlanCustomization from "../pages/Home/PlanCustomization/PlanCustomization";
-import CoachMatching from "../pages/Home/CoachMatching/CoachMatching";
+import CoachPlan from "../pages/Home/CoachPlane/CoachPlane";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -53,8 +53,8 @@ export default function useRouterElement() {
           element: <PlanCustomization />,
         },
         {
-          path: PATH.COASHMATCHING,
-          element: <CoachMatching />,
+          path: PATH.COASHPLANE,
+          element: <CoachPlan />,
         },
       ],
     },

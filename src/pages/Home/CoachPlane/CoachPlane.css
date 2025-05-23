@@ -1,0 +1,64 @@
+.planeCoach-homePage {
+  padding: 16px;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.planeCoach-context {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 8px;
+}
+
+.planeCoach-headerSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.planeCoach-searchBar {
+  min-width: 200px;
+}
+
+.planeCoach-filterButtons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.planeCoach-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.planeCoach-planContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.planeCoach-planCard {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.planeCoach-planImage {
+  padding: 20px;
+  width: 400px !important;
+  height: 100% !important;
+  object-fit: cover;
+  border-radius: 30px !important;
+}
+
+.planeCoach-description {
+  margin-top: 10px;
+ 
+}
+
