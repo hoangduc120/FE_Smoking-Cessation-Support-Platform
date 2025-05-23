@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -11,103 +11,25 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import "./CoachPlane.css";
-
-// Dữ liệu giả
-const mockCoachPlans = {
-  coaches: [
-    {
-      id: 1,
-      name: "Huấn Luyện Viên Minh",
-      specialty: "Tư vấn bỏ thuốc lá lâu năm",
-      plans: [
-        {
-          id: 1,
-          title: "Kế hoạch 7 ngày giảm dần",
-          description:
-            "Giảm số điếu thuốc từ 10 xuống 0 trong 7 ngày với hỗ trợ tâm lý.",
-          steps: [
-            {
-              step: 1,
-              task: "Giảm 2 điếu/ngày, tập hít thở sâu",
-              duration: "Ngày 1-2",
-            },
-            {
-              step: 2,
-              task: "Thay thế bằng kẹo cao su nicotine",
-              duration: "Ngày 3-4",
-            },
-            {
-              step: 3,
-              task: "Tham gia nhóm hỗ trợ trực tuyến",
-              duration: "Ngày 5-7",
-            },
-          ],
-          targetSavings: 500000,
-          successRate: 75,
-          thumbnail:
-            "https://img.baobacgiang.vn/Medias/2023/11/30/09/20231130094256-15.jpg",
-        },
-        {
-          id: 2,
-          title: "Kế hoạch 30 ngày thay đổi thói quen",
-          description:
-            "Thay đổi lối sống và loại bỏ thuốc lá hoàn toàn trong 1 tháng.",
-          steps: [
-            {
-              step: 1,
-              task: "Xác định nguyên nhân hút thuốc",
-              duration: "Tuần 1",
-            },
-            { step: 2, task: "Tập thể dục 30 phút/ngày", duration: "Tuần 2-3" },
-            {
-              step: 3,
-              task: "Đánh giá tiến độ với huấn luyện viên",
-              duration: "Tuần 4",
-            },
-          ],
-          targetSavings: 2000000,
-          successRate: 85,
-          thumbnail: "https://via.placeholder.com/150x100?text=Plan+30+Days",
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Huấn Luyện Viên Lan",
-      specialty: "Chuyên gia tâm lý bỏ thuốc",
-      plans: [
-        {
-          id: 3,
-          title: "Kế hoạch 14 ngày giải tỏa căng thẳng",
-          description:
-            "Sử dụng kỹ thuật thiền và tư vấn để giảm căng thẳng không cần thuốc.",
-          steps: [
-            {
-              step: 1,
-              task: "Thực hành thiền 10 phút/ngày",
-              duration: "Ngày 1-5",
-            },
-            { step: 2, task: "Ghi nhật ký cảm xúc", duration: "Ngày 6-10" },
-            {
-              step: 3,
-              task: "Họp với huấn luyện viên",
-              duration: "Ngày 11-14",
-            },
-          ],
-          targetSavings: 1000000,
-          successRate: 70,
-          thumbnail: "https://via.placeholder.com/150x100?text=Plan+14+Days",
-        },
-      ],
-    },
-  ],
-};
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPlan } from "../../../store/slices/planeSlice";
+import { Link } from "react-router-dom";
 
 const CoachPlane = () => {
+  const dispatch = useDispatch();
+  const { plans, isLoading, isError, errorMessage } = useSelector(
+    (state) => state.plane
+  );
+
+  console.log("mockCoachPlans", plans);
+
+  useEffect(() => {
+    dispatch(fetchPlan());
+  }, [dispatch]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSuccess, setFilterSuccess] = useState("all");
 
-  const filteredPlans = mockCoachPlans.coaches
+  const filteredPlans = plans
     .flatMap((coach) => coach.plans)
     .filter(
       (plan) =>
@@ -118,11 +40,15 @@ const CoachPlane = () => {
     );
 
   const getCoachInfo = (plan) => {
-    const coach = mockCoachPlans.coaches.find((c) =>
-      c.plans.some((p) => p.id === plan.id)
-    );
+    const coach = plans.find((c) => c.plans.some((p) => p.id === plan.id));
     return coach || { name: "Không xác định", specialty: "Không xác định" };
   };
+
+  if (isLoading) return <Typography>Đang tải...</Typography>;
+  if (isError)
+    return (
+      <Typography color="error">{errorMessage || "Có lỗi xảy ra!"}</Typography>
+    );
 
   return (
     <Box className="homePage">
@@ -150,6 +76,18 @@ const CoachPlane = () => {
           variant={filterSuccess === "all" ? "contained" : "outlined"}
           onClick={() => setFilterSuccess("all")}
           startIcon={<FilterListIcon />}
+          className="planeCoach-filterButton"
+          sx={{
+            backgroundColor:
+              filterSuccess === "all" ? "#4CAF50" : "transparent",
+            color: filterSuccess === "all" ? "#fff" : "#000",
+            borderColor: "#4CAF50",
+            "&:hover": {
+              backgroundColor: filterSuccess === "all" ? "#45a049" : "#e8f5e9",
+              borderColor: "#4CAF50",
+              color: filterSuccess === "all" ? "#fff" : "#000",
+            },
+          }}
         >
           Tất cả
         </Button>
@@ -157,6 +95,18 @@ const CoachPlane = () => {
           variant={filterSuccess === "high" ? "contained" : "outlined"}
           onClick={() => setFilterSuccess("high")}
           startIcon={<FilterListIcon />}
+          className="planeCoach-filterButton"
+          sx={{
+            backgroundColor:
+              filterSuccess === "high" ? "#4CAF50" : "transparent",
+            color: filterSuccess === "high" ? "#fff" : "#000",
+            borderColor: "#4CAF50",
+            "&:hover": {
+              backgroundColor: filterSuccess === "high" ? "#45a049" : "#e8f5e9",
+              borderColor: "#4CAF50",
+              color: filterSuccess === "high" ? "#fff" : "#000",
+            },
+          }}
         >
           Thành công cao (&gt;80%)
         </Button>
@@ -164,6 +114,16 @@ const CoachPlane = () => {
           variant={filterSuccess === "low" ? "contained" : "outlined"}
           onClick={() => setFilterSuccess("low")}
           startIcon={<FilterListIcon />}
+          sx={{
+            backgroundColor:
+              filterSuccess === "low" ? "#4CAF50" : "transparent",
+            color: filterSuccess === "low" ? "#fff" : "#000",
+            borderColor: "#4CAF50",
+            "&:hover": {
+              backgroundColor: filterSuccess === "low" ? "#45a049" : "#e8f5e9",
+              color: filterSuccess === "low" ? "#fff" : "#000",
+            },
+          }}
         >
           Thành công thấp (&lt;80%)
         </Button>
@@ -191,11 +151,25 @@ const CoachPlane = () => {
                   <Typography variant="body2" color="text.secondary">
                     {coach.name}
                   </Typography>
-                  <Box className="planeCoach-description">
+                  <Box
+                    className="planeCoach-description"
+                    color="text.secondary"
+                  >
                     {plan.description}
                   </Box>
 
-                  <Button variant="text" color="primary">
+                  <Button
+                    variant="text"
+                    color="primary"
+                    className="planeCoach-viewButton"
+                    component={Link}
+                    to={`/coachPlane/${plan.id}`}
+                    sx={{
+                      backgroundColor: "#357a2f",
+                      color: "#fff",
+                      width: "200px",
+                    }}
+                  >
                     Xem thêm
                   </Button>
                 </CardContent>

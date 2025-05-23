@@ -10,6 +10,7 @@ export const PATH = {
   UPGRADEMEMBER:"/upgradeMember",
   PLANCUSTOMIZATION: "/planCustomization",
   COASHPLANE: "/coachPlan",
+  COACHPLANEDETAIL: "/coachPlane/:id",
 
   // COACHES
   COACHES: "/coaches",
