@@ -7,10 +7,13 @@ export const fetcher = axios.create({
   },
 });
 
-fetcher.interceptors.request.use((config) => {
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  if (currentUser) {
-    config.headers.Authorization = `Bearer ${currentUser.accessToken}`;
-  }
-  return config;
-});
+fetcher.interceptors.request.use(
+  (config) => {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (currentUser?.token) {
+      config.headers.Authorization = `Bearer ${currentUser.token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);

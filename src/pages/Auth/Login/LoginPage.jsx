@@ -1,31 +1,54 @@
-import {
-  Box,
-  Button,
-  Grid,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Grid, TextField, Typography } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import "./LoginPage.css";
-import { Link } from "react-router-dom";
-import { PATH } from '../../../routes/path';
+import { Link, useNavigate } from "react-router-dom";
+import { PATH } from "../../../routes/path";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
+import { loginApi } from "../../../store/slices/authSlice";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
-    const { register,handleSubmit} = useForm({
-  })
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const onSubmit = async(data) => {
-    console.log(data)
-  }
+  const { register, handleSubmit } = useForm({});
 
-    const [showPassword, setShowPassword] = useState(false);
-  
-    const handleClickShowPassword = () => {
-      setShowPassword((prev) => !prev);
-    };
+  const onSubmit = async (data) => {
+  dispatch(loginApi(data))
+    .unwrap()
+    .then((payload) => {
+      // Kiểm tra cấu trúc payload trả về
+      if (payload && payload.data) {
+        toast.success("Đăng nhập thành công");
+        // Lưu cả user và token vào localStorage
+        localStorage.setItem("currentUser", JSON.stringify(payload.data));
+
+        const userType = payload.data.user.role;
+        if (userType === "user") {
+          navigate(PATH.HOME);
+        } else if (userType === "coach") {
+          navigate(PATH.COACHES);
+        } else if (userType === "admin") {
+          navigate(PATH.ADMIN);
+        }
+      } else {
+        toast.error(payload.message || "Đăng nhập thất bại, vui lòng thử lại.");
+      }
+    })
+    .catch((error) => {
+      const errorMessage = error.message || "Đăng nhập thất bại, vui lòng thử lại.";
+      toast.error(errorMessage);
+    });
+};
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleClickShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
   return (
     <Box className="login-page" sx={{ width: "100%", minHeight: "100vh" }}>
       <Grid container spacing={0} sx={{ height: "100%" }}>
@@ -83,22 +106,22 @@ export default function LoginPage() {
                   <TextField
                     id="password"
                     label="Mật khẩu"
-                    type={showPassword ? "text" : "password"} 
+                    type={showPassword ? "text" : "password"}
                     variant="outlined"
                     fullWidth
                     {...register("password")}
                     sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
-                     InputProps={{
-                    endAdornment: (
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    ),
-                  }}
+                    InputProps={{
+                      endAdornment: (
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      ),
+                    }}
                   />
                 </Box>
                 <Typography className="login-forget">Quên mật khẩu?</Typography>
@@ -136,7 +159,7 @@ export default function LoginPage() {
                     display: "flex",
                     justifyContent: "space-between",
                     mb: 2,
-                    mt:2
+                    mt: 2,
                   }}
                 >
                   <Button

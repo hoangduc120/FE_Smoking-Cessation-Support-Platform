@@ -1,0 +1,65 @@
+.CoachPlaneDetail {
+  padding: 20px;
+}
+
+.CoachPlaneDetail-content-title {
+  margin-bottom: 20px;
+}
+
+.CoachPlaneDetail-content-text {
+  margin-top: 30px;
+}
+
+.CoachPlaneDetail-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.CoachPlaneDetail-accordion {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.CoachPlaneDetail-accordion:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.MuiAccordionSummary-root {
+  font-weight: 500;
+  color: #1976d2;
+}
+
+.MuiAccordionDetails-root {
+  background-color: #fafafa;
+  border-top: 1px solid #e0e0e0;
+}
+
+.CoachPlaneDetail-image img {
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.CoachPlaneDetail-image-text {
+  display: flex;
+  flex-direction: column;
+ align-items: center;
+}
+
+.CoachPlaneDetail-image-text-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+button.btn-apply {
+  background-color: #307d2e;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 4px;
+  text-align: center;
+  text-decoration: none;
+  margin: 10px;
+}
