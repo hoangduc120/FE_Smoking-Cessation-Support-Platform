@@ -17,32 +17,37 @@ export default function LoginPage() {
   const { register, handleSubmit } = useForm({});
 
   const onSubmit = async (data) => {
-  dispatch(loginApi(data))
-    .unwrap()
-    .then((payload) => {
-      // Kiểm tra cấu trúc payload trả về
-      if (payload && payload.data) {
-        toast.success("Đăng nhập thành công");
-        // Lưu cả user và token vào localStorage
-        localStorage.setItem("currentUser", JSON.stringify(payload.data));
+    dispatch(loginApi(data))
+      .unwrap()
+      .then((payload) => {
+        if (payload && payload.data) {
+          toast.success("Đăng nhập thành công");
+          localStorage.setItem("currentUser", JSON.stringify(payload.data));
+          const userType = payload.data.user.role?.trim().toLowerCase();
 
-        const userType = payload.data.user.role;
-        if (userType === "user") {
-          navigate(PATH.HOME);
-        } else if (userType === "coach") {
-          navigate(PATH.COACHES);
-        } else if (userType === "admin") {
-          navigate(PATH.ADMIN);
+          if (userType === "user") {
+            navigate(PATH.HOME);
+          } else if (userType === "coach") {
+            navigate(PATH.COACHES);
+          } else if (userType === "admin" || userType === "administrator") {
+            navigate(PATH.ADMIN);
+          } else {
+            toast.error(
+              "Vai trò không hợp lệ, vui lòng liên hệ quản trị viên."
+            );
+          }
+        } else {
+          toast.error(
+            payload.message || "Đăng nhập thất bại, vui lòng thử lại."
+          );
         }
-      } else {
-        toast.error(payload.message || "Đăng nhập thất bại, vui lòng thử lại.");
-      }
-    })
-    .catch((error) => {
-      const errorMessage = error.message || "Đăng nhập thất bại, vui lòng thử lại.";
-      toast.error(errorMessage);
-    });
-};
+      })
+      .catch((error) => {
+        const errorMessage =
+          error.message || "Đăng nhập thất bại, vui lòng thử lại.";
+        toast.error(errorMessage);
+      });
+  };
 
   const [showPassword, setShowPassword] = useState(false);
 
