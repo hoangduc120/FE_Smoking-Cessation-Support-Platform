@@ -1,20 +1,20 @@
-/* Center the container with full-width content */
+
 .plan-container {
-  padding: 24px 8px; /* Reduced padding to allow more content width */
+  padding: 24px 8px; 
   max-width: 100%;
   margin: 0 auto;
   background-color: #f9fafb;
   min-height: 100vh;
 }
 
-/* Increase content width to reduce empty space on the sides */
+
 .plan-content {
-  max-width: 1200px; /* Increased from 1024px to allow more width */
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 8px; /* Reduced padding to maximize content width */
+  padding: 0 8px; 
 }
 
-/* Refine header layout */
+
 .plan-header {
   display: flex;
   flex-direction: column;
@@ -31,14 +31,14 @@
   }
 }
 
-/* Enhance title styling */
+
 .plan-title {
   font-weight: 700;
   font-size: 1.75rem;
   color: #1a202c;
 }
 
-/* Optimize header buttons layout */
+
 .plan-header-buttons {
   display: flex;
   flex-direction: column;
@@ -52,7 +52,7 @@
   }
 }
 
-/* Improve alert styling */
+
 .plan-alert {
   margin-bottom: 20px;
   background-color: #e3f2fd;
@@ -66,7 +66,7 @@
   background-color: #e8f5e9;
 }
 
-/* Refine tabs */
+
 .plan-tabs {
   margin-bottom: 20px;
   background-color: #ffffff;
@@ -80,26 +80,26 @@
   font-size: 1rem;
 }
 
-/* Enhance card styling */
+
 .plan-card {
   margin-bottom: 20px;
   border: none;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   background-color: #ffffff;
-  width: 100%; /* Ensure the card takes full width of its container */
+  width: 100%; 
 }
 
-/* Optimize grid layout to make 'Thông tin cơ bản' wider */
+
 .plan-grid {
   display: grid;
   gap: 20px;
-  width: 100%; /* Ensure the grid takes full width */
+  width: 100%; 
 }
 
 @media (min-width: 768px) {
   .plan-grid {
-    grid-template-columns: 3fr 1fr; /* Allocate more space to 'Thông tin cơ bản' */
+    grid-template-columns: 3fr 1fr; 
   }
 }
 
