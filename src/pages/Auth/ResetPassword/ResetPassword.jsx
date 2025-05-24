@@ -1,52 +1,73 @@
-import { Box, Button, Grid, TextField, Typography } from "@mui/material";
-import IconButton from "@mui/material/IconButton";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import "./LoginPage.css";
-import { Link, useNavigate } from "react-router-dom";
-import { PATH } from "../../../routes/path";
+import {
+  Box,
+  Button,
+  Grid,
+  TextField,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import "../../../pages/Auth/Login/LoginPage.css";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { PATH } from "../../../routes/path";
 import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
-import { loginApi } from "../../../store/slices/authSlice";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useDispatch, useSelector } from "react-redux";
+import { resetPasswordApi } from "../../../store/slices/authSlice";
 import toast from "react-hot-toast";
 
-export default function LoginPage() {
+const schema = yup.object({
+  password: yup
+    .string()
+    .required("Mật khẩu không được để trống")
+    .min(6, "Mật khẩu phải dài hơn 6 ký tự"),
+});
+
+export default function ResetPassword() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { token } = useParams();
+  const { isLoading } = useSelector((state) => state.auth);
 
-  const { register, handleSubmit } = useForm({});
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
   const onSubmit = async (data) => {
-    dispatch(loginApi(data))
-      .unwrap()
-      .then((payload) => {
-        if (payload && payload.data) {
-          toast.success("Đăng nhập thành công");
-          localStorage.setItem("currentUser", JSON.stringify(payload.data));
-          const userType = payload.data.user.role?.trim().toLowerCase();
+    if (!token) {
+      toast.error("Token không hợp lệ. Vui lòng thử lại.");
+      navigate(PATH.FORGOT_PASSWORD);
+      return;
+    }
 
-          if (userType === "user") {
-            navigate(PATH.HOME);
-          } else if (userType === "coach") {
-            navigate(PATH.COACHES);
-          } else if (userType === "admin" || userType === "administrator") {
-            navigate(PATH.ADMIN);
-          } else {
-            toast.error(
-              "Vai trò không hợp lệ, vui lòng liên hệ quản trị viên."
-            );
-          }
-        } else {
-          toast.error(
-            payload.message || "Đăng nhập thất bại, vui lòng thử lại."
-          );
-        }
-      })
-      .catch((error) => {
-        const errorMessage =
-          error.message || "Đăng nhập thất bại, vui lòng thử lại.";
-        toast.error(errorMessage);
-      });
+    try {
+      toast.loading("Đang đặt lại mật khẩu...");
+      await dispatch(
+        resetPasswordApi({ token, password: data.password })
+      ).unwrap();
+      toast.dismiss();
+      toast.success("Đặt lại mật khẩu thành công");
+      localStorage.removeItem("authToken");
+      navigate(PATH.LOGIN);
+    } catch (error) {
+      toast.dismiss();
+      if (
+        error.includes("token") ||
+        error.includes("expired") ||
+        error.includes("required")
+      ) {
+        toast.error("Token không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.");
+        navigate(PATH.FORGOT_PASSWORD);
+      } else {
+        toast.error(error || "Không thể đặt lại mật khẩu");
+      }
+    }
   };
 
   const [showPassword, setShowPassword] = useState(false);
@@ -54,17 +75,13 @@ export default function LoginPage() {
   const handleClickShowPassword = () => {
     setShowPassword((prev) => !prev);
   };
+
   return (
     <Box className="login-page" sx={{ width: "100%", minHeight: "100vh" }}>
       <Grid container spacing={0} sx={{ height: "100%" }}>
         <Grid item size={6} className="login-left">
           <Box className="login-container">
             <Box className="login-logo">
-              {/* <img
-                src={logo}
-                alt="QuitSmoke Logo"
-                style={{ width: "20%", height: "20%", borderRadius: "50%" }}
-              /> */}
               🌿
               <Typography
                 variant="h4"
@@ -80,65 +97,45 @@ export default function LoginPage() {
             </Box>
             <Box className="login-title">
               <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
-                Đăng nhập
+                Đặt lại mật khẩu
               </Typography>
               <Typography variant="body2" sx={{ color: "#757575" }}>
-                Nhập thông tin đăng nhập của bạn để tiếp tục
+                Nhập mật khẩu mới cho tài khoản của bạn
               </Typography>
             </Box>
             <Box className="login-form">
               <form onSubmit={handleSubmit(onSubmit)}>
                 <TextField
-                  id="email"
-                  label="Email"
-                  type="email"
+                  id="password"
+                  label="Nhập mật khẩu mới"
+                  type={showPassword ? "text" : "password"}
                   variant="outlined"
                   fullWidth
                   margin="normal"
-                  {...register("email")}
+                  {...register("password")}
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
                   sx={{
                     mb: 2,
                     "& .MuiOutlinedInput-root": { borderRadius: "8px" },
                   }}
-                />
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 2,
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    ),
                   }}
-                >
-                  <TextField
-                    id="password"
-                    label="Mật khẩu"
-                    type={showPassword ? "text" : "password"}
-                    variant="outlined"
-                    fullWidth
-                    {...register("password")}
-                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
-                    InputProps={{
-                      endAdornment: (
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={handleClickShowPassword}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      ),
-                    }}
-                  />
-                </Box>
-                <Typography className="login-forget">
-                  <Link to={PATH.FORGOTPASSWORD} className="login-link">
-                    Quên mật khẩu?
-                  </Link>
-                </Typography>
-
+                />
                 <Button
                   variant="contained"
                   type="submit"
                   fullWidth
+                  disabled={isLoading}
                   sx={{
                     mb: 2,
                     backgroundColor: "#2e7d32",
@@ -146,44 +143,24 @@ export default function LoginPage() {
                     py: 1.5,
                   }}
                 >
-                  Đăng nhập
+                  {isLoading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
                 </Button>
                 <Typography
                   variant="body2"
                   sx={{ textAlign: "center", mb: 2, color: "#757575" }}
                 >
-                  Chưa có tài khoản?{" "}
-                  <Link to={PATH.REGISTER} className="login-link">
-                    Đăng ký ngay
-                  </Link>
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ textAlign: "center", color: "#757575" }}
-                >
-                  Hoặc tiếp tục với
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 2,
-                    mt: 2,
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    sx={{
-                      flex: 1,
-                      mr: 1,
-                      borderRadius: "8px",
-                      color: "#000",
-                      borderColor: "#ccc",
+                  <Link
+                    to={PATH.LOGIN}
+                    className="login-link"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    Google
-                  </Button>
-                </Box>
+                    Quay lại đăng nhập
+                  </Link>
+                </Typography>
               </form>
             </Box>
           </Box>
@@ -204,11 +181,11 @@ export default function LoginPage() {
               variant="h4"
               sx={{ fontWeight: "bold", color: "#2e7d32", mb: 4 }}
             >
-              Bắt đầu hành trình từ bỏ thuốc lá của bạn
+              {"\n"} Bắt đầu hành trình từ bỏ thuốc lá của bạn
             </Typography>
             <Typography variant="body1" sx={{ color: "#757575", mb: 4 }}>
-              Theo dõi tiến trình, nâng cao sức khỏe và cải thiện chất lượng
-              cuộc sống của bạn.
+              Theo dõi tiến trình, nâng cao sức khỏe và cải thiện chất lượng cuộc
+              sống của bạn.
             </Typography>
             <Box
               sx={{
@@ -222,7 +199,6 @@ export default function LoginPage() {
                 mb: 4,
               }}
             >
-              {/* Placeholder for image */}
               <Typography variant="body2" color="text.secondary">
                 Hình ảnh
               </Typography>

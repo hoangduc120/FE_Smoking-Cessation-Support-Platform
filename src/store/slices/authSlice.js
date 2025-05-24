@@ -46,6 +46,38 @@ export const logoutApi = createAsyncThunk(
   }
 );
 
+// forgot password
+export const forgotPasswordApi = createAsyncThunk(
+  "auth/forgotPassword",
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await fetcher.get(
+        `/auth/forgot-password?email=${encodeURIComponent(email)}`
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
+    }
+  }
+);
+
+// reset password
+export const resetPasswordApi = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ token, password }, { rejectWithValue }) => {
+    try {
+      const response = await fetcher.put(`/auth/reset-password`, { token, password });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -71,7 +103,7 @@ const authSlice = createSlice({
     });
     builder.addCase(registerApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
-      state.currentUser = payload.data; // Lưu cả user và token
+      state.currentUser = payload.data;
     });
     builder.addCase(registerApi.rejected, (state, { payload }) => {
       state.isLoading = false;
@@ -82,7 +114,7 @@ const authSlice = createSlice({
     });
     builder.addCase(loginApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
-      state.currentUser = payload.data; // Lưu cả user và token
+      state.currentUser = payload.data;
     });
     builder.addCase(loginApi.rejected, (state, { payload }) => {
       state.isLoading = false;
@@ -97,6 +129,28 @@ const authSlice = createSlice({
       localStorage.removeItem("currentUser");
     });
     builder.addCase(logoutApi.rejected, (state, { payload }) => {
+      state.isLoading = false;
+      state.error = payload;
+    });
+    builder.addCase(forgotPasswordApi.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(forgotPasswordApi.fulfilled, (state) => {
+      state.isLoading = false;
+      state.error = null;
+    });
+    builder.addCase(forgotPasswordApi.rejected, (state, { payload }) => {
+      state.isLoading = false;
+      state.error = payload;
+    });
+    builder.addCase(resetPasswordApi.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(resetPasswordApi.fulfilled, (state) => {
+      state.isLoading = false;
+      state.error = null;
+    });
+    builder.addCase(resetPasswordApi.rejected, (state, { payload }) => {
       state.isLoading = false;
       state.error = payload;
     });
