@@ -14,6 +14,8 @@ import AssessmentPage from "../pages/Home/AsseementPage/AssessmentPage";
 import PlanCustomization from "../pages/Home/PlanCustomization/PlanCustomization";
 import CoachPlan from "../pages/Home/CoachPlane/CoachPlane";
 import CoachPlaneDetail from "../pages/Home/CoachPlane/CoachPlaneDetail";
+import ForgotPassWord from "../pages/Auth/ForgetPassWord/ForgotPassWord";
+import ResetPassword from "../pages/Auth/ResetPassword/ResetPassword";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -30,6 +32,14 @@ export default function useRouterElement() {
           path: PATH.REGISTER,
           element: <RegisterPage />,
         },
+        {
+          path: PATH.FORGOTPASSWORD,
+          element: <ForgotPassWord />, 
+        },
+        {
+          path: PATH.RESETPASSWORD,
+          element: <ResetPassword />,
+        }
       ],
     },
     // HOMEPAGE
