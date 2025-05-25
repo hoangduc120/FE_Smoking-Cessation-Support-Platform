@@ -1,18 +1,28 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Typography, Avatar, Menu, MenuItem } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { useState } from "react";
 import "./Header.css";
 import { PATH } from "../../routes/path";
 import { logoutApi } from "../../store/slices/authSlice";
 import toast from "react-hot-toast";
 
 const Header = () => {
-  // const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleAvatarClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleLogout = () => {
+    handleClose();
     dispatch(logoutApi())
       .unwrap()
       .then(() => {
@@ -25,9 +35,18 @@ const Header = () => {
           error.message || "Đăng xuất thất bại, vui lòng thử lại.";
         toast.error(errorMessage);
         localStorage.removeItem("currentUser");
-
         navigate(PATH.LOGIN);
       });
+  };
+
+  const handleProfile = () => {
+    handleClose();
+    navigate(PATH.PROFILE);
+  };
+
+  const handleRoadmap = () => {
+    handleClose();
+    navigate(PATH.ROADMAP);
   };
 
   return (
@@ -58,18 +77,29 @@ const Header = () => {
         </Link>
       </Box>
       <Box className="header-actions">
-        <Button
-          variant="contained"
-          sx={{ backgroundColor: "#2e7d32", borderRadius: "8px", mr: 1 }}
+        <Avatar
+          sx={{ bgcolor: "#2e7d32", cursor: "pointer" }}
+          onClick={handleAvatarClick}
         >
-          <Link
-            to={PATH.LOGIN}
-            style={{ color: "white", textDecoration: "none" }}
-            onClick={handleLogout} // Sửa thành onClick={handleLogout}
-          >
-            Đăng xuất
-          </Link>
-        </Button>
+          U
+        </Avatar>
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+        >
+          <MenuItem onClick={handleProfile}>Hồ sơ</MenuItem>
+          <MenuItem onClick={handleRoadmap}>Lộ trình</MenuItem>
+          <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
+        </Menu>
       </Box>
     </Box>
   );

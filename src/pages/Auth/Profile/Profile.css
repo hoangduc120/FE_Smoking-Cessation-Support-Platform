@@ -1,0 +1,122 @@
+.profile-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.profile-title {
+  color: #2c7a35;
+  font-weight: bold !important;
+  margin-bottom: 8px;
+  font-size: 3.125rem !important;
+}
+
+.profile-subtitle {
+  color: #666;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  font-size: 1rem !important;
+}
+
+.profile-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-sidebar {
+  min-width: 0;
+}
+
+.profile-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+}
+
+.avatar-container {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  width: 128px !important;
+  height: 128px !important;
+}
+
+.user-info {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.badge-container {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.stats-container {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field {
+  margin-bottom: 16px;
+}
+
+.info-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.profile-container.editing .info-box {
+  border: none;
+}
+
+.bio-box {
+  min-height: 80px;
+}
+
+.info-icon {
+  color: #666;
+}
+
+.card-margin {
+  margin-top: 24px;
+}
+
+.monospace {
+  font-family: "Courier New", Courier, monospace;
+}

@@ -16,6 +16,7 @@ import CoachPlan from "../pages/Home/CoachPlane/CoachPlane";
 import CoachPlaneDetail from "../pages/Home/CoachPlane/CoachPlaneDetail";
 import ForgotPassWord from "../pages/Auth/ForgetPassWord/ForgotPassWord";
 import ResetPassword from "../pages/Auth/ResetPassword/ResetPassword";
+import Profile from "../pages/Auth/Profile/Profile";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -71,6 +72,10 @@ export default function useRouterElement() {
           path: PATH.COACHPLANEDETAIL,
           element: <CoachPlaneDetail />,
         },
+        {
+          path: PATH.PROFILE,
+          element: <Profile/>
+        }
       ],
     },
 
