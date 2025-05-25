@@ -3,7 +3,9 @@ import quitSmokingReducer from "../store/slices/quitSmokingSlice";
 import authReducer from "../store/slices/authSlice";
 import planeReducer from "../store/slices/planeSlice";
 import socketReducer from "../store/slices/socketSlice";
+import userReducer from "../store/slices/userSlice";
 import socketMiddleware from "./middleware/socketMiddleware";
+
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +14,7 @@ export const store = configureStore({
     quitSmoking: quitSmokingReducer,
     plane: planeReducer,
     socket: socketReducer,
+    user: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
