@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { fetcher } from "../../apis/fetcher";
 
-// get user profile
+// Fetch user profile
 export const fetchUser = createAsyncThunk(
   "user/fetchUser",
   async (_, { rejectWithValue }) => {
@@ -14,22 +14,37 @@ export const fetchUser = createAsyncThunk(
       return response.data.data.user;
     } catch (error) {
       return rejectWithValue(
-        error.response ? error.response.data : error.message
+        error.response ? error.response.data.message : error.message
       );
     }
   }
 );
 
-// update user
+// Update user info
 export const updateUser = createAsyncThunk(
   "user/updateUser",
   async (data, { rejectWithValue }) => {
     try {
       const response = await fetcher.put("/users/profile", data);
-      return response.data;
+      return response.data.data.user;
     } catch (error) {
       return rejectWithValue(
-        error.response ? error.response.data : error.message
+        error.response ? error.response.data.message : error.message
+      );
+    }
+  }
+);
+
+// Update avatar image
+export const changeImageApi = createAsyncThunk(
+  "user/updateImage",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await fetcher.put("/users/upload-avatar", formData);
+      return response.data.data.user;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
       );
     }
   }
@@ -71,7 +86,22 @@ const userSlice = createSlice({
       })
       .addCase(updateUser.rejected, (state, { payload }) => {
         state.isLoading = false;
-        state.isError = payload;
+        state.isError = true;
+        state.errorMessage = payload;
+      })
+      .addCase(changeImageApi.pending, (state) => {
+        state.isLoading = true;
+        state.isError = false;
+      })
+      .addCase(changeImageApi.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = false;
+        state.user = payload;
+      })
+      .addCase(changeImageApi.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = payload;
       });
   },
 });

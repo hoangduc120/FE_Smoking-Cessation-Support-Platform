@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Avatar,
   Card,
@@ -14,15 +14,24 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { Person, Email, Phone, LocationOn } from "@mui/icons-material";
+import {
+  Person,
+  Email,
+  Phone,
+  LocationOn,
+  CameraAlt,
+} from "@mui/icons-material";
 import "./Profile.css";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUser, updateUser } from "../../../store/slices/userSlice";
+import {
+  fetchUser,
+  updateUser,
+  changeImageApi,
+} from "../../../store/slices/userSlice";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-
 import * as yup from "yup";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 export const profileSchema = yup.object().shape({
   userName: yup
@@ -45,21 +54,40 @@ export const profileSchema = yup.object().shape({
     .string()
     .max(100, "Địa chỉ không được vượt quá 100 ký tự")
     .nullable(),
+  profilePicture: yup
+    .mixed()
+    .nullable()
+    .test(
+      "fileSize",
+      "Ảnh phải nhỏ hơn 5MB",
+      (value) => !value || (value && value.size <= 5 * 1024 * 1024)
+    )
+    .test(
+      "fileType",
+      "Chỉ chấp nhận định dạng JPEG, PNG hoặc JPG",
+      (value) =>
+        !value ||
+        (value && ["image/jpeg", "image/png", "image/jpg"].includes(value.type))
+    ),
 });
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
-  const { user, isLoading, isError, errorMessage, isUpdating, updateError } =
-    useSelector((state) => state.user);
+  const { user, isLoading, isError, errorMessage } = useSelector(
+    (state) => state.user
+  );
 
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null); // Thêm state để lưu file
 
-  // Initialize React Hook Form
+  const fileInputRef = useRef(null);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm({
     resolver: yupResolver(profileSchema),
     defaultValues: {
@@ -68,10 +96,10 @@ export default function ProfilePage() {
       bio: "",
       phone: "",
       address: "",
+      profilePicture: null,
     },
   });
 
-  // Update form values when user data is loaded
   useEffect(() => {
     if (user) {
       reset({
@@ -84,12 +112,10 @@ export default function ProfilePage() {
     }
   }, [user, reset]);
 
-  // Fetch user profile when component mounts
   useEffect(() => {
     dispatch(fetchUser());
   }, [dispatch]);
 
-  // Handle form submission
   const onSubmit = async (data) => {
     try {
       await dispatch(updateUser(data)).unwrap();
@@ -98,12 +124,13 @@ export default function ProfilePage() {
       setIsEditing(false);
     } catch (error) {
       console.error("Update error:", error);
+      toast.error(error || "Cập nhật thông tin thất bại");
     }
   };
 
-  // Handle cancel
   const handleCancel = () => {
     setIsEditing(false);
+    setSelectedFile(null); // Reset file khi hủy
     reset({
       userName: user?.userName || "",
       gender: user?.gender || "",
@@ -111,6 +138,35 @@ export default function ProfilePage() {
       phone: user?.phone || "",
       address: user?.address || "",
     });
+  };
+
+  // Xử lý upload ảnh
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setValue("profilePicture", file);
+    }
+  };
+
+  const handleUploadAvatar = async () => {
+    if (!selectedFile) {
+      toast.error("Vui lòng chọn ảnh để upload!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("avatar", selectedFile);
+
+    try {
+      await dispatch(changeImageApi(formData)).unwrap();
+      toast.success("Upload ảnh thành công!");
+      await dispatch(fetchUser()).unwrap();
+      setSelectedFile(null);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Upload ảnh thất bại: " + error.message);
+    }
   };
 
   if (isLoading) {
@@ -129,6 +185,7 @@ export default function ProfilePage() {
 
   return (
     <>
+      <Toaster />
       <Box className="homePage">
         <Box className={`profile-container ${isEditing ? "editing" : ""}`}>
           <Typography variant="h4" className="profile-title">
@@ -138,8 +195,7 @@ export default function ProfilePage() {
             Quản lý thông tin cá nhân và cài đặt tài khoản
           </Typography>
 
-          <Box className="profile-grid ">
-            {/* Profile Picture & Basic Info */}
+          <Box className="profile-grid">
             <Box className="profile-sidebar">
               <Card
                 sx={{
@@ -150,12 +206,37 @@ export default function ProfilePage() {
                 <CardContent className="profile-card-content">
                   <Box className="avatar-container">
                     <Avatar
-                      src={user?.profilePicture || ""}
+                      src={user.profilePicture || ""}
                       alt="User"
                       className="avatar"
                     >
                       {user?.userName?.[0] || "?"}
                     </Avatar>
+                    {isEditing && (
+                      <Box
+                        className="camera-icon"
+                        onClick={() => fileInputRef.current.click()}
+                      >
+                        <CameraAlt fontSize="small" />
+                      </Box>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg"
+                      style={{ display: "none" }}
+                      ref={fileInputRef}
+                      onChange={handleFileChange} // Xử lý khi chọn file
+                    />
+                    {isEditing && selectedFile && (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleUploadAvatar}
+                        sx={{ mt: 2, backgroundColor: "#2c7a35" }}
+                      >
+                        Upload Ảnh
+                      </Button>
+                    )}
                   </Box>
 
                   <Box className="user-info">
@@ -212,9 +293,7 @@ export default function ProfilePage() {
               </Card>
             </Box>
 
-            {/* Profile Details */}
             <Box className="profile-main">
-              {/* Personal Information */}
               <Card
                 sx={{
                   backgroundColor: "transparent",
@@ -226,7 +305,6 @@ export default function ProfilePage() {
                     title="Thông tin cá nhân"
                     subheader="Cập nhật thông tin cá nhân của bạn"
                   />
-                  {/* Update Button */}
                   <Box
                     sx={{
                       mt: 2,
@@ -242,19 +320,14 @@ export default function ProfilePage() {
                           variant="contained"
                           color="primary"
                           onClick={handleSubmit(onSubmit)}
-                          disabled={isUpdating}
-                          sx={{
-                          cursor:"pointer",
-                          backgroundColor:"#2c7a35",
-                        }}
+                          sx={{ backgroundColor: "#2c7a35" }}
                         >
-                          {isUpdating ? "Đang lưu..." : "Lưu"}
+                          Lưu
                         </Button>
                         <Button
                           variant="outlined"
                           color="secondary"
                           onClick={handleCancel}
-                          disabled={isUpdating}
                         >
                           Hủy
                         </Button>
@@ -264,20 +337,12 @@ export default function ProfilePage() {
                         variant="contained"
                         color="primary"
                         onClick={() => setIsEditing(true)}
-                        sx={{
-                          cursor:"pointer",
-                          backgroundColor:"#2c7a35",
-                        }}
+                        sx={{ backgroundColor: "#2c7a35" }}
                       >
                         Cập nhật
                       </Button>
                     )}
                   </Box>
-                  {updateError && (
-                    <Typography variant="body2" color="error" sx={{ mt: 2 }}>
-                      Lỗi cập nhật: {updateError}
-                    </Typography>
-                  )}
                 </Box>
                 <CardContent>
                   <Box className="form-grid">
@@ -371,7 +436,6 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
-              {/* Contact Information */}
               <Card
                 className="card-margin"
                 sx={{

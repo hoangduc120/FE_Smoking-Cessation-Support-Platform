@@ -2,9 +2,6 @@ import axios from "axios";
 
 export const fetcher = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 fetcher.interceptors.request.use(
@@ -13,6 +10,7 @@ fetcher.interceptors.request.use(
     if (currentUser?.token) {
       config.headers.Authorization = `Bearer ${currentUser.token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
