@@ -1,7 +1,8 @@
 .profile-container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px;
+  width: 100%;
+  padding: 24px 16px; 
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .profile-title {
@@ -21,13 +22,14 @@
 .profile-grid {
   margin-top: 10px;
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1fr 2fr; 
   gap: 24px;
+  width: 100%; 
 }
 
 @media (max-width: 768px) {
   .profile-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; 
   }
 }
 
@@ -95,13 +97,14 @@
 
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr; 
   gap: 16px;
+  width: 100%;
 }
 
 @media (max-width: 600px) {
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; 
   }
 }
 
@@ -133,6 +136,31 @@
 
 .card-margin {
   margin-top: 24px;
+}
+
+
+.form-grid .MuiCard-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%; 
+}
+
+
+.form-grid .MuiCardContent-root {
+  flex-grow: 1;
+}
+
+
+.profile-main {
+  width: 100%; 
+}
+
+
+@media (min-width: 1200px) {
+  .profile-container {
+    padding: 24px 5%; 
+  }
 }
 
 .monospace {

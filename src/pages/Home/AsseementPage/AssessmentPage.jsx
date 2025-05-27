@@ -12,10 +12,7 @@ import {
   Radio,
   RadioGroup,
   FormLabel,
-  TextField,
   LinearProgress,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import { ArrowBack, ArrowForward, CheckCircle } from "@mui/icons-material";
 import { useForm, Controller } from "react-hook-form";
@@ -24,81 +21,27 @@ import * as yup from "yup";
 import "./AssessmentPage.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchAssessment, saveAssessment } from "../../../store/slices/quitSmokingSlice";
+import {
+  saveAssessment,
+} from "../../../store/slices/quitSmokingSlice";
 import toast from "react-hot-toast";
 import { PATH } from "../../../routes/path";
 
 // Validation schema
 const schema = yup.object().shape({
-  cigarettesPerDay: yup
-    .number()
-    .min(1, "Số điếu thuốc mỗi ngày phải lớn hơn 0")
-    .required("Số điếu thuốc là bắt buộc"),
   smokingYears: yup
     .number()
     .min(1, "Số năm hút thuốc phải lớn hơn 0")
     .required("Số năm hút thuốc là bắt buộc"),
-  cigarettePrice: yup
-    .number()
-    .min(15000, "Giá thuốc lá phải lớn hơn 15,000 VNĐ")
-    .required("Giá thuốc lá là bắt buộc"),
-  firstCigaretteTime: yup
+  motivation: yup.string().required("Động lực cai thuốc là bắt buộc"),
+  peakSmokingTimes: yup
     .string()
-    .required("Thời điểm hút điếu đầu tiên là bắt buộc"),
-  difficultPlacesNoSmoking: yup.boolean(),
-  smokeDuringSickness: yup.boolean(),
+    .required("Thời điểm hút thuốc nhiều nhất là bắt buộc"),
   previousAttempts: yup.string().required("Số lần cố gắng cai là bắt buộc"),
-  longestQuitDuration: yup.string().when("previousAttempts", {
-    is: (value) => value !== "0",
-    then: (schema) => schema.required("Thời gian cai lâu nhất là bắt buộc"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  quitMethods: yup.array().when("previousAttempts", {
-    is: (value) => value !== "0",
-    then: (schema) =>
-      schema
-        .min(1, "Phải chọn ít nhất một phương pháp")
-        .required("Phương pháp cai là bắt buộc"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  relapseTriggers: yup.array().when("previousAttempts", {
-    is: (value) => value !== "0",
-    then: (schema) =>
-      schema
-        .min(1, "Phải chọn ít nhất một yếu tố")
-        .required("Yếu tố tái nghiện là bắt buộc"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  mainReason: yup.string().required("Lý do chính là bắt buộc"),
-  healthConcerns: yup.array().when("mainReason", {
-    is: "health",
-    then: (schema) =>
-      schema
-        .min(1, "Phải chọn ít nhất một vấn đề sức khỏe")
-        .required("Vấn đề sức khỏe là bắt buộc"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  goalTimeframe: yup.string().required("Thời gian mục tiêu là bắt buộc"),
-  confidenceLevel: yup
-    .number()
-    .min(1, "Mức độ tự tin phải từ 1-10")
-    .max(10, "Mức độ tự tin phải từ 1-10")
-    .required("Mức độ tự tin là bắt buộc"),
   supportSystem: yup
     .array()
     .min(1, "Phải chọn ít nhất một hệ thống hỗ trợ")
     .required("Hệ thống hỗ trợ là bắt buộc"),
-  livesWithSmokers: yup.boolean(),
-  workWithSmokers: yup.boolean(),
-  preferredApproach: yup.string().required("Phương pháp cai là bắt buộc"),
-  preferredCommunication: yup
-    .string()
-    .required("Hình thức giao tiếp là bắt buộc"),
-  coachGender: yup.string().required("Giới tính huấn luyện viên là bắt buộc"),
-  coachSpecialty: yup
-    .string()
-    .required("Chuyên môn huấn luyện viên là bắt buộc"),
-  additionalInfo: yup.string(),
 });
 
 export default function AssessmentPage() {
@@ -106,56 +49,34 @@ export default function AssessmentPage() {
   const dispatch = useDispatch();
   const { isLoading } = useSelector((state) => state.quitSmoking);
   const [step, setStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 3; // Cập nhật thành 3 bước
 
-  // Kiểm tra trạng thái đăng nhập
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  console.log("Current User:", currentUser);
 
-useEffect(() => {
-  console.log("useEffect triggered, isLoading:", isLoading);
-  if (!currentUser || !currentUser.token) {
-    console.log("Chưa đăng nhập, chuyển hướng đến login");
-    toast.error("Vui lòng đăng nhập để tiếp tục!");
-    navigate(PATH.LOGIN);
-    return;
-  }
-}, [currentUser ]);
+  useEffect(() => {
+    if (!currentUser || !currentUser.token) {
+      console.log("Chưa đăng nhập, chuyển hướng đến login");
+      toast.error("Vui lòng đăng nhập để tiếp tục!");
+      navigate(PATH.LOGIN);
+      return;
+    }
+  }, [currentUser]);
 
   const {
     control,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      cigarettesPerDay: 10,
       smokingYears: 5,
-      cigarettePrice: 25000,
-      firstCigaretteTime: "within30min",
-      difficultPlacesNoSmoking: true,
-      smokeDuringSickness: false,
+      motivation: "health",
+      peakSmokingTimes: "morning-stress",
       previousAttempts: "1-2",
-      longestQuitDuration: "1-4weeks",
-      quitMethods: ["cold-turkey", "nicotine-replacement"],
-      relapseTriggers: ["stress", "social"],
-      mainReason: "health",
-      healthConcerns: ["breathing", "heart"],
-      goalTimeframe: "3months",
-      confidenceLevel: 7,
-      supportSystem: ["family", "friends"],
-      livesWithSmokers: true,
-      workWithSmokers: true,
-      preferredApproach: "gradual",
-      preferredCommunication: "inperson",
-      coachGender: "no-preference",
-      coachSpecialty: "psychology",
-      additionalInfo: "",
+      supportSystem: ["counseling", "reminders"],
     },
   });
-
-  const previousAttempts = watch("previousAttempts");
-  const mainReason = watch("mainReason");
 
   const nextStep = () => {
     if (step < totalSteps) {
@@ -171,39 +92,52 @@ useEffect(() => {
     }
   };
 
-const onSubmit = async (data) => {
-  if (step === totalSteps) {
-    // Tạo object chỉ chứa các trường cần thiết
-    const assessmentData = {
-      id: data.id || "1", // Nếu không có id thì mặc định là "1" (dựa trên mock API)
-      CigarettesPerDay: data.cigarettesPerDay,
-      SmokingYears: data.smokingYears,
-      CigarettePrice: data.cigarettePrice,
-      FirstCigaretteTime: data.firstCigaretteTime,
-      PreviousAttempts: data.previousAttempts,
-      LongestQuitDuration: data.previousAttempts !== "0" ? data.longestQuitDuration : null,
-      QuitMethods: data.previousAttempts !== "0" ? data.quitMethods : [],
-      RelapseTriggers: data.previousAttempts !== "0" ? data.relapseTriggers : [],
-      MainReason: data.mainReason,
-      HealthConcerns: data.mainReason === "health" ? data.healthConcerns : [],
-      GoalTimeframe: data.goalTimeframe,
-      PreferredApproach: data.preferredApproach,
-      CreatedAt: new Date().toISOString(),
-      UpdatedAt: new Date().toISOString(),
-    };
-    console.log("Dữ liệu gửi đi:", assessmentData);
+  const onSubmit = async (data) => {
+    if (step === totalSteps) {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    
+      const assessmentData = {
+        userId: currentUser?.user?.id|| "1", 
+        motivation:
+          data.motivation === "health" ? "Muốn cải thiện sức khỏe" : data.motivation === "money" ? "Tiết kiệm tiền" : "Khác",
+        smokingDurationYear: data.smokingYears,
+        peakSmokingTimes:
+          data.peakSmokingTimes === "morning-stress"
+            ? "Sáng và khi căng thẳng"
+            : data.peakSmokingTimes === "evening"
+            ? "Buổi tối"
+            : data.peakSmokingTimes === "after-meals"
+            ? "Sau bữa ăn"
+            : "Khác",
+        quitAttempts: parseInt(data.previousAttempts.split("-")[0]) || 0,
+        supportNeeded:
+          data.supportSystem.includes("counseling") && data.supportSystem.includes("reminders")
+            ? "Tư vấn tâm lý và nhắc nhở"
+            : data.supportSystem.includes("counseling")
+            ? "Tư vấn tâm lý"
+            : data.supportSystem.includes("reminders")
+            ? "Nhắc nhở"
+            : data.supportSystem.includes("peer-support")
+            ? "Hỗ trợ từ bạn bè"
+            : data.supportSystem.includes("app-support")
+            ? "Hỗ trợ qua ứng dụng"
+            : "Khác",
+      };
+      console.log("Dữ liệu gửi đi:", assessmentData);
 
-    try {
-      await dispatch(saveAssessment(assessmentData)).unwrap();
-      await toast.success("Đánh giá thành công!");
-      setTimeout(() => {
-        navigate("/planCustomization");
-      }, 2000);
-    } catch (error) {
-      toast.error("Đánh giá thất bại! Vui lòng thử lại.");
+      try {
+        await dispatch(saveAssessment(assessmentData)).unwrap();
+        await toast.success("Đánh giá thành công!");
+        setTimeout(() => {
+          navigate("/planCustomization");
+        }, 2000);
+      } catch (error) {
+        toast.error("Đánh giá thất bại! Vui lòng thử lại.");
+      }
+    } else {
+      nextStep();
     }
-  }
-};
+  };
 
   return (
     <Box className="assessment-page">
@@ -237,46 +171,14 @@ const onSubmit = async (data) => {
           />
         </Box>
 
+        {/* Step 1: Số năm hút thuốc và động lực cai thuốc */}
         {step === 1 && (
           <Card className="step-card">
             <CardHeader>
               <Typography variant="h5">Thói quen hút thuốc</Typography>
-              <Typography color="textSecondary">
-                Cho chúng tôi biết về thói quen hút thuốc của bạn
-              </Typography>
             </CardHeader>
             <CardContent className="form-container">
-              <FormLabel>Bạn hút bao nhiêu điếu thuốc mỗi ngày?</FormLabel>
-              <Box display="flex" alignItems="center" gap={2}>
-                <Controller
-                  name="cigarettesPerDay"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Slider
-                        {...field}
-                        min={1}
-                        max={40}
-                        step={1}
-                        onChange={(_, value) => field.onChange(value)}
-                        sx={{
-                          flex: 1,
-                          "& .MuiSlider-track": { backgroundColor: "#2d7e32" },
-                          "& .MuiSlider-rail": { backgroundColor: "#e0e0e0" },
-                          "& .MuiSlider-thumb": { backgroundColor: "#2d7e32" },
-                        }}
-                      />
-                      <Typography>{field.value} điếu</Typography>
-                    </>
-                  )}
-                />
-              </Box>
-              {errors.cigarettesPerDay && (
-                <Typography color="error">
-                  {errors.cigarettesPerDay.message}
-                </Typography>
-              )}
-
+              {/* Số năm hút thuốc */}
               <FormLabel>Bạn đã hút thuốc được bao lâu?</FormLabel>
               <Box display="flex" alignItems="center" gap={2}>
                 <Controller
@@ -308,42 +210,12 @@ const onSubmit = async (data) => {
                 </Typography>
               )}
 
-              <FormLabel>Giá một bao thuốc lá (VNĐ)</FormLabel>
-              <Box display="flex" alignItems="center" gap={2}>
-                <Controller
-                  name="cigarettePrice"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Slider
-                        value={field.value / 1000}
-                        min={15}
-                        max={100}
-                        step={1}
-                        onChange={(_, value) => field.onChange(value * 1000)}
-                        sx={{
-                          flex: 1,
-                          "& .MuiSlider-track": { backgroundColor: "#2d7e32" },
-                          "& .MuiSlider-rail": { backgroundColor: "#e0e0e0" },
-                          "& .MuiSlider-thumb": { backgroundColor: "#2d7e32" },
-                        }}
-                      />
-                      <Typography>{field.value.toLocaleString()} đ</Typography>
-                    </>
-                  )}
-                />
-              </Box>
-              {errors.cigarettePrice && (
-                <Typography color="error">
-                  {errors.cigarettePrice.message}
-                </Typography>
-              )}
-
+              {/* Động lực cai thuốc */}
               <FormLabel>
-                Bạn hút điếu thuốc đầu tiên của ngày vào thời điểm nào?
+                Lý do chính khiến bạn muốn cai thuốc lá là gì?
               </FormLabel>
               <Controller
-                name="firstCigaretteTime"
+                name="motivation"
                 control={control}
                 render={({ field }) => (
                   <RadioGroup
@@ -351,31 +223,26 @@ const onSubmit = async (data) => {
                     onChange={(_, value) => field.onChange(value)}
                   >
                     <FormControlLabel
-                      value="within5min"
+                      value="health"
                       control={<Radio />}
-                      label="Trong vòng 5 phút sau khi thức dậy"
+                      label="Vì sức khỏe"
                     />
                     <FormControlLabel
-                      value="within30min"
+                      value="money"
                       control={<Radio />}
-                      label="Trong vòng 6-30 phút sau khi thức dậy"
+                      label="Tiết kiệm tiền"
                     />
                     <FormControlLabel
-                      value="within60min"
+                      value="other"
                       control={<Radio />}
-                      label="Trong vòng 31-60 phút sau khi thức dậy"
-                    />
-                    <FormControlLabel
-                      value="after60min"
-                      control={<Radio />}
-                      label="Sau 60 phút kể từ khi thức dậy"
+                      label="Lý do khác"
                     />
                   </RadioGroup>
                 )}
               />
-              {errors.firstCigaretteTime && (
+              {errors.motivation && (
                 <Typography color="error">
-                  {errors.firstCigaretteTime.message}
+                  {errors.motivation.message}
                 </Typography>
               )}
             </CardContent>
@@ -391,7 +258,7 @@ const onSubmit = async (data) => {
               <Button
                 variant="contained"
                 color="success"
-                onClick={handleSubmit(nextStep)}
+                onClick={handleSubmit(onSubmit)}
                 endIcon={<ArrowForward />}
               >
                 Tiếp tục
@@ -400,17 +267,55 @@ const onSubmit = async (data) => {
           </Card>
         )}
 
+        {/* Step 2: Thời điểm hút thuốc nhiều nhất và số lần cố gắng cai */}
         {step === 2 && (
           <Card className="step-card">
             <CardHeader>
-              <Typography variant="h5">Lịch sử cai thuốc</Typography>
-              <Typography color="textSecondary">
-                Cho chúng tôi biết về những nỗ lực cai thuốc trước đây của bạn
-              </Typography>
+              <Typography variant="h5">Lịch sử và thói quen</Typography>
             </CardHeader>
             <CardContent className="form-container">
+              {/* Thời điểm hút thuốc nhiều nhất - Thêm tùy chọn */}
+              <FormLabel>Thời điểm nào bạn hút thuốc nhiều nhất?</FormLabel>
+              <Controller
+                name="peakSmokingTimes"
+                control={control}
+                render={({ field }) => (
+                  <RadioGroup
+                    {...field}
+                    onChange={(_, value) => field.onChange(value)}
+                  >
+                    <FormControlLabel
+                      value="morning-stress"
+                      control={<Radio />}
+                      label="Sáng và khi căng thẳng"
+                    />
+                    <FormControlLabel
+                      value="evening"
+                      control={<Radio />}
+                      label="Buổi tối"
+                    />
+                    <FormControlLabel
+                      value="after-meals"
+                      control={<Radio />}
+                      label="Sau bữa ăn"
+                    />
+                    <FormControlLabel
+                      value="other"
+                      control={<Radio />}
+                      label="Khác"
+                    />
+                  </RadioGroup>
+                )}
+              />
+              {errors.peakSmokingTimes && (
+                <Typography color="error">
+                  {errors.peakSmokingTimes.message}
+                </Typography>
+              )}
+
+              {/* Số lần cố gắng cai - Thêm tùy chọn */}
               <FormLabel>
-                Bạn đã từng cố gắng cai thuốc lá bao nhiêu lần?
+                Bạn đã từng cố gắng cai thuốc bao nhiêu lần?
               </FormLabel>
               <Controller
                 name="previousAttempts"
@@ -423,7 +328,7 @@ const onSubmit = async (data) => {
                     <FormControlLabel
                       value="0"
                       control={<Radio />}
-                      label="Đây là lần đầu tiên"
+                      label="0 lần"
                     />
                     <FormControlLabel
                       value="1-2"
@@ -436,9 +341,14 @@ const onSubmit = async (data) => {
                       label="3-5 lần"
                     />
                     <FormControlLabel
-                      value="5+"
+                      value="6-10"
                       control={<Radio />}
-                      label="Hơn 5 lần"
+                      label="6-10 lần"
+                    />
+                    <FormControlLabel
+                      value="10+"
+                      control={<Radio />}
+                      label="Hơn 10 lần"
                     />
                   </RadioGroup>
                 )}
@@ -448,145 +358,6 @@ const onSubmit = async (data) => {
                   {errors.previousAttempts.message}
                 </Typography>
               )}
-
-              {previousAttempts !== "0" && (
-                <>
-                  <FormLabel>
-                    Thời gian dài nhất bạn đã cai thuốc thành công là bao lâu?
-                  </FormLabel>
-                  <Controller
-                    name="longestQuitDuration"
-                    control={control}
-                    render={({ field }) => (
-                      <RadioGroup
-                        {...field}
-                        onChange={(_, value) => field.onChange(value)}
-                      >
-                        <FormControlLabel
-                          value="less1week"
-                          control={<Radio />}
-                          label="Ít hơn 1 tuần"
-                        />
-                        <FormControlLabel
-                          value="1-4weeks"
-                          control={<Radio />}
-                          label="1-4 tuần"
-                        />
-                        <FormControlLabel
-                          value="1-6months"
-                          control={<Radio />}
-                          label="1-6 tháng"
-                        />
-                        <FormControlLabel
-                          value="6months+"
-                          control={<Radio />}
-                          label="Hơn 6 tháng"
-                        />
-                      </RadioGroup>
-                    )}
-                  />
-                  {errors.longestQuitDuration && (
-                    <Typography color="error">
-                      {errors.longestQuitDuration.message}
-                    </Typography>
-                  )}
-
-                  <FormLabel>
-                    Bạn đã sử dụng phương pháp nào để cai thuốc?
-                  </FormLabel>
-                  <Controller
-                    name="quitMethods"
-                    control={control}
-                    render={({ field }) => (
-                      <Box className="checkbox-grid">
-                        {[
-                          {
-                            id: "cold-turkey",
-                            label: "Cai thuốc hoàn toàn (Cold Turkey)",
-                          },
-                          {
-                            id: "gradual-reduction",
-                            label: "Giảm dần số lượng",
-                          },
-                          {
-                            id: "nicotine-replacement",
-                            label: "Liệu pháp thay thế nicotine",
-                          },
-                          { id: "medication", label: "Thuốc kê đơn" },
-                          { id: "counseling", label: "Tư vấn/Trị liệu" },
-                          { id: "app", label: "Ứng dụng cai thuốc" },
-                        ].map((method) => (
-                          <FormControlLabel
-                            key={method.id}
-                            control={
-                              <Checkbox
-                                checked={field.value.includes(method.id)}
-                                onChange={(e) => {
-                                  const newValue = e.target.checked
-                                    ? [...field.value, method.id]
-                                    : field.value.filter(
-                                        (v) => v !== method.id
-                                      );
-                                  field.onChange(newValue);
-                                }}
-                              />
-                            }
-                            label={method.label}
-                          />
-                        ))}
-                      </Box>
-                    )}
-                  />
-                  {errors.quitMethods && (
-                    <Typography color="error">
-                      {errors.quitMethods.message}
-                    </Typography>
-                  )}
-
-                  <FormLabel>
-                    Yếu tố nào khiến bạn quay lại hút thuốc?
-                  </FormLabel>
-                  <Controller
-                    name="relapseTriggers"
-                    control={control}
-                    render={({ field }) => (
-                      <Box className="checkbox-grid">
-                        {[
-                          { id: "stress", label: "Căng thẳng/Áp lực" },
-                          { id: "social", label: "Tình huống xã hội" },
-                          { id: "withdrawal", label: "Triệu chứng cai nghiện" },
-                          { id: "alcohol", label: "Uống rượu/bia" },
-                          { id: "weight-gain", label: "Tăng cân" },
-                          { id: "lack-support", label: "Thiếu hỗ trợ" },
-                        ].map((trigger) => (
-                          <FormControlLabel
-                            key={trigger.id}
-                            control={
-                              <Checkbox
-                                checked={field.value.includes(trigger.id)}
-                                onChange={(e) => {
-                                  const newValue = e.target.checked
-                                    ? [...field.value, trigger.id]
-                                    : field.value.filter(
-                                        (v) => v !== trigger.id
-                                      );
-                                  field.onChange(newValue);
-                                }}
-                              />
-                            }
-                            label={trigger.label}
-                          />
-                        ))}
-                      </Box>
-                    )}
-                  />
-                  {errors.relapseTriggers && (
-                    <Typography color="error">
-                      {errors.relapseTriggers.message}
-                    </Typography>
-                  )}
-                </>
-              )}
             </CardContent>
             <Box className="button-container">
               <Button
@@ -599,7 +370,7 @@ const onSubmit = async (data) => {
               <Button
                 variant="contained"
                 color="success"
-                onClick={handleSubmit(nextStep)}
+                onClick={handleSubmit(onSubmit)}
                 endIcon={<ArrowForward />}
               >
                 Tiếp tục
@@ -608,392 +379,83 @@ const onSubmit = async (data) => {
           </Card>
         )}
 
+        {/* Step 3: Hệ thống hỗ trợ - Thêm tùy chọn */}
         {step === 3 && (
           <Card className="step-card">
             <CardHeader>
-              <Typography variant="h5">Động lực và mục tiêu</Typography>
-              <Typography color="textSecondary">
-                Cho chúng tôi biết về động lực và mục tiêu cai thuốc của bạn
-              </Typography>
+              <Typography variant="h5">Hỗ trợ cai thuốc</Typography>
             </CardHeader>
             <CardContent className="form-container">
-              <FormLabel>
-                Lý do chính khiến bạn muốn cai thuốc lá là gì?
-              </FormLabel>
+              <FormLabel>Hệ thống hỗ trợ bạn cần là gì?</FormLabel>
               <Controller
-                name="mainReason"
+                name="supportSystem"
                 control={control}
                 render={({ field }) => (
-                  <RadioGroup
-                    {...field}
-                    onChange={(_, value) => field.onChange(value)}
-                  >
-                    {[
-                      {
-                        value: "health",
-                        label: "Vì sức khỏe",
-                        description:
-                          "Tôi muốn cải thiện sức khỏe và sống lâu hơn",
-                      },
-                      {
-                        value: "money",
-                        label: "Tiết kiệm tiền",
-                        description:
-                          "Tôi muốn tiết kiệm tiền đang chi cho thuốc lá",
-                      },
-                      {
-                        value: "family",
-                        label: "Vì gia đình",
-                        description: "Tôi muốn bảo vệ sức khỏe của người thân",
-                      },
-                      {
-                        value: "appearance",
-                        label: "Cải thiện ngoại hình",
-                        description:
-                          "Tôi muốn có làn da, hơi thở và ngoại hình tốt hơn",
-                      },
-                      {
-                        value: "other",
-                        label: "Lý do khác",
-                        description: "Tôi có lý do riêng để cai thuốc lá",
-                      },
-                    ].map((reason) => (
-                      <Card
-                        key={reason.value}
-                        sx={{ mb: 1, p: 2 }}
-                        variant="outlined"
-                      >
-                        <FormControlLabel
-                          value={reason.value}
-                          control={<Radio />}
-                          label={
-                            <Box>
-                              <Typography variant="subtitle1">
-                                {reason.label}
-                              </Typography>
-                              <Typography variant="body2" color="textSecondary">
-                                {reason.description}
-                              </Typography>
-                            </Box>
-                          }
+                  <Box className="checkbox-grid">
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={field.value.includes("counseling")}
+                          onChange={(e) => {
+                            const newValue = e.target.checked
+                              ? [...field.value, "counseling"]
+                              : field.value.filter((v) => v !== "counseling");
+                            field.onChange(newValue);
+                          }}
                         />
-                      </Card>
-                    ))}
-                  </RadioGroup>
-                )}
-              />
-              {errors.mainReason && (
-                <Typography color="error">
-                  {errors.mainReason.message}
-                </Typography>
-              )}
-
-              {mainReason === "health" && (
-                <>
-                  <FormLabel>
-                    Vấn đề sức khỏe cụ thể nào khiến bạn lo ngại?
-                  </FormLabel>
-                  <Controller
-                    name="healthConcerns"
-                    control={control}
-                    render={({ field }) => (
-                      <Box className="checkbox-grid">
-                        {[
-                          { id: "breathing", label: "Khó thở/Vấn đề hô hấp" },
-                          { id: "heart", label: "Bệnh tim mạch" },
-                          { id: "cancer", label: "Nguy cơ ung thư" },
-                          { id: "energy", label: "Thiếu năng lượng/Mệt mỏi" },
-                          {
-                            id: "existing-condition",
-                            label: "Bệnh lý hiện tại",
-                          },
-                          { id: "prevention", label: "Phòng ngừa bệnh tật" },
-                        ].map((concern) => (
-                          <FormControlLabel
-                            key={concern.id}
-                            control={
-                              <Checkbox
-                                checked={field.value.includes(concern.id)}
-                                onChange={(e) => {
-                                  const newValue = e.target.checked
-                                    ? [...field.value, concern.id]
-                                    : field.value.filter(
-                                        (v) => v !== concern.id
-                                      );
-                                  field.onChange(newValue);
-                                }}
-                              />
-                            }
-                            label={concern.label}
-                          />
-                        ))}
-                      </Box>
-                    )}
-                  />
-                  {errors.healthConcerns && (
-                    <Typography color="error">
-                      {errors.healthConcerns.message}
-                    </Typography>
-                  )}
-                </>
-              )}
-
-              <FormLabel>
-                Bạn muốn cai thuốc lá hoàn toàn trong khoảng thời gian nào?
-              </FormLabel>
-              <Controller
-                name="goalTimeframe"
-                control={control}
-                render={({ field }) => (
-                  <RadioGroup
-                    {...field}
-                    onChange={(_, value) => field.onChange(value)}
-                  >
-                    <FormControlLabel
-                      value="1month"
-                      control={<Radio />}
-                      label="Trong vòng 1 tháng"
+                      }
+                      label="Tư vấn tâm lý"
                     />
                     <FormControlLabel
-                      value="3months"
-                      control={<Radio />}
-                      label="Trong vòng 3 tháng"
-                    />
-                    <FormControlLabel
-                      value="6months"
-                      control={<Radio />}
-                      label="Trong vòng 6 tháng"
-                    />
-                    <FormControlLabel
-                      value="gradual"
-                      control={<Radio />}
-                      label="Tôi muốn giảm dần, không có thời hạn cụ thể"
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {errors.goalTimeframe && (
-                <Typography color="error">
-                  {errors.goalTimeframe.message}
-                </Typography>
-              )}
-            </CardContent>
-            <Box className="button-container">
-              <Button
-                variant="outlined"
-                onClick={prevStep}
-                startIcon={<ArrowBack />}
-              >
-                Quay lại
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleSubmit(nextStep)}
-                endIcon={<ArrowForward />}
-              >
-                Tiếp tục
-              </Button>
-            </Box>
-          </Card>
-        )}
-
-        {step === 4 && (
-          <Card className="step-card">
-            <CardHeader>
-              <Typography variant="h5">Tùy chọn cá nhân</Typography>
-              <Typography color="textSecondary">
-                Cho chúng tôi biết về sở thích của bạn để tìm huấn luyện viên
-                phù hợp
-              </Typography>
-            </CardHeader>
-            <CardContent className="form-container">
-              <FormLabel>Bạn muốn áp dụng phương pháp cai thuốc nào?</FormLabel>
-              <Controller
-                name="preferredApproach"
-                control={control}
-                render={({ field }) => (
-                  <RadioGroup
-                    {...field}
-                    onChange={(_, value) => field.onChange(value)}
-                  >
-                    {[
-                      {
-                        value: "cold-turkey",
-                        label: "Cai thuốc hoàn toàn (Cold Turkey)",
-                        description: "Ngừng hút thuốc hoàn toàn ngay lập tức",
-                      },
-                      {
-                        value: "gradual",
-                        label: "Giảm dần số lượng",
-                        description: "Giảm dần số lượng thuốc lá hút mỗi ngày",
-                      },
-                      {
-                        value: "nrt",
-                        label: "Liệu pháp thay thế nicotine",
-                        description: "Sử dụng các sản phẩm thay thế nicotine",
-                      },
-                      {
-                        value: "medication",
-                        label: "Thuốc kê đơn",
-                        description: "Sử dụng thuốc kê đơn để hỗ trợ cai thuốc",
-                      },
-                      {
-                        value: "combination",
-                        label: "Kết hợp nhiều phương pháp",
-                        description: "Kết hợp nhiều phương pháp khác nhau",
-                      },
-                      {
-                        value: "unsure",
-                        label: "Tôi không chắc chắn",
-                        description:
-                          "Tôi muốn được tư vấn về phương pháp phù hợp nhất",
-                      },
-                    ].map((approach) => (
-                      <Card
-                        key={approach.value}
-                        sx={{ mb: 1, p: 2 }}
-                        variant="outlined"
-                      >
-                        <FormControlLabel
-                          value={approach.value}
-                          control={<Radio />}
-                          label={
-                            <Box>
-                              <Typography variant="subtitle1">
-                                {approach.label}
-                              </Typography>
-                              <Typography variant="body2" color="textSecondary">
-                                {approach.description}
-                              </Typography>
-                            </Box>
-                          }
+                      control={
+                        <Checkbox
+                          checked={field.value.includes("reminders")}
+                          onChange={(e) => {
+                            const newValue = e.target.checked
+                              ? [...field.value, "reminders"]
+                              : field.value.filter((v) => v !== "reminders");
+                            field.onChange(newValue);
+                          }}
                         />
-                      </Card>
-                    ))}
-                  </RadioGroup>
+                      }
+                      label="Nhắc nhở"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={field.value.includes("peer-support")}
+                          onChange={(e) => {
+                            const newValue = e.target.checked
+                              ? [...field.value, "peer-support"]
+                              : field.value.filter((v) => v !== "peer-support");
+                            field.onChange(newValue);
+                          }}
+                        />
+                      }
+                      label="Hỗ trợ từ bạn bè/người thân"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={field.value.includes("app-support")}
+                          onChange={(e) => {
+                            const newValue = e.target.checked
+                              ? [...field.value, "app-support"]
+                              : field.value.filter((v) => v !== "app-support");
+                            field.onChange(newValue);
+                          }}
+                        />
+                      }
+                      label="Hỗ trợ qua ứng dụng"
+                    />
+                  </Box>
                 )}
               />
-              {errors.preferredApproach && (
+              {errors.supportSystem && (
                 <Typography color="error">
-                  {errors.preferredApproach.message}
+                  {errors.supportSystem.message}
                 </Typography>
               )}
-
-              <FormLabel>
-                Bạn thích hình thức trao đổi nào với huấn luyện viên?
-              </FormLabel>
-              <Controller
-                name="preferredCommunication"
-                control={control}
-                render={({ field }) => (
-                  <RadioGroup
-                    {...field}
-                    onChange={(_, value) => field.onChange(value)}
-                  >
-                    <FormControlLabel
-                      value="inperson"
-                      control={<Radio />}
-                      label="Gặp mặt trực tiếp"
-                    />
-                    <FormControlLabel
-                      value="chat"
-                      control={<Radio />}
-                      label="Nhắn tin"
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {errors.preferredCommunication && (
-                <Typography color="error">
-                  {errors.preferredCommunication.message}
-                </Typography>
-              )}
-
-              <FormLabel>
-                Bạn có sở thích về giới tính của huấn luyện viên không?
-              </FormLabel>
-              <Controller
-                name="coachGender"
-                control={control}
-                render={({ field }) => (
-                  <RadioGroup
-                    {...field}
-                    onChange={(_, value) => field.onChange(value)}
-                  >
-                    <FormControlLabel
-                      value="male"
-                      control={<Radio />}
-                      label="Nam"
-                    />
-                    <FormControlLabel
-                      value="female"
-                      control={<Radio />}
-                      label="Nữ"
-                    />
-                    <FormControlLabel
-                      value="no-preference"
-                      control={<Radio />}
-                      label="Không có sở thích cụ thể"
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {errors.coachGender && (
-                <Typography color="error">
-                  {errors.coachGender.message}
-                </Typography>
-              )}
-
-              <FormLabel>
-                Bạn muốn huấn luyện viên có chuyên môn về lĩnh vực nào?
-              </FormLabel>
-              <Controller
-                name="coachSpecialty"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    fullWidth
-                    displayEmpty
-                  >
-                    <MenuItem value="" disabled>
-                      Chọn chuyên môn
-                    </MenuItem>
-                    <MenuItem value="psychology">Tâm lý học</MenuItem>
-                    <MenuItem value="nutrition">Dinh dưỡng</MenuItem>
-                    <MenuItem value="medicine">Y học</MenuItem>
-                    <MenuItem value="fitness">Thể dục thể thao</MenuItem>
-                    <MenuItem value="mindfulness">Thiền/Chánh niệm</MenuItem>
-                    <MenuItem value="any">Bất kỳ chuyên môn nào</MenuItem>
-                  </Select>
-                )}
-              />
-              {errors.coachSpecialty && (
-                <Typography color="error">
-                  {errors.coachSpecialty.message}
-                </Typography>
-              )}
-
-              <FormLabel>
-                Thông tin bổ sung bạn muốn chia sẻ với huấn luyện viên
-              </FormLabel>
-              <Controller
-                name="additionalInfo"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    multiline
-                    rows={4}
-                    fullWidth
-                    placeholder="Chia sẻ bất kỳ thông tin bổ sung nào..."
-                    error={!!errors.additionalInfo}
-                    helperText={errors.additionalInfo?.message}
-                  />
-                )}
-              />
             </CardContent>
             <Box className="button-container">
               <Button

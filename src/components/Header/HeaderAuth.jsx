@@ -1,13 +1,15 @@
 import { Box, Button, Typography } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Header.css"; 
 import { PATH } from "../../routes/path";
 
 const HeaderAuth = () => {
+  const navigate = useNavigate();
   return (
     <Box className="header">
       <Box className="header-logo">
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#2e7d32" }}>
+        <Typography variant="h6"  sx={{ fontWeight: 700, color: "#2e7d32", cursor: "pointer" }}
+          onClick={() => navigate("/")}>
           <span role="img" aria-label="leaf">🌿</span> QuitSmoke
         </Typography>
       </Box>

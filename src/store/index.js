@@ -5,7 +5,7 @@ import planeReducer from "../store/slices/planeSlice";
 import socketReducer from "../store/slices/socketSlice";
 import userReducer from "../store/slices/userSlice";
 import socketMiddleware from "./middleware/socketMiddleware";
-
+import membershipReducer from "./slices/membershipSlice";
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +15,7 @@ export const store = configureStore({
     plane: planeReducer,
     socket: socketReducer,
     user: userReducer,
+    membership: membershipReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
