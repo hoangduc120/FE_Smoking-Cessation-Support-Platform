@@ -20,6 +20,7 @@ import {
   Phone,
   LocationOn,
   CameraAlt,
+  SmokeFree,
 } from "@mui/icons-material";
 import "./Profile.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -28,6 +29,7 @@ import {
   updateUser,
   changeImageApi,
 } from "../../../store/slices/userSlice";
+import { fetchAssessment } from "../../../store/slices/quitSmokingSlice";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -73,12 +75,16 @@ export const profileSchema = yup.object().shape({
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
-  const { user, isLoading, isError, errorMessage } = useSelector(
+  const { user, isLoading: userLoading, isError: userError, errorMessage: userErrorMessage } = useSelector(
     (state) => state.user
+  );
+  const { assessmentData, isLoading: assessmentLoading, isError: assessmentError, errorMessage: assessmentErrorMessage } = useSelector(
+    (state) => state.quitSmoking
   );
 
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null); // Thêm state để lưu file
+  const [selectedFile, setSelectedFile] = useState(null);
+  const hasFetchedAssessment = useRef(false);
 
   const fileInputRef = useRef(null);
 
@@ -113,8 +119,15 @@ export default function ProfilePage() {
   }, [user, reset]);
 
   useEffect(() => {
-    dispatch(fetchUser());
-  }, [dispatch]);
+    if (!user && !userLoading) {
+      dispatch(fetchUser());
+    }
+
+    if (user?._id && !hasFetchedAssessment.current && !assessmentLoading && !assessmentData) {
+      hasFetchedAssessment.current = true;
+      dispatch(fetchAssessment(user._id));
+    }
+  }, [dispatch, user, userLoading, assessmentLoading, assessmentData]);
 
   const onSubmit = async (data) => {
     try {
@@ -130,7 +143,7 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setSelectedFile(null); // Reset file khi hủy
+    setSelectedFile(null);
     reset({
       userName: user?.userName || "",
       gender: user?.gender || "",
@@ -140,7 +153,6 @@ export default function ProfilePage() {
     });
   };
 
-  // Xử lý upload ảnh
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -169,13 +181,20 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading) {
+  if (userLoading || assessmentLoading) {
     return <Typography variant="body1">Đang tải hồ sơ...</Typography>;
   }
-  if (isError) {
+  if (userError) {
     return (
       <Typography variant="body1" color="error">
-        {errorMessage}
+        {userErrorMessage}
+      </Typography>
+    );
+  }
+  if (assessmentError) {
+    return (
+      <Typography variant="body1" color="error">
+        {assessmentErrorMessage}
       </Typography>
     );
   }
@@ -225,7 +244,7 @@ export default function ProfilePage() {
                       accept="image/jpeg,image/png,image/jpg"
                       style={{ display: "none" }}
                       ref={fileInputRef}
-                      onChange={handleFileChange} // Xử lý khi chọn file
+                      onChange={handleFileChange}
                     />
                     {isEditing && selectedFile && (
                       <Button
@@ -436,83 +455,173 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
-              <Card
-                className="card-margin"
-                sx={{
-                  backgroundColor: "transparent",
-                  boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
-                }}
-              >
-                <CardHeader
-                  title="Thông tin liên hệ"
-                  subheader="Thông tin liên hệ và địa chỉ"
-                />
-                <CardContent>
-                  <Box className="form-field">
-                    <Typography
-                      variant="body2"
-                      component="label"
-                      htmlFor="email"
-                    >
-                      Email
-                    </Typography>
-                    <Box className="info-box">
-                      <Email fontSize="small" className="info-icon" />
-                      <Typography>{user.email}</Typography>
+              <Box className="form-grid card-margin">
+                <Card
+                  sx={{
+                    backgroundColor: "transparent",
+                    boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
+                  }}
+                >
+                  <CardHeader
+                    title="Thông tin liên hệ"
+                    subheader="Thông tin liên hệ và địa chỉ"
+                  />
+                  <CardContent>
+                    <Box className="form-field">
+                      <Typography
+                        variant="body2"
+                        component="label"
+                        htmlFor="email"
+                      >
+                        Email
+                      </Typography>
+                      <Box className="info-box">
+                        <Email fontSize="small" className="info-icon" />
+                        <Typography>{user.email}</Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                  <Box className="form-field">
-                    <Typography
-                      variant="body2"
-                      component="label"
-                      htmlFor="phone"
-                    >
-                      Số điện thoại
-                    </Typography>
-                    <Box className="info-box">
-                      <Phone fontSize="small" className="info-icon" />
-                      {isEditing ? (
-                        <TextField
-                          id="phone"
-                          {...register("phone")}
-                          size="small"
-                          fullWidth
-                          error={!!errors.phone}
-                          helperText={errors.phone?.message}
-                        />
-                      ) : (
-                        <Typography>{user.phone || "Chưa cập nhật"}</Typography>
-                      )}
+                    <Box className="form-field">
+                      <Typography
+                        variant="body2"
+                        component="label"
+                        htmlFor="phone"
+                      >
+                        Số điện thoại
+                      </Typography>
+                      <Box className="info-box">
+                        <Phone fontSize="small" className="info-icon" />
+                        {isEditing ? (
+                          <TextField
+                            id="phone"
+                            {...register("phone")}
+                            size="small"
+                            fullWidth
+                            error={!!errors.phone}
+                            helperText={errors.phone?.message}
+                          />
+                        ) : (
+                          <Typography>{user.phone || "Chưa cập nhật"}</Typography>
+                        )}
+                      </Box>
                     </Box>
-                  </Box>
-                  <Box className="form-field">
-                    <Typography
-                      variant="body2"
-                      component="label"
-                      htmlFor="address"
-                    >
-                      Địa chỉ
-                    </Typography>
-                    <Box className="info-box">
-                      <LocationOn fontSize="small" className="info-icon" />
-                      {isEditing ? (
-                        <TextField
-                          id="address"
-                          {...register("address")}
-                          size="small"
-                          fullWidth
-                          error={!!errors.address}
-                          helperText={errors.address?.message}
-                        />
-                      ) : (
-                        <Typography>
-                          {user.address || "Chưa cập nhật"}
-                        </Typography>
-                      )}
+                    <Box className="form-field">
+                      <Typography
+                        variant="body2"
+                        component="label"
+                        htmlFor="address"
+                      >
+                        Địa chỉ
+                      </Typography>
+                      <Box className="info-box">
+                        <LocationOn fontSize="small" className="info-icon" />
+                        {isEditing ? (
+                          <TextField
+                            id="address"
+                            {...register("address")}
+                            size="small"
+                            fullWidth
+                            error={!!errors.address}
+                            helperText={errors.address?.message}
+                          />
+                        ) : (
+                          <Typography>
+                            {user.address || "Chưa cập nhật"}
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                <Card
+                  sx={{
+                    backgroundColor: "transparent",
+                    boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
+                  }}
+                >
+                  <CardHeader
+                    title="Thông tin cai thuốc lá"
+                    subheader="Thông tin khảo sát về quá trình cai thuốc lá"
+                  />
+                  <CardContent>
+                    {assessmentData?.data?.length > 0 ? (
+                      assessmentData.data.map((survey) => (
+                        <Box key={survey._id} className="form-grid">
+                          <Box className="form-field">
+                            <Typography
+                              variant="body2"
+                              component="label"
+                              htmlFor="motivation"
+                            >
+                              Động lực cai thuốc
+                            </Typography>
+                            <Box className="info-box">
+                              <SmokeFree fontSize="small" className="info-icon" />
+                              <Typography>{survey.motivation || "Chưa cập nhật"}</Typography>
+                            </Box>
+                          </Box>
+                          <Box className="form-field">
+                            <Typography
+                              variant="body2"
+                              component="label"
+                              htmlFor="smokingDurationYear"
+                            >
+                              Thời gian hút thuốc (năm)
+                            </Typography>
+                            <Box className="info-box">
+                              <SmokeFree fontSize="small" className="info-icon" />
+                              <Typography>{survey.smokingDurationYear || "Chưa cập nhật"}</Typography>
+                            </Box>
+                          </Box>
+                          <Box className="form-field">
+                            <Typography
+                              variant="body2"
+                              component="label"
+                              htmlFor="peakSmokingTimes"
+                            >
+                              Thời điểm hút thuốc nhiều nhất
+                            </Typography>
+                            <Box className="info-box">
+                              <SmokeFree fontSize="small" className="info-icon" />
+                              <Typography>{survey.peakSmokingTimes || "Chưa cập nhật"}</Typography>
+                            </Box>
+                          </Box>
+                          <Box className="form-field">
+                            <Typography
+                              variant="body2"
+                              component="label"
+                              htmlFor="quitAttempts"
+                            >
+                              Số lần thử cai thuốc
+                            </Typography>
+                            <Box className="info-box">
+                              <SmokeFree fontSize="small" className="info-icon" />
+                              <Typography>{survey.quitAttempts || "Chưa cập nhật"}</Typography>
+                            </Box>
+                          </Box>
+                          <Box className="form-field">
+                            <Typography
+                              variant="body2"
+                              component="label"
+                              htmlFor="supportNeeded"
+                            >
+                              Hỗ trợ cần thiết
+                            </Typography>
+                            <Box className="info-box">
+                              <SmokeFree fontSize="small" className="info-icon" />
+                              <Typography>{survey.supportNeeded || "Chưa cập nhật"}</Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography color="textSecondary">
+                        Chưa có thông tin khảo sát cai thuốc lá
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Box>
             </Box>
           </Box>
         </Box>

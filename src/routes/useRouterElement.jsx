@@ -12,11 +12,13 @@ import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import UpgradeMember from "../pages/Home/UpgradeMember/UpgradeMember";
 import AssessmentPage from "../pages/Home/AsseementPage/AssessmentPage";
 import PlanCustomization from "../pages/Home/PlanCustomization/PlanCustomization";
-import CoachPlan from "../pages/Home/CoachPlane/CoachPlane";
-import CoachPlaneDetail from "../pages/Home/CoachPlane/CoachPlaneDetail";
+
+
 import ForgotPassWord from "../pages/Auth/ForgetPassWord/ForgotPassWord";
 import ResetPassword from "../pages/Auth/ResetPassword/ResetPassword";
 import Profile from "../pages/Auth/Profile/Profile";
+import CoachPlane from "../pages/Home/CoachPlane/CoachPlane";
+import CoachPlaneDetail from "../pages/Home/CoachPlane/CoachPlaneDetail";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -25,22 +27,10 @@ export default function useRouterElement() {
       path: PATH.AUTH,
       element: <AuthLayout />,
       children: [
-        {
-          path: PATH.LOGIN,
-          element: <LoginPage />,
-        },
-        {
-          path: PATH.REGISTER,
-          element: <RegisterPage />,
-        },
-        {
-          path: PATH.FORGOTPASSWORD,
-          element: <ForgotPassWord />, 
-        },
-        {
-          path: PATH.RESETPASSWORD,
-          element: <ResetPassword />,
-        }
+        { path: PATH.LOGIN, element: <LoginPage /> },
+        { path: PATH.REGISTER, element: <RegisterPage /> },
+        { path: PATH.FORGOTPASSWORD, element: <ForgotPassWord /> },
+        { path: PATH.RESETPASSWORD, element: <ResetPassword /> },
       ],
     },
     // HOMEPAGE
@@ -50,52 +40,68 @@ export default function useRouterElement() {
       children: [
         {
           index: true,
-          element: <HomePage />,
+          element: <HomePage />, // Công khai
         },
         {
           path: PATH.ASSESSMENTPAGE,
-          element: <AssessmentPage />,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
+              <AssessmentPage />
+            </ProtectedRoute>
+          ),
         },
         {
           path: PATH.UPGRADEMEMBER,
-          element: <UpgradeMember />,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
+              <UpgradeMember />
+            </ProtectedRoute>
+          ),
         },
         {
           path: PATH.PLANCUSTOMIZATION,
-          element: <PlanCustomization />,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
+              <PlanCustomization />
+            </ProtectedRoute>
+          ),
         },
         {
           path: PATH.COASHPLANE,
-          element: <CoachPlan />,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
+              <CoachPlane />
+            </ProtectedRoute>
+          ),
         },
         {
           path: PATH.COACHPLANEDETAIL,
-          element: <CoachPlaneDetail />,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
+              <CoachPlaneDetail />
+            </ProtectedRoute>
+          ),
         },
         {
           path: PATH.PROFILE,
-          element: <Profile/>
-        }
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
+              <Profile />
+            </ProtectedRoute>
+          ),
+        },
       ],
     },
-
     // COACHES
     {
       path: PATH.COACHES,
       element: (
-        <ProtectedRoute allowedRoles={["user", "admin"]}>
+        <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
           <MainLayout />
         </ProtectedRoute>
       ),
-      children: [
-        {
-          index: true,
-          element: <CoachesPage />,
-        },
-        {},
-      ],
+      children: [{ index: true, element: <CoachesPage /> }],
     },
-
     // ADMIN
     {
       path: PATH.ADMIN,
@@ -104,12 +110,7 @@ export default function useRouterElement() {
           <AdminLayout />
         </ProtectedRoute>
       ),
-      children: [
-        {
-          index: true,
-          element: <DashBoardAdmin />,
-        },
-      ],
+      children: [{ index: true, element: <DashBoardAdmin /> }],
     },
   ]);
   return element;

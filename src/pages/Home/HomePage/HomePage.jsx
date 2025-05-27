@@ -14,10 +14,58 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import image from "../../../assets/pngtree-leaf-icon-png-image_4816090.png";
 import "./HomePage.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PATH } from "../../../routes/path";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { fetchAssessment, resetAssessmentData } from "../../../store/slices/quitSmokingSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function HomePage() {
+const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { assessmentData, isLoading, isError, errorMessage } = useSelector(
+    (state) => state.quitSmoking
+  );
+  const [currentUser, setCurrentUser] = useState(
+    JSON.parse(localStorage.getItem("currentUser"))
+  );
+
+  // Kiểm tra đăng nhập và reset state khi tài khoản thay đổi
+  useEffect(() => {
+    console.log("currentUser:", currentUser);
+    if (!currentUser || !currentUser.token) {
+      toast.error("Vui lòng đăng nhập để tiếp tục!");
+      navigate(PATH.LOGIN);
+      return
+    }
+    dispatch(resetAssessmentData());
+
+    dispatch(fetchAssessment(currentUser?.user?.id || "1"));
+  }, [currentUser, dispatch, navigate]);
+
+  // Xử lý khi nhấn nút "Bắt đầu ngay"
+  const handleStart = () => {
+    if (!currentUser || !currentUser.token) {
+      toast.error("Vui lòng đăng nhập để tiếp tục!");
+      navigate(PATH.LOGIN);
+      return;
+    }
+
+    if (isLoading) {
+      toast("Đang tải dữ liệu, vui lòng đợi...");
+      return;
+    }
+
+    if (isError) {
+      toast.error(`Lỗi: ${errorMessage || "Không thể tải dữ liệu khảo sát"}`);
+      return;
+    }
+
+    // Kiểm tra dữ liệu khảo sát
+    const hasSurvey = assessmentData?.data?.length > 0;
+    navigate(hasSurvey ? "/upgradeMember" : PATH.ASSESSMENTPAGE);
+  };
   // Sample data for carousel cards with avatars
   const testimonials = [
     {
@@ -159,10 +207,12 @@ export default function HomePage() {
               <br /> sống khỏe mạnh hơn không có thuốc lá với QuitSmoke.
             </Typography>
             <Box className="girdLeft__button">
-              <Button className="button_start">
-                <Link to={PATH.ASSESSMENTPAGE} className="link-button">
-                  Bắt đầu ngay
-                </Link>
+              <Button
+                className="button_start"
+                onClick={handleStart}
+                disabled={isLoading}
+              >
+                Bắt đầu ngay
               </Button>
               <Button className="button__more">Tìm hiểu thêm</Button>
             </Box>

@@ -1,7 +1,7 @@
 import { Box, Button, Typography, Avatar, Menu, MenuItem } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 import "./Header.css";
 import { PATH } from "../../routes/path";
 import { logoutApi } from "../../store/slices/authSlice";
@@ -10,6 +10,8 @@ import toast from "react-hot-toast";
 const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
+  console.log("auth", user);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -52,7 +54,11 @@ const Header = () => {
   return (
     <Box className="header">
       <Box className="header-logo">
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#2e7d32" }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 700, color: "#2e7d32", cursor: "pointer" }}
+          onClick={() => navigate("/")}
+        >
           <span role="img" aria-label="leaf">
             🌿
           </span>{" "}
@@ -78,6 +84,7 @@ const Header = () => {
       </Box>
       <Box className="header-actions">
         <Avatar
+          src={user?.profilePicture || ""}
           sx={{ bgcolor: "#2e7d32", cursor: "pointer" }}
           onClick={handleAvatarClick}
         >

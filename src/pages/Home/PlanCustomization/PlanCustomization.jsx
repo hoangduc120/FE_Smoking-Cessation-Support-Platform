@@ -11,12 +11,6 @@ import {
   Tabs,
   Tab,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Checkbox,
-  FormControlLabel,
   Alert,
   CircularProgress,
   Snackbar,
@@ -26,10 +20,9 @@ import {
   Edit as EditIcon,
   CheckCircle as CheckCircleIcon,
   Info as InfoIcon,
-  Flag as TargetIcon,
 } from "@mui/icons-material";
-import "./PlanCustomization.css";
 import { fetchAssessment } from "../../../store/slices/quitSmokingSlice";
+import "./PlanCustomization.css"; 
 
 function PlanCustomizationPage() {
   const navigate = useNavigate();
@@ -37,6 +30,8 @@ function PlanCustomizationPage() {
   const { assessmentData, isLoading, isError, errorMessage } = useSelector(
     (state) => state.quitSmoking
   );
+
+  console.log("Assessment Data: hahshaohsihih", assessmentData);
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [planSaved, setPlanSaved] = useState(false);
@@ -48,9 +43,6 @@ function PlanCustomizationPage() {
     severity: "success",
   });
 
-  useEffect(() => {
-    dispatch(fetchAssessment("1"));
-  }, [dispatch]);
 
   const [planData, setPlanData] = useState({
     startDate: new Date().toISOString().split("T")[0],
@@ -59,42 +51,36 @@ function PlanCustomizationPage() {
       date.setMonth(date.getMonth() + 3);
       return date.toISOString().split("T")[0];
     })(),
-    approach: assessmentData?.PreferredApproach || "gradual",
-    initialReductionPercent: 25,
-    weeklyReductionPercent: 15,
-    dailyGoals: assessmentData?.CigarettesPerDay
-      ? [
-          Math.round(assessmentData.CigarettesPerDay * 0.75),
-          Math.round(assessmentData.CigarettesPerDay * 0.65),
-          Math.round(assessmentData.CigarettesPerDay * 0.55),
-          Math.round(assessmentData.CigarettesPerDay * 0.45),
-          Math.round(assessmentData.CigarettesPerDay * 0.35),
-          Math.round(assessmentData.CigarettesPerDay * 0.25),
-          Math.round(assessmentData.CigarettesPerDay * 0.15),
-          0,
-        ]
-      : [12, 10, 8, 6, 5, 3, 2, 0],
-    triggers: assessmentData?.RelapseTriggers || [
-      "afterMeals",
-      "withCoffee",
-      "stress",
-      "socialGatherings",
-    ],
-    alternativeActivities: [
-      "walking",
-      "drinking water",
-      "deep breathing",
-      "chewing gum",
-    ],
-    supportMethods: assessmentData?.QuitMethods || [
-      "nicotineGum",
-      "app",
-      "coaching",
-    ],
-    reminders: true,
-    reminderFrequency: "daily",
-    reminderTime: "20:00",
+    userId: assessmentData?.userId || "",
+    motivation: assessmentData?.motivation || "",
+    smokingDurationYear: assessmentData?.smokingDurationYear || 0, 
+    peakSmokingTimes: assessmentData?.peakSmokingTimes?.split(", ") || [],
+    quitAttempts: assessmentData?.quitAttempts || 0,
+    supportNeeded: assessmentData?.supportNeeded || "",
+    createdAt: assessmentData?.createdAt || "",
+    updatedAt: assessmentData?.updatedAt || "",
   });
+
+  useEffect(() => {
+    dispatch(fetchAssessment("1")); 
+  }, [dispatch]);
+
+  useEffect(() => {
+
+    if (assessmentData) {
+      setPlanData((prev) => ({
+        ...prev,
+        userId: assessmentData.userId || "",
+        motivation: assessmentData.motivation || "",
+        smokingDurationYear: assessmentData.smokingDurationYear || 0, 
+        peakSmokingTimes: assessmentData.peakSmokingTimes?.split(", ") || [],
+        quitAttempts: assessmentData.quitAttempts || 0,
+        supportNeeded: assessmentData.supportNeeded || "",
+        createdAt: assessmentData.createdAt || "",
+        updatedAt: assessmentData.updatedAt || "",
+      }));
+    }
+  }, [assessmentData]);
 
   const updatePlanData = (field, value) => {
     setPlanData((prev) => ({ ...prev, [field]: value }));
@@ -183,8 +169,8 @@ function PlanCustomizationPage() {
               Tùy chỉnh kế hoạch cai thuốc
             </Typography>
             <Typography variant="body2" color="textSecondary">
-              Dựa trên đánh giá của bạn, chúng tôi đã tạo một kế hoạch cai
-              thuốc. Hãy tùy chỉnh theo nhu cầu của bạn.
+              Dựa trên đánh giá của bạn, chúng tôi đã tạo một kế hoạch cai thuốc.
+              Hãy tùy chỉnh theo nhu cầu của bạn.
             </Typography>
           </Box>
           <Box className="plan-header-buttons">
@@ -242,9 +228,6 @@ function PlanCustomizationPage() {
 
         <Tabs value={tabValue} onChange={handleTabChange} className="plan-tabs">
           <Tab label="Tổng quan" value="overview" />
-          <Tab label="Lịch trình" value="schedule" />
-          <Tab label="Chiến lược" value="strategies" />
-          <Tab label="Hỗ trợ" value="support" />
         </Tabs>
 
         {tabValue === "overview" && (
@@ -262,9 +245,7 @@ function PlanCustomizationPage() {
                       label="Ngày bắt đầu"
                       type="date"
                       value={planData.startDate}
-                      onChange={(e) =>
-                        updatePlanData("startDate", e.target.value)
-                      }
+                      onChange={(e) => updatePlanData("startDate", e.target.value)}
                       disabled={!isEditing}
                       fullWidth
                       margin="normal"
@@ -274,193 +255,109 @@ function PlanCustomizationPage() {
                       label="Dự kiến hoàn thành"
                       type="date"
                       value={planData.endDate}
-                      onChange={(e) =>
-                        updatePlanData("endDate", e.target.value)
-                      }
+                      onChange={(e) => updatePlanData("endDate", e.target.value)}
                       disabled={!isEditing}
                       fullWidth
                       margin="normal"
                       InputLabelProps={{ shrink: true }}
                     />
-                    <FormControl
-                      fullWidth
-                      margin="normal"
-                      disabled={!isEditing}
-                    >
-                      <InputLabel>Phương pháp cai thuốc</InputLabel>
-                      <Select
-                        value={planData.approach}
-                        onChange={(e) =>
-                          updatePlanData("approach", e.target.value)
-                        }
-                        label="Phương pháp cai thuốc"
-                      >
-                        <MenuItem value="cold-turkey">
-                          Cai thuốc hoàn toàn (Cold Turkey)
-                        </MenuItem>
-                        <MenuItem value="gradual">Giảm dần số lượng</MenuItem>
-                        <MenuItem value="nrt">
-                          Liệu pháp thay thế nicotine (NRT)
-                        </MenuItem>
-                        <MenuItem value="medication">
-                          Sử dụng thuốc kê đơn
-                        </MenuItem>
-                        <MenuItem value="combination">
-                          Kết hợp nhiều phương pháp
-                        </MenuItem>
-                      </Select>
-                    </FormControl>
                   </Box>
                   <Typography variant="h6" className="mt-4">
-                    Thói quen hút thuốc hiện tại
+                    Thói quen và thông tin cá nhân
                   </Typography>
                   <Box className="plan-section">
-                    <Box className="plan-info-row">
-                      <Typography variant="body2" color="textSecondary">
-                        Số điếu mỗi ngày:
-                      </Typography>
-                      <Typography variant="body2">
-                        {assessmentData?.CigarettesPerDay ?? "Chưa có dữ liệu"}{" "}
-                        điếu
-                      </Typography>
-                    </Box>
-                    <Box className="plan-info-row">
-                      <Typography variant="body2" color="textSecondary">
-                        Thời gian hút thuốc:
-                      </Typography>
-                      <Typography variant="body2">
-                        {assessmentData?.SmokingYears ?? "Chưa có dữ liệu"} năm
-                      </Typography>
-                    </Box>
-                    <Box className="plan-info-row">
-                      <Typography variant="body2" color="textSecondary">
-                        Giá một bao thuốc:
-                      </Typography>
-                      <Typography variant="body2">
-                        {typeof assessmentData?.CigarettePrice === "number"
-                          ? assessmentData.CigarettePrice.toLocaleString() +
-                            " đ"
-                          : "Chưa có dữ liệu"}
-                      </Typography>
-                    </Box>
-                    <Box className="plan-info-row">
-                      <Typography variant="body2" color="textSecondary">
-                        Chi phí hàng tháng:
-                      </Typography>
-                      <Typography variant="body2">
-                        {typeof assessmentData?.CigarettesPerDay === "number" &&
-                        typeof assessmentData?.CigarettePrice === "number"
-                          ? Math.round(
-                              (assessmentData.CigarettesPerDay / 20) *
-                                assessmentData.CigarettePrice *
-                                30
-                            ).toLocaleString() + " đ"
-                          : "Chưa có dữ liệu"}
-                      </Typography>
-                    </Box>
+                    <TextField
+                      label="Số năm hút thuốc"
+                      type="number"
+                      value={planData.smokingDurationYear}
+                      onChange={(e) =>
+                        updatePlanData("smokingDurationYear", e.target.value)
+                      }
+                      disabled={!isEditing}
+                      fullWidth
+                      margin="normal"
+                      inputProps={{ min: 0 }}
+                    />
+                    <TextField
+                      label="Thời gian hút thuốc nhiều nhất"
+                      value={planData.peakSmokingTimes.join(", ")}
+                      onChange={(e) =>
+                        updatePlanData(
+                          "peakSmokingTimes",
+                          e.target.value.split(",").map((item) => item.trim())
+                        )
+                      }
+                      disabled={!isEditing}
+                      fullWidth
+                      margin="normal"
+                      helperText="Nhập các thời gian cách nhau bằng dấu phẩy (ví dụ: sáng, chiều)"
+                    />
+                    <TextField
+                      label="Số lần thử cai thuốc"
+                      type="number"
+                      value={planData.quitAttempts}
+                      onChange={(e) =>
+                        updatePlanData("quitAttempts", e.target.value)
+                      }
+                      disabled={!isEditing}
+                      fullWidth
+                      margin="normal"
+                      inputProps={{ min: 0 }}
+                    />
                   </Box>
                 </Box>
                 <Box className="plan-grid-item">
-                  <Typography variant="h6">Lý do cai thuốc</Typography>
+                  <Typography variant="h6">Động lực và hỗ trợ</Typography>
                   <Box className="plan-section">
-                    <Box className="plan-info-row">
-                      <CheckCircleIcon color="success" className="mr-2" />
-                      <Typography variant="body2">
-                        {assessmentData?.MainReason === "health" &&
-                          "Cải thiện sức khỏe"}
-                        {assessmentData?.MainReason === "money" &&
-                          "Tiết kiệm tiền"}
-                        {assessmentData?.MainReason === "family" &&
-                          "Vì gia đình"}
-                        {assessmentData?.MainReason === "appearance" &&
-                          "Cải thiện ngoại hình"}
-                        {assessmentData?.MainReason === "other" && "Lý do khác"}
-                        {!assessmentData?.MainReason && "Chưa có dữ liệu"}
-                      </Typography>
-                    </Box>
-                    {assessmentData?.MainReason === "health" &&
-                      assessmentData?.HealthConcerns?.map((concern, index) => (
-                        <Box key={index} className="plan-info-row">
-                          <CheckCircleIcon color="success" className="mr-2" />
-                          <Typography variant="body2">
-                            {concern === "breathing" && "Cải thiện hệ hô hấp"}
-                            {concern === "heart" &&
-                              "Giảm nguy cơ bệnh tim mạch"}
-                            {concern === "cancer" && "Giảm nguy cơ ung thư"}
-                            {concern === "energy" && "Tăng năng lượng"}
-                            {concern === "existing-condition" &&
-                              "Cải thiện bệnh lý hiện tại"}
-                            {concern === "prevention" && "Phòng ngừa bệnh tật"}
-                            {!concern && "Chưa có dữ liệu"}
-                          </Typography>
-                        </Box>
-                      ))}
+                    <TextField
+                      label="Động lực cai thuốc"
+                      value={planData.motivation}
+                      onChange={(e) => updatePlanData("motivation", e.target.value)}
+                      disabled={!isEditing}
+                      fullWidth
+                      margin="normal"
+                      multiline
+                      rows={2}
+                    />
+                    <TextField
+                      label="Hỗ trợ cần thiết"
+                      value={planData.supportNeeded}
+                      onChange={(e) =>
+                        updatePlanData("supportNeeded", e.target.value)
+                      }
+                      disabled={!isEditing}
+                      fullWidth
+                      margin="normal"
+                      multiline
+                      rows={2}
+                    />
                   </Box>
                   <Typography variant="h6" className="mt-4">
-                    Mục tiêu gần nhất
+                    Thông tin hệ thống
                   </Typography>
                   <Box className="plan-section">
-                    <Box className="plan-info-row">
-                      <TargetIcon color="success" className="mr-2" />
-                      <Typography variant="body2">
-                        Giảm {planData.initialReductionPercent}% số điếu thuốc
-                        trong tuần đầu tiên
-                      </Typography>
-                    </Box>
-                    <Box className="plan-info-row">
-                      <TargetIcon color="success" className="mr-2" />
-                      <Typography variant="body2">
-                        Giảm xuống {planData.dailyGoals[2]} điếu/ngày sau 2 tuần
-                      </Typography>
-                    </Box>
+                    <TextField
+                      label="Ngày tạo"
+                      value={planData.createdAt}
+                      disabled
+                      fullWidth
+                      margin="normal"
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                      label="Ngày cập nhật"
+                      value={planData.updatedAt}
+                      disabled
+                      fullWidth
+                      margin="normal"
+                      InputLabelProps={{ shrink: true }}
+                    />
                   </Box>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         )}
-
-        {tabValue === "schedule" && (
-          <Card className="plan-card">
-            <CardHeader
-              title="Lịch trình"
-              subheader="Lịch trình giảm dần số lượng thuốc lá"
-            />
-            <CardContent>
-              <Box>
-                <Typography variant="h6">Mục tiêu hàng ngày</Typography>
-                <Box className="plan-section">
-                  {planData.dailyGoals.map((goal, index) => (
-                    <Box key={index} className="plan-goal-row">
-                      <Typography variant="body2" className="w-24">
-                        Tuần {index + 1}:
-                      </Typography>
-                      <TextField
-                        type="number"
-                        value={goal}
-                        onChange={(e) => {
-                          const newGoals = [...planData.dailyGoals];
-                          newGoals[index] = Number.parseInt(e.target.value);
-                          updatePlanData("dailyGoals", newGoals);
-                        }}
-                        disabled={!isEditing}
-                        inputProps={{
-                          min: 0,
-                          max: assessmentData?.CigarettesPerDay || 20,
-                        }}
-                        className="flex-1"
-                      />
-                      <Typography variant="body2" className="w-20 text-right">
-                        điếu/ngày
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        )}
-
         <Snackbar
           open={snackbar.open}
           autoHideDuration={6000}

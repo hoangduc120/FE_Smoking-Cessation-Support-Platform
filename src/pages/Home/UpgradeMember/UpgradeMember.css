@@ -94,3 +94,104 @@ button.continue-button {
     width: 100%;
   }
 }
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 24px;
+  width: 90%;
+  max-width: 500px; /* Tăng kích thước modal */
+  max-height: 80vh;
+  overflow-y: auto; /* Cho phép cuộn nếu nội dung dài */
+}
+
+.modal-title {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.modal-info {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.modal-features {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+
+.modal-features li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 1rem;
+  color: #444;
+}
+
+.modal-features .check-mark {
+  color: #4caf50;
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-cancel-button {
+  background-color: transparent;
+  border: 1px solid #bdbdbd;
+  color: #555;
+  text-transform: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+.modal-cancel-button:hover {
+  background-color: #f5f5f5;
+  border-color: #757575;
+  color: #333;
+}
+
+.modal-confirm-button {
+  background-color: #1976d2;
+  color: white;
+  text-transform: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+.modal-confirm-button:hover {
+  background-color: #1565c0;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modal-content {
+    width: 95%;
+    padding: 16px;
+  }
+
+  .plans-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .plan-card {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .continue-button {
+    width: 100%;
+  }
+}
