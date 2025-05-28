@@ -1,14 +1,27 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import { fetcher } from "../../apis/fetcher";
 
 export const fetchPlan = createAsyncThunk(
-  "plane/fetchPlan",
-  async (_, { rejectWithValue }) => {
+  "plan/fetchPlan",
+  async ({ coachId }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `https://67dabbe235c87309f52dc7a7.mockapi.io/coachPlan`
+      const response = await fetcher.get(`/plans/coach/${coachId}`);
+   
+      return response.data;
+    } catch (error) {
+      console.log("FetchPlan error:", error);
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
       );
-      console.log("response", response);
+    }
+  }
+);
+
+export const createPlan = createAsyncThunk(
+  "plan/createPlan",
+  async ({ data }, { rejectWithValue }) => {
+    try {
+      const response = await fetcher.post("/plans", data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -18,13 +31,11 @@ export const fetchPlan = createAsyncThunk(
   }
 );
 
-export const fetchPlanById = createAsyncThunk(
-  "plane/fetchPlanById",
-  async (id, { rejectWithValue }) => {
+export const updatePlan = createAsyncThunk(
+  "plan/updatePlan",
+  async ({ id, data }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `https://67dabbe235c87309f52dc7a7.mockapi.io/coachPlan/${id}`
-      );
+      const response = await fetcher.put(`/plans/${id}`, data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -34,44 +45,84 @@ export const fetchPlanById = createAsyncThunk(
   }
 );
 
-export const planeSlice = createSlice({
-  name: "plane",
+export const deletePlan = createAsyncThunk(
+  "plan/deletePlan",
+  async ({ id }, { rejectWithValue }) => {
+    try {
+      await fetcher.delete(`/plans/${id}`);
+      return id; // Trả về id để xóa khỏi state
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+);
+
+export const planSlice = createSlice({
+  name: "plan",
   initialState: {
-    plans: [],
+    plan: [],
     isLoading: false,
-    isError: false,
+    isError: null,
   },
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(fetchPlan.pending, (state) => {
+    builder
+      .addCase(fetchPlan.pending, (state) => {
         state.isLoading = true;
-        state.isError = false;
-    })
-    .addCase(fetchPlan.fulfilled, (state, {payload}) => {
-      state.isLoading = false;
-      state.isError = false;
-      state.plans = payload;
-    })
-    .addCase(fetchPlan.rejected, (state, {payload}) => {
-      state.isLoading = false;
-      state.isError = true;
-      state.errorMessage = payload;
-    });
-    builder.addCase(fetchPlanById.pending, (state) => {
+        state.isError = null;
+      })
+      .addCase(fetchPlan.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.plan = Array.isArray(payload) ? payload : payload.data || [];
+    
+      })
+      .addCase(fetchPlan.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = payload;
+      })
+      .addCase(createPlan.pending, (state) => {
         state.isLoading = true;
-        state.isError = false;
-    })
-    .addCase(fetchPlanById.fulfilled, (state, {payload}) => {
-      state.isLoading = false;
-      state.isError = false;
-      state.plans = payload;
-    })
-    .addCase(fetchPlanById.rejected, (state, {payload}) => {
-      state.isLoading = false;
-      state.isError = true;
-      state.errorMessage = payload;
-    });
+      })
+      .addCase(createPlan.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.plan = Array.isArray(state.plan)
+          ? [...state.plan, payload]
+          : [payload];
+      })
+      .addCase(createPlan.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = payload;
+      })
+        .addCase(updatePlan.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updatePlan.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.plan = state.plan.map((plan) =>
+          plan._id === payload._id ? payload : plan
+        );
+      })
+      .addCase(updatePlan.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = payload;
+      })
+      .addCase(deletePlan.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(deletePlan.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.plan = state.plan.filter((plan) => plan._id !== payload);
+      })
+      .addCase(deletePlan.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = payload;
+      });
   },
 });
 
-export default planeSlice.reducer;
+export default planSlice.reducer;

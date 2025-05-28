@@ -1,0 +1,52 @@
+.dashboard {
+  padding: 20px;
+}
+
+.planeManager-title {
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+button.planeManager-btn {
+  background-color: #19a24b;
+  color: white;
+  text-transform: none;
+  height: 50px;
+  border: 10px;
+}
+
+.planeManager-card {
+  padding-top: 30px;
+}
+
+.plan-grid {
+  display: flex;
+  flex-direction: column;
+  height: 150px;
+  border: 1px solid #afafaf;
+  padding: 20px !important;
+  gap: 10px;
+  border-radius: 10px;
+}
+
+.plan-grid-title {
+  display: flex;
+  justify-content: space-between;
+  color: black;
+}
+
+.plan-grid-content {
+  font-size: 20px !important;
+  font-weight: bold !important;
+}
+
+.plan-grid-des {
+  color: #afafaf;
+}
+
+.planeManager-table {
+  margin-top: 3rem;
+  width: 100%;
+  border: 1px solid #afafaf;
+  border-radius: 10px;
+}

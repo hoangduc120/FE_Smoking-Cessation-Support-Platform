@@ -17,8 +17,11 @@ export const PATH = {
   BLOGPAGE: "/blogPage",
   POSTDETAIL: "/blogPage/:id",
 
-  // COACHES
-  COACHES: "/coaches",
+  COACH: "/coach",
+  PLANMANAGEMEMTPAGE: "/coach/plan-management",
+  COACH_MESSAGING: "/coach/messaging",
+  COACH_CLIENTS: "/coach/clients",
+  COACH_SETTINGS: "/coach/settings",
 
   // ADMIN
   ADMIN: "/admin",

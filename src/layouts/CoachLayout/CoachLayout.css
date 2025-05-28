@@ -1,0 +1,23 @@
+
+.coach-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; 
+}
+
+.main-container {
+  display: flex;
+  flex: 1;
+}
+
+.content {
+  flex: 1;
+  padding: 1rem;
+  background-color: #f8fafc; 
+  min-height: calc(100vh - 64px); 
+}
+
+
+.sidebar-coach-container.closed + .content {
+  margin-left: 80px; 
+}

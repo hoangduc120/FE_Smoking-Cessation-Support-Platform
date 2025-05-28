@@ -3,6 +3,7 @@ import { PATH } from "./path";
 import AuthLayout from "../layouts/AuthLayout/AuthLayout";
 import MainLayout from "../layouts/MainLayout/MainLayout";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
+import CoachLayout from "../layouts/CoachLayout/CoachLayout"; // Reusing CoachLayout
 import LoginPage from "../pages/Auth/Login/LoginPage";
 import RegisterPage from "../pages/Auth/Register/RegisterPage";
 import HomePage from "../pages/Home/HomePage/HomePage";
@@ -20,6 +21,10 @@ import CoachPlane from "../pages/Home/CoachPlane/CoachPlane";
 import CoachPlaneDetail from "../pages/Home/CoachPlane/CoachPlaneDetail";
 import BlogPage from "../pages/Home/Blogs/BlogPage";
 import PostDetail from "../pages/Home/Blogs/PostDetail";
+import SidebarCoach from "../layouts/Sidebar-Coach/SidebarCoach"; // Import the new SidebarCoach
+// Placeholder components (create these based on your needs)
+import PlanManagementPage from "../pages/Coacher/PlanManagementPage/PlanManagementPage";
+import MessagingPage from "../pages/Coacher/MessagingPage/MessagingPage";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -41,7 +46,7 @@ export default function useRouterElement() {
       children: [
         {
           index: true,
-          element: <HomePage />, // Công khai
+          element: <HomePage />,
         },
         {
           path: PATH.ASSESSMENTPAGE,
@@ -109,15 +114,19 @@ export default function useRouterElement() {
         },
       ],
     },
-    // COACHES
+
+    // COACH (New Section)
     {
-      path: PATH.COACHES,
+      path: PATH.COACH,
       element: (
-        <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
-          <MainLayout />
+        <ProtectedRoute allowedRoles={["coach", "admin"]}>
+          <CoachLayout sidebar={<SidebarCoach />} />
         </ProtectedRoute>
       ),
-      children: [{ index: true, element: <CoachesPage /> }],
+      children: [
+        { path: PATH.PLANMANAGEMEMTPAGE, element: <PlanManagementPage /> },
+        { path: PATH.COACH_MESSAGING, element: <MessagingPage /> },
+      ],
     },
     // ADMIN
     {
