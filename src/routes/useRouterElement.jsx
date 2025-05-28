@@ -1,9 +1,9 @@
-import { useRoutes } from "react-router-dom";
+import { useRoutes, Navigate } from "react-router-dom";
 import { PATH } from "./path";
 import AuthLayout from "../layouts/AuthLayout/AuthLayout";
 import MainLayout from "../layouts/MainLayout/MainLayout";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
-import CoachLayout from "../layouts/CoachLayout/CoachLayout"; // Reusing CoachLayout
+import CoachLayout from "../layouts/CoachLayout/CoachLayout";
 import LoginPage from "../pages/Auth/Login/LoginPage";
 import RegisterPage from "../pages/Auth/Register/RegisterPage";
 import HomePage from "../pages/Home/HomePage/HomePage";
@@ -13,7 +13,6 @@ import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import UpgradeMember from "../pages/Home/UpgradeMember/UpgradeMember";
 import AssessmentPage from "../pages/Home/AsseementPage/AssessmentPage";
 import PlanCustomization from "../pages/Home/PlanCustomization/PlanCustomization";
-
 import ForgotPassWord from "../pages/Auth/ForgetPassWord/ForgotPassWord";
 import ResetPassword from "../pages/Auth/ResetPassword/ResetPassword";
 import Profile from "../pages/Auth/Profile/Profile";
@@ -21,8 +20,7 @@ import CoachPlane from "../pages/Home/CoachPlane/CoachPlane";
 import CoachPlaneDetail from "../pages/Home/CoachPlane/CoachPlaneDetail";
 import BlogPage from "../pages/Home/Blogs/BlogPage";
 import PostDetail from "../pages/Home/Blogs/PostDetail";
-import SidebarCoach from "../layouts/Sidebar-Coach/SidebarCoach"; // Import the new SidebarCoach
-// Placeholder components (create these based on your needs)
+import SidebarCoach from "../layouts/Sidebar-Coach/SidebarCoach";
 import PlanManagementPage from "../pages/Coacher/PlanManagementPage/PlanManagementPage";
 import MessagingPage from "../pages/Coacher/MessagingPage/MessagingPage";
 
@@ -33,10 +31,38 @@ export default function useRouterElement() {
       path: PATH.AUTH,
       element: <AuthLayout />,
       children: [
-        { path: PATH.LOGIN, element: <LoginPage /> },
-        { path: PATH.REGISTER, element: <RegisterPage /> },
-        { path: PATH.FORGOTPASSWORD, element: <ForgotPassWord /> },
-        { path: PATH.RESETPASSWORD, element: <ResetPassword /> },
+        {
+          path: PATH.LOGIN,
+          element: (
+            <ProtectedRoute allowAnonymous>
+              <LoginPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: PATH.REGISTER,
+          element: (
+            <ProtectedRoute allowAnonymous>
+              <RegisterPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: PATH.FORGOTPASSWORD,
+          element: (
+            <ProtectedRoute allowAnonymous>
+              <ForgotPassWord />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: PATH.RESETPASSWORD,
+          element: (
+            <ProtectedRoute allowAnonymous>
+              <ResetPassword />
+            </ProtectedRoute>
+          ),
+        },
       ],
     },
     // HOMEPAGE
@@ -114,8 +140,7 @@ export default function useRouterElement() {
         },
       ],
     },
-
-    // COACH (New Section)
+    // COACH
     {
       path: PATH.COACH,
       element: (
