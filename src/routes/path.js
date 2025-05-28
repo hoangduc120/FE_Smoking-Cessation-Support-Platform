@@ -9,11 +9,13 @@ export const PATH = {
   // HOME
   HOME: "/",
   ASSESSMENTPAGE: "/assessment",
-  UPGRADEMEMBER:"/upgradeMember",
+  UPGRADEMEMBER: "/upgradeMember",
   PLANCUSTOMIZATION: "/planCustomization",
   COASHPLANE: "/coachPlan",
   COACHPLANEDETAIL: "/coachPlane/:id",
   PROFILE: "/profile",
+  BLOGPAGE: "/blogPage",
+  POSTDETAIL: "/blogPage/:id",
 
   // COACHES
   COACHES: "/coaches",

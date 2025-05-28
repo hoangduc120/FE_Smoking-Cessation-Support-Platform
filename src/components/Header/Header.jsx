@@ -78,6 +78,9 @@ const Header = () => {
         <Link to="/resources" className="nav-link">
           Tài nguyên
         </Link>
+        <Link to={PATH.BLOGPAGE} className="nav-link">
+          Bài viết
+        </Link>
         <Link to="/contact" className="nav-link">
           Liên hệ
         </Link>
