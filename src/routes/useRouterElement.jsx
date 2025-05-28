@@ -19,10 +19,12 @@ import Profile from "../pages/Auth/Profile/Profile";
 import CoachPlane from "../pages/Home/CoachPlane/CoachPlane";
 import CoachPlaneDetail from "../pages/Home/CoachPlane/CoachPlaneDetail";
 import BlogPage from "../pages/Home/Blogs/BlogPage";
-import PostDetail from "../pages/Home/Blogs/PostDetail";
-import SidebarCoach from "../layouts/Sidebar-Coach/SidebarCoach";
+import BlogDetail from "../pages/Home/Blogs/BlogDetail";
+import SidebarCoach from "../layouts/Sidebar-Coach/SidebarCoach"; // Import the new SidebarCoach
+// Placeholder components (create these based on your needs)
 import PlanManagementPage from "../pages/Coacher/PlanManagementPage/PlanManagementPage";
 import MessagingPage from "../pages/Coacher/MessagingPage/MessagingPage";
+import CreateBlog from "../pages/Home/Blogs/CreateBlog";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -131,10 +133,18 @@ export default function useRouterElement() {
           ),
         },
         {
-          path: PATH.POSTDETAIL,
+          path: PATH.BLOGDETAIL,
           element: (
             <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
-              <PostDetail />
+              <BlogDetail />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: PATH.CREATEBLOG,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
+              <CreateBlog />
             </ProtectedRoute>
           ),
         },

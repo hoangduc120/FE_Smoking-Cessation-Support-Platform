@@ -5,7 +5,7 @@ import socketReducer from "../store/slices/socketSlice";
 import userReducer from "../store/slices/userSlice";
 import socketMiddleware from "./middleware/socketMiddleware";
 import membershipReducer from "./slices/membershipSlice";
-import blogReducer from "./slices/postSlice";
+import blogReducer from "./slices/blogSlice";
 import planReducer from "./slices/planeSlice"
 
 export const store = configureStore({
@@ -16,7 +16,7 @@ export const store = configureStore({
     socket: socketReducer,
     user: userReducer,
     membership: membershipReducer,
-    posts: blogReducer,
+    blogs: blogReducer,
     plan: planReducer,
   },
   middleware: (getDefaultMiddleware) =>

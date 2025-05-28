@@ -14,8 +14,10 @@ export const PATH = {
   COASHPLANE: "/coachPlan",
   COACHPLANEDETAIL: "/coachPlane/:id",
   PROFILE: "/profile",
-  BLOGPAGE: "/blogPage",
-  POSTDETAIL: "/blogPage/:id",
+  BLOGPAGE: "/blog",
+  BLOGDETAIL: "/blog/:slug",
+
+  CREATEBLOG: "/blog/create",
 
   COACH: "/coach",
   PLANMANAGEMEMTPAGE: "/coach/plan-management",
