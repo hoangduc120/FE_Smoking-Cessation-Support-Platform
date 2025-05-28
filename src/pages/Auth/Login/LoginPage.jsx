@@ -28,7 +28,7 @@ export default function LoginPage() {
           if (userType === "user") {
             navigate(PATH.HOME);
           } else if (userType === "coach") {
-            navigate(PATH.COACHES);
+            navigate(PATH.PLANMANAGEMEMTPAGE);
           } else if (userType === "admin" || userType === "administrator") {
             navigate(PATH.ADMIN);
           } else {

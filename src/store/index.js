@@ -1,23 +1,23 @@
 import { configureStore } from "@reduxjs/toolkit";
 import quitSmokingReducer from "../store/slices/quitSmokingSlice";
 import authReducer from "../store/slices/authSlice";
-import planeReducer from "../store/slices/planeSlice";
 import socketReducer from "../store/slices/socketSlice";
 import userReducer from "../store/slices/userSlice";
 import socketMiddleware from "./middleware/socketMiddleware";
 import membershipReducer from "./slices/membershipSlice";
 import blogReducer from "./slices/postSlice";
+import planReducer from "./slices/planeSlice"
 
 export const store = configureStore({
   reducer: {
     // add reducers here
     auth: authReducer,
     quitSmoking: quitSmokingReducer,
-    plane: planeReducer,
     socket: socketReducer,
     user: userReducer,
     membership: membershipReducer,
     posts: blogReducer,
+    plan: planReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
