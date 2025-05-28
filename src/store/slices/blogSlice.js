@@ -19,17 +19,37 @@ const normalizeBlog = (blog, currentUserId) => ({
   comments: blog.comments || [],
 });
 
-// Fetch all posts
-export const fetchPostsApi = createAsyncThunk(
-  "posts/fetchAll",
-  async (_, { getState, rejectWithValue }) => {
+// Fetch all Blog
+export const fetchBlogsApi = createAsyncThunk(
+  "blogs/fetchAll",
+  async (params = { page: 1, limit: 10 }, { getState, rejectWithValue }) => {
     try {
-      const response = await fetcher.get("/blogs");
+      const { page = 1, limit = 10, tag, slug, sortBy, sortOrder } = params;
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      if (tag) queryParams.append('tag', tag);
+      if (slug) queryParams.append('slug', slug);
+      if (sortBy) queryParams.append('sortBy', sortBy);
+      if (sortOrder) queryParams.append('sortOrder', sortOrder);
+
+      const response = await fetcher.get(`/blogs?${queryParams.toString()}`);
       const currentUserId = getState().auth.currentUser?.userId;
-      const normalizedBlogs = response.data.data.blogs
+      const { blogs, total, currentPage, totalPages } = response.data.data;
+
+      const normalizedBlogs = blogs
         .filter((blog) => !blog.isDeleted && !blog.isHidden)
         .map((blog) => normalizeBlog(blog, currentUserId));
-      return normalizedBlogs;
+
+      return {
+        blogs: normalizedBlogs,
+        pagination: {
+          total,
+          currentPage,
+          totalPages,
+          limit
+        }
+      };
     } catch (error) {
       return rejectWithValue(
         error.response ? error.response.data : { message: error.message }
@@ -38,9 +58,9 @@ export const fetchPostsApi = createAsyncThunk(
   }
 );
 
-// Fetch a single post by slug
-export const fetchPostBySlugApi = createAsyncThunk(
-  "posts/fetchBySlug",
+// Fetch a single blog by slug
+export const fetchBlogBySlugApi = createAsyncThunk(
+  "blogs/fetchBySlug",
   async (slug, { getState, rejectWithValue }) => {
     try {
       const response = await fetcher.get(`/blogs/${slug}`);
@@ -55,17 +75,17 @@ export const fetchPostBySlugApi = createAsyncThunk(
   }
 );
 
-// Create a new post
-export const createPostApi = createAsyncThunk(
-  "posts/create",
-  async (postData, { getState, rejectWithValue }) => {
+// Create a new blog
+export const createBlogApi = createAsyncThunk(
+  "blogs/create",
+  async (blogData, { getState, rejectWithValue }) => {
     try {
       const currentUserId = getState().auth.currentUser?.userId;
       const response = await fetcher.post("/blogs", {
-        title: postData.title,
-        description: postData.description,
-        image: postData.imageUrl ? [postData.imageUrl] : [],
-        tags: postData.tags.map((tag) => ({ tagId: tag, tagName: tag })),
+        title: blogData.title,
+        description: blogData.description,
+        image: blogData.imageUrl ? [blogData.imageUrl] : [],
+        tags: blogData.tags.map((tag) => ({ tagId: tag, tagName: tag })),
         user: currentUserId,
       });
       const normalizedBlog = normalizeBlog(response.data.data, currentUserId);
@@ -78,12 +98,12 @@ export const createPostApi = createAsyncThunk(
   }
 );
 
-// Like or unlike a post
-export const toggleLikePostApi = createAsyncThunk(
-  "posts/toggleLike",
-  async (postId, { getState, rejectWithValue }) => {
+// Like or unlike a blog
+export const toggleLikeBlogApi = createAsyncThunk(
+  "blogs/toggleLike",
+  async (blogId, { getState, rejectWithValue }) => {
     try {
-      const response = await fetcher.post(`/blogs/${postId}/like`);
+      const response = await fetcher.post(`/blogs/${blogId}/like`);
       const currentUserId = getState().auth.currentUser?.userId;
       const blog = response.data.data;
       return {
@@ -99,18 +119,28 @@ export const toggleLikePostApi = createAsyncThunk(
   }
 );
 
-// Add a comment to a post
+
+// Add a comment to a blog
 export const addCommentApi = createAsyncThunk(
-  "posts/addComment",
-  async (postId, { getState, rejectWithValue }) => {
+  "blogs/addComment",
+  async ({ blogId, commentText }, { getState, rejectWithValue }) => {
     try {
       const currentUserId = getState().auth.currentUser?.userId;
-      const response = await fetcher.post(`blogs/${postId}/comment`);
-      const comment = response.data;
+      const response = await fetcher.post(`/blogs/${blogId}/comment`, {
+        comment: commentText,
+      });
+      const comment = response.data.data;
       return {
-        userId: currentUserId,
-        commentId: comment.id,
-        commentData: comment.text,
+        blogId,
+        commentId: comment._id,
+        commentData: {
+          text: comment.text,
+          author: {
+            id: comment.author._id,
+            name: comment.author.name || comment.author.email.split("@")[0],
+          },
+          createdAt: comment.createdAt,
+        },
       };
     } catch (error) {
       return rejectWithValue(
@@ -119,11 +149,17 @@ export const addCommentApi = createAsyncThunk(
     }
   }
 );
-const postSlice = createSlice({
-  name: "posts",
+const blogSlice = createSlice({
+  name: "blogs",
   initialState: {
-    posts: [],
-    selectedPost: null,
+    blogs: [],
+    selectedBlog: null,
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      total: 0,
+      limit: 10
+    },
     isLoading: false,
     error: null,
   },
@@ -132,85 +168,86 @@ const postSlice = createSlice({
       state.error = null;
     },
     updateLike: (state, { payload }) => {
-      const { postId, isLiked, likeCount } = payload;
-      const post =
-        state.posts.find((p) => p.id === postId) || state.selectedPost;
-      if (post) {
-        post.isLiked = isLiked;
-        post.likeCount = likeCount;
+      const { blogId, isLiked, likeCount } = payload;
+      const blog =
+        state.blogs.find((b) => b.id === blogId) || state.selectedBlog;
+      if (blog) {
+        blog.isLiked = isLiked;
+        blog.likeCount = likeCount;
       }
     },
     addComment: (state, { payload }) => {
-      if (state.selectedPost && state.selectedPost.id === payload.postId) {
-        state.selectedPost.comments = [
+      if (state.selectedBlog && state.selectedBlog.id === payload.blogId) {
+        state.selectedBlog.comments = [
           payload.comment,
-          ...state.selectedPost.comments,
+          ...state.selectedBlog.comments,
         ];
       }
     },
   },
   extraReducers: (builder) => {
-    // Fetch all posts
-    builder.addCase(fetchPostsApi.pending, (state) => {
+    // Fetch all blogs
+    builder.addCase(fetchBlogsApi.pending, (state) => {
       state.isLoading = true;
     });
-    builder.addCase(fetchPostsApi.fulfilled, (state, { payload }) => {
+    builder.addCase(fetchBlogsApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
-      state.posts = payload;
+      state.blogs = payload.blogs;
+      state.pagination = payload.pagination;
       state.error = null;
     });
-    builder.addCase(fetchPostsApi.rejected, (state, { payload }) => {
+    builder.addCase(fetchBlogsApi.rejected, (state, { payload }) => {
       state.isLoading = false;
       state.error = payload;
       toast.error(payload?.message || "Không thể tải bài viết");
     });
 
-    // Fetch single post
-    builder.addCase(fetchPostBySlugApi.pending, (state) => {
+    // Fetch single blog
+    builder.addCase(fetchBlogBySlugApi.pending, (state) => {
       state.isLoading = true;
     });
-    builder.addCase(fetchPostBySlugApi.fulfilled, (state, { payload }) => {
+    builder.addCase(fetchBlogBySlugApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
-      state.selectedPost = payload;
+      state.selectedBlog = payload;
       state.error = null;
     });
-    builder.addCase(fetchPostBySlugApi.rejected, (state, { payload }) => {
+    builder.addCase(fetchBlogBySlugApi.rejected, (state, { payload }) => {
       state.isLoading = false;
       state.error = payload;
       toast.error(payload?.message || "Không thể tải bài viết");
     });
 
-    // Create post
-    builder.addCase(createPostApi.pending, (state) => {
+    // Create blog
+    builder.addCase(createBlogApi.pending, (state) => {
       state.isLoading = true;
     });
-    builder.addCase(createPostApi.fulfilled, (state, { payload }) => {
+    builder.addCase(createBlogApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
-      state.posts = [payload, ...state.posts];
+      state.blogs = [payload, ...state.blogs];
       state.error = null;
       toast.success("Tạo bài viết thành công");
     });
-    builder.addCase(createPostApi.rejected, (state, { payload }) => {
+    builder.addCase(createBlogApi.rejected, (state, { payload }) => {
       state.isLoading = false;
       state.error = payload;
       toast.error(payload?.message || "Không thể tạo bài viết");
     });
 
     // Toggle like
-    builder.addCase(toggleLikePostApi.pending, (state) => {
+    builder.addCase(toggleLikeBlogApi.pending, (state) => {
       state.isLoading = true;
     });
-    builder.addCase(toggleLikePostApi.fulfilled, (state, { payload }) => {
+    builder.addCase(toggleLikeBlogApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
-      const post =
-        state.posts.find((p) => p.id === payload.id) || state.selectedPost;
-      if (post) {
-        post.isLiked = payload.isLiked;
-        post.likeCount = payload.likeCount;
+      const blog =
+        state.blogs.find((b) => b.id === payload.id) || state.selectedBlog;
+      if (blog) {
+        blog.isLiked = payload.isLiked;
+        blog.likeCount = payload.likeCount;
       }
       state.error = null;
     });
-    builder.addCase(toggleLikePostApi.rejected, (state, { payload }) => {
+    builder.addCase(toggleLikeBlogApi.rejected, (state, { payload }) => {
       state.isLoading = false;
       state.error = payload;
       toast.error(payload?.message || "Không thể cập nhật lượt thích");
@@ -222,10 +259,10 @@ const postSlice = createSlice({
     });
     builder.addCase(addCommentApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
-      if (state.selectedPost && state.selectedPost.id === payload.postId) {
-        state.selectedPost.comments = [
+      if (state.selectedBlog && state.selectedBlog.id === payload.blogId) {
+        state.selectedBlog.comments = [
           payload.comment,
-          ...state.selectedPost.comments,
+          ...state.selectedBlog.comments,
         ];
       }
       state.error = null;
@@ -239,5 +276,5 @@ const postSlice = createSlice({
   },
 });
 
-export const { clearError, updateLike, addComment } = postSlice.actions;
-export default postSlice.reducer;
+export const { clearError, updateLike, addComment } = blogSlice.actions;
+export default blogSlice.reducer;

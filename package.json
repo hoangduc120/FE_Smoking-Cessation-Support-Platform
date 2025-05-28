@@ -25,6 +25,7 @@
     "framer-motion": "^12.15.0",
     "html-react-parser": "^5.2.5",
     "lucide-react": "^0.511.0",
+    "quill-delta-to-html": "^0.12.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.3",
