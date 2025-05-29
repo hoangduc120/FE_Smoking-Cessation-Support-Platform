@@ -19,17 +19,17 @@ const normalizeBlog = (blog, currentUserId) => ({
   comments: blog.comments || [],
 });
 
-// Fetch all Blog
 export const fetchBlogsApi = createAsyncThunk(
   "blogs/fetchAll",
   async (params = { page: 1, limit: 10 }, { getState, rejectWithValue }) => {
     try {
-      const { page = 1, limit = 10, tag, slug, sortBy, sortOrder } = params;
+      const { page = 1, limit = 10, tag, slug, search, sortBy, sortOrder } = params;
       const queryParams = new URLSearchParams();
       queryParams.append('page', page);
       queryParams.append('limit', limit);
       if (tag) queryParams.append('tag', tag);
       if (slug) queryParams.append('slug', slug);
+      if (search) queryParams.append('search', search);
       if (sortBy) queryParams.append('sortBy', sortBy);
       if (sortOrder) queryParams.append('sortOrder', sortOrder);
 
@@ -52,7 +52,7 @@ export const fetchBlogsApi = createAsyncThunk(
       };
     } catch (error) {
       return rejectWithValue(
-        error.response ? error.response.data : { message: error.message }
+        error.response ? error.response.data : { message: error.message || "Không thể tải dữ liệu blog" }
       );
     }
   }
@@ -103,17 +103,24 @@ export const toggleLikeBlogApi = createAsyncThunk(
   "blogs/toggleLike",
   async (blogId, { getState, rejectWithValue }) => {
     try {
+      console.log("Đang thực hiện like blog với ID:", blogId);
+
+      // Đảm bảo tương thích với cả _id và id
       const response = await fetcher.post(`/blogs/${blogId}/like`);
       const currentUserId = getState().auth.currentUser?.userId;
       const blog = response.data.data;
+
+      console.log("Kết quả like:", blog);
+
       return {
         id: blog._id,
         isLiked: blog.likes?.includes(currentUserId) || false,
         likeCount: blog.likes?.length || 0,
       };
     } catch (error) {
+      console.error("Lỗi khi like blog:", error);
       return rejectWithValue(
-        error.response ? error.response.data : { message: error.message }
+        error.response ? error.response.data : { message: error.message || "Không thể cập nhật lượt thích" }
       );
     }
   }
@@ -171,11 +178,23 @@ const blogSlice = createSlice({
     },
     updateLike: (state, { payload }) => {
       const { blogId, isLiked, likeCount } = payload;
-      const blog =
-        state.blogs.find((b) => b.id === blogId) || state.selectedBlog;
-      if (blog) {
-        blog.isLiked = isLiked;
-        blog.likeCount = likeCount;
+
+      // Tìm blog trong blogs array
+      const blogInList = state.blogs.find((b) =>
+        b.id === blogId || b._id === blogId
+      );
+
+      // Cập nhật blog trong danh sách nếu tìm thấy
+      if (blogInList) {
+        blogInList.isLiked = isLiked;
+        blogInList.likeCount = likeCount;
+      }
+
+      // Cập nhật selectedBlog nếu là blog đang xem
+      if (state.selectedBlog &&
+        (state.selectedBlog.id === blogId || state.selectedBlog._id === blogId)) {
+        state.selectedBlog.isLiked = isLiked;
+        state.selectedBlog.likeCount = likeCount;
       }
     },
     addComment: (state, { payload }) => {
@@ -188,7 +207,6 @@ const blogSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Fetch all blogs
     builder.addCase(fetchBlogsApi.pending, (state) => {
       state.isLoading = true;
     });
@@ -204,7 +222,6 @@ const blogSlice = createSlice({
       toast.error(payload?.message || "Không thể tải bài viết");
     });
 
-    // Fetch single blog
     builder.addCase(fetchBlogBySlugApi.pending, (state) => {
       state.isLoading = true;
     });
@@ -219,7 +236,6 @@ const blogSlice = createSlice({
       toast.error(payload?.message || "Không thể tải bài viết");
     });
 
-    // Create blog
     builder.addCase(createBlogApi.pending, (state) => {
       state.isLoading = true;
     });
@@ -235,27 +251,31 @@ const blogSlice = createSlice({
       toast.error(payload?.message || "Không thể tạo bài viết");
     });
 
-    // Toggle like
     builder.addCase(toggleLikeBlogApi.pending, (state) => {
-      state.isLoading = true;
     });
     builder.addCase(toggleLikeBlogApi.fulfilled, (state, { payload }) => {
-      state.isLoading = false;
-      const blog =
-        state.blogs.find((b) => b.id === payload.id) || state.selectedBlog;
+      const blog = state.blogs.find((b) =>
+        b.id === payload.id || b._id === payload.id
+      );
+
       if (blog) {
         blog.isLiked = payload.isLiked;
         blog.likeCount = payload.likeCount;
       }
+
+      if (state.selectedBlog &&
+        (state.selectedBlog.id === payload.id || state.selectedBlog._id === payload.id)) {
+        state.selectedBlog.isLiked = payload.isLiked;
+        state.selectedBlog.likeCount = payload.likeCount;
+      }
+
       state.error = null;
     });
     builder.addCase(toggleLikeBlogApi.rejected, (state, { payload }) => {
-      state.isLoading = false;
       state.error = payload;
       toast.error(payload?.message || "Không thể cập nhật lượt thích");
     });
 
-    // Add comment
     builder.addCase(addCommentApi.pending, (state) => {
       state.isLoading = true;
     });

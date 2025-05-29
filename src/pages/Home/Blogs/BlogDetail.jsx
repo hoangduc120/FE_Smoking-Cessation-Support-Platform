@@ -23,7 +23,7 @@ import ShareIcon from "@mui/icons-material/Share";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { fetchBlogBySlugApi, toggleLikeBlogApi, addCommentApi } from "../../../store/slices/blogSlice";
+import { fetchBlogBySlugApi, toggleLikeBlogApi, addCommentApi, updateLike } from "../../../store/slices/blogSlice";
 
 const BlogDetail = () => {
   const { slug } = useParams();
@@ -31,6 +31,7 @@ const BlogDetail = () => {
   const navigate = useNavigate();
   const { selectedBlog, isLoading } = useSelector((state) => state.blogs);
   const [comment, setComment] = useState("");
+  const [isLikeProcessing, setIsLikeProcessing] = useState(false);
 
   useEffect(() => {
     if (slug) {
@@ -39,7 +40,21 @@ const BlogDetail = () => {
   }, [dispatch, slug]);
 
   const handleLike = () => {
-    dispatch(toggleLikeBlogApi(selectedBlog.id));
+    if (isLikeProcessing) return;
+
+    setIsLikeProcessing(true);
+
+    dispatch(toggleLikeBlogApi(selectedBlog.id))
+      .unwrap()
+      .then(() => {
+        // Xử lý thành công sẽ được xử lý bởi reducer
+      })
+      .catch((error) => {
+        console.error("Lỗi khi thực hiện like/unlike:", error);
+      })
+      .finally(() => {
+        setIsLikeProcessing(false);
+      });
   };
 
   const handleShare = () => {
@@ -172,6 +187,7 @@ const BlogDetail = () => {
             <IconButton
               onClick={handleLike}
               color={selectedBlog.isLiked ? "error" : "default"}
+              disabled={isLikeProcessing}
             >
               {selectedBlog.isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
             </IconButton>
@@ -255,46 +271,7 @@ const BlogDetail = () => {
         )}
       </Box>
 
-      {/* Related Articles - Would be implemented with actual data in a real app */}
-      <Box>
-        <Typography variant="h5" gutterBottom fontWeight="medium">
-          Bài viết liên quan
-        </Typography>
-        <Grid container spacing={3}>
-          {[1, 2, 3].map((item) => (
-            <Grid item xs={12} md={4} key={item}>
-              <Card
-                sx={{
-                  cursor: "pointer",
-                  transition:
-                    "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 8px 16px rgba(0,0,0,0.15)",
-                  },
-                  height: "100%",
-                }}
-                onClick={() => navigate(`/blog/sample-${item}`)}
-              >
-                <Box
-                  component="img"
-                  src={`/placeholder.svg?height=150&width=250&text=Bài viết liên quan ${item}`}
-                  alt={`Bài viết liên quan ${item}`}
-                  sx={{ width: "100%", height: 150, objectFit: "cover" }}
-                />
-                <CardContent>
-                  <Typography variant="subtitle1" gutterBottom fontWeight="medium">
-                    Bài viết liên quan {item}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Mô tả ngắn về bài viết liên quan đến chủ đề cai thuốc lá.
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
+
     </Container>
   );
 };
