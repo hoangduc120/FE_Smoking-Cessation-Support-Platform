@@ -127,9 +127,7 @@ export default function useRouterElement() {
         {
           path: PATH.BLOGPAGE,
           element: (
-            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
-              <BlogPage />
-            </ProtectedRoute>
+            <BlogPage />
           ),
         },
         {

@@ -16,7 +16,6 @@ export const PATH = {
   PROFILE: "/profile",
   BLOGPAGE: "/blog",
   BLOGDETAIL: "/blog/:slug",
-
   CREATEBLOG: "/blog/create",
 
   COACH: "/coach",
