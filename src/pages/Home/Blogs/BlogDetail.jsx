@@ -24,6 +24,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { fetchBlogBySlugApi, toggleLikeBlogApi, addCommentApi, updateLike } from "../../../store/slices/blogSlice";
+import toast from "react-hot-toast";
 
 const BlogDetail = () => {
   const { slug } = useParams();
@@ -59,7 +60,7 @@ const BlogDetail = () => {
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    alert("Đã sao chép đường dẫn bài viết vào clipboard!");
+    toast.success("Đã sao chép đường dẫn bài viết vào clipboard!");
   };
 
   const handleSubmitComment = (e) => {
