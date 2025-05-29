@@ -26,11 +26,11 @@ export default function LoginPage() {
           const userType = payload.data.user.role?.trim().toLowerCase();
 
           if (userType === "user") {
-            navigate(PATH.HOME);
+            navigate(PATH.HOME, { replace: true });
           } else if (userType === "coach") {
-            navigate(PATH.PLANMANAGEMEMTPAGE);
+            navigate(PATH.PLANMANAGEMEMTPAGE, { replace: true });
           } else if (userType === "admin" || userType === "administrator") {
-            navigate(PATH.ADMIN);
+            navigate(PATH.ADMIN, { replace: true });
           } else {
             toast.error(
               "Vai trò không hợp lệ, vui lòng liên hệ quản trị viên."
@@ -54,17 +54,13 @@ export default function LoginPage() {
   const handleClickShowPassword = () => {
     setShowPassword((prev) => !prev);
   };
+
   return (
     <Box className="login-page" sx={{ width: "100%", minHeight: "100vh" }}>
       <Grid container spacing={0} sx={{ height: "100%" }}>
         <Grid item size={6} className="login-left">
           <Box className="login-container">
             <Box className="login-logo">
-              {/* <img
-                src={logo}
-                alt="QuitSmoke Logo"
-                style={{ width: "20%", height: "20%", borderRadius: "50%" }}
-              /> */}
               🌿
               <Typography
                 variant="h4"
@@ -222,7 +218,6 @@ export default function LoginPage() {
                 mb: 4,
               }}
             >
-              {/* Placeholder for image */}
               <Typography variant="body2" color="text.secondary">
                 Hình ảnh
               </Typography>
@@ -275,7 +270,7 @@ export default function LoginPage() {
               </Box>
               <Box
                 sx={{
-                  backgroundColor: "#f5f5f5",
+                  backgroundColor: "# nadie f5f5f5",
                   p: 2,
                   borderRadius: "12px",
                   flex: 1,
