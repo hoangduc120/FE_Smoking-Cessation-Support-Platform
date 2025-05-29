@@ -30,7 +30,6 @@ const BlogDetail = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { selectedBlog, isLoading } = useSelector((state) => state.blogs);
-  const { isAuthenticated, currentUser } = useSelector((state) => state.auth);
   const [comment, setComment] = useState("");
 
   useEffect(() => {
@@ -40,11 +39,7 @@ const BlogDetail = () => {
   }, [dispatch, slug]);
 
   const handleLike = () => {
-    if (isAuthenticated) {
-      dispatch(toggleLikeBlogApi(selectedBlog.id));
-    } else {
-      navigate("/auth/login");
-    }
+    dispatch(toggleLikeBlogApi(selectedBlog.id));
   };
 
   const handleShare = () => {
@@ -54,11 +49,12 @@ const BlogDetail = () => {
 
   const handleSubmitComment = (e) => {
     e.preventDefault();
-    if (comment.trim() && isAuthenticated) {
-      dispatch(addCommentApi(selectedBlog.id, comment));
+    if (comment.trim()) {
+      dispatch(addCommentApi({
+        blogId: selectedBlog.id,
+        comment: comment
+      }));
       setComment("");
-    } else if (!isAuthenticated) {
-      navigate("/auth/login");
     }
   };
 
@@ -200,41 +196,26 @@ const BlogDetail = () => {
         </Typography>
 
         {/* Comment Form */}
-        {isAuthenticated ? (
-          <Box component="form" onSubmit={handleSubmitComment} sx={{ mb: 4 }}>
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              placeholder="Viết bình luận của bạn..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={!comment.trim()}
-            >
-              Đăng bình luận
-            </Button>
-          </Box>
-        ) : (
-          <Paper sx={{ p: 3, mb: 4, borderRadius: 2, bgcolor: "#f8f9fa" }}>
-            <Typography variant="body1" paragraph>
-              Vui lòng đăng nhập để bình luận.
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => navigate("/auth/login")}
-            >
-              Đăng nhập
-            </Button>
-          </Paper>
-        )}
 
+        <Box component="form" onSubmit={handleSubmitComment} sx={{ mb: 4 }}>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="Viết bình luận của bạn..."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={!comment.trim()}
+          >
+            Đăng bình luận
+          </Button>
+        </Box>
         {/* Comments List */}
         {selectedBlog.comments && selectedBlog.comments.length > 0 ? (
           <Grid container spacing={3}>

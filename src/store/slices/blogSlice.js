@@ -123,8 +123,11 @@ export const toggleLikeBlogApi = createAsyncThunk(
 // Add a comment to a blog
 export const addCommentApi = createAsyncThunk(
   "blogs/addComment",
-  async ({ blogId, commentText }, { getState, rejectWithValue }) => {
+  async (payload, { getState, rejectWithValue }) => {
     try {
+      const blogId = payload.blogId || payload;
+      const commentText = payload.comment || payload;
+
       const currentUserId = getState().auth.currentUser?.userId;
       const response = await fetcher.post(`/blogs/${blogId}/comment`, {
         comment: commentText,
@@ -132,12 +135,11 @@ export const addCommentApi = createAsyncThunk(
       const comment = response.data.data;
       return {
         blogId,
-        commentId: comment._id,
-        commentData: {
+        comment: {
           text: comment.text,
           author: {
-            id: comment.author._id,
-            name: comment.author.name || comment.author.email.split("@")[0],
+            id: comment.author?._id || currentUserId,
+            name: comment.author?.name || comment.author?.email?.split("@")[0] || "Người dùng",
           },
           createdAt: comment.createdAt,
         },

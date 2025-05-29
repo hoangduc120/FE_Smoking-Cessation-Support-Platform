@@ -25,7 +25,6 @@ const CreateBlog = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { isLoading } = useSelector((state) => state.blogs);
-    const { isAuthenticated } = useSelector((state) => state.auth);
 
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
@@ -34,6 +33,7 @@ const CreateBlog = () => {
     const [imageUrl, setImageUrl] = useState("");
     const [previewImage, setPreviewImage] = useState("");
     const [errors, setErrors] = useState({});
+
 
     // Xử lý tải ảnh
     const fileInputRef = useRef(null);
@@ -98,11 +98,6 @@ const CreateBlog = () => {
     // Xử lý submit form
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!isUserLoggedIn) {
-            navigate("/auth/login", { state: { returnUrl: "/blog/create" } });
-            return;
-        }
-
         if (validateForm()) {
             const blogData = {
                 title,
@@ -121,14 +116,6 @@ const CreateBlog = () => {
                 });
         }
     };
-
-    // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
-    useEffect(() => {
-        if (!isUserLoggedIn) {
-            navigate("/auth/login", { state: { returnUrl: "/blog/create" } });
-        }
-    }, [isUserLoggedIn, navigate]);
-
     return (
         <Container maxWidth="lg" sx={{ py: 6 }}>
             <Box sx={{ mb: 4 }}>

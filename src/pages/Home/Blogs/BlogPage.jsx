@@ -26,13 +26,13 @@ import { vi } from "date-fns/locale";
 import { fetchBlogsApi, toggleLikeBlogApi } from "../../../store/slices/blogSlice";
 import AddIcon from "@mui/icons-material/Add";
 import ReactQuill from "react-quill-new";
+import { PATH } from "../../../routes/path";
 
 const BlogPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { blogs, pagination, isLoading } = useSelector((state) => state.blogs);
-  const { isAuthenticated } = useSelector((state) => state.auth);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState(null);
 
@@ -64,28 +64,21 @@ const BlogPage = () => {
   }, [dispatch, currentPage, selectedTag, searchTerm]);
 
   const handlePageChange = (event, value) => {
-    const newUrl = new URL(window.location);
-    newUrl.searchParams.set("page", value);
-    window.history.pushState({}, "", newUrl);
-    navigate(`?page=${value}`);
+    navigate(`/blog?page=${value}`);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    navigate("?page=1");
+    navigate("/blog?page=1");
   };
 
   const handleTagClick = (tag) => {
     setSelectedTag(tag === selectedTag ? null : tag);
-    navigate("?page=1");
+    navigate("/blog?page=1");
   };
 
   const handleLike = (blogId) => {
-    if (isAuthenticated) {
-      dispatch(toggleLikeBlogApi(blogId));
-    } else {
-      navigate("/auth/login");
-    }
+    dispatch(toggleLikeBlogApi(blogId));
   };
 
   const navigateToBlog = (slug) => {
@@ -108,13 +101,7 @@ const BlogPage = () => {
           color="primary"
           size="large"
           startIcon={<AddIcon />}
-          onClick={() => {
-            if (isAuthenticated) {
-              navigate("/blog/create");
-            } else {
-              navigate("/auth/login", { state: { returnUrl: "/blog/create" } });
-            }
-          }}
+          onClick={() => navigate(PATH.CREATEBLOG)}
         >
           Tạo bài viết
         </Button>
@@ -259,7 +246,7 @@ const BlogPage = () => {
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleLike(blog.id);
+                          handleLike(blog._id);
                         }}
                       >
                         {blog.isLiked ? (
