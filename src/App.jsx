@@ -1,12 +1,12 @@
 import useRouterElement from "./routes/useRouterElement"
 
 function App() {
-//  nơi chứa các route
+  //  nơi chứa các route
   const routerElement = useRouterElement()
   return (
-   <>
-   {routerElement}
-   </>
+    <>
+      {routerElement}
+    </>
   )
 }
 

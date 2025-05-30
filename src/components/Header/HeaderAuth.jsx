@@ -23,6 +23,9 @@ const HeaderAuth = () => {
         <Link to="/" className="nav-link">
           Trang chủ
         </Link>
+        <Link to={PATH.BLOGPAGE} className="nav-link">
+          Bài viết
+        </Link>
         <Link to="/about" className="nav-link">
           Về chúng tôi
         </Link>
@@ -31,9 +34,6 @@ const HeaderAuth = () => {
         </Link>
         <Link to="/resources" className="nav-link">
           Tài nguyên
-        </Link>
-        <Link to={PATH.BLOGPAGE} className="nav-link">
-          Bài viết
         </Link>
         <Link to="/contact" className="nav-link">
           Liên hệ

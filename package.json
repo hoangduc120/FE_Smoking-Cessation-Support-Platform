@@ -29,6 +29,7 @@
     "quill-delta-to-html": "^0.12.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-google-button": "^0.8.0",
     "react-hook-form": "^7.56.3",
     "react-hot-toast": "^2.5.2",
     "react-quill-new": "^3.4.6",

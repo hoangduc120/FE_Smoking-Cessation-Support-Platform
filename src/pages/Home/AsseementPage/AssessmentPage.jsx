@@ -95,9 +95,9 @@ export default function AssessmentPage() {
   const onSubmit = async (data) => {
     if (step === totalSteps) {
       const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    
+
       const assessmentData = {
-        userId: currentUser?.user?.id|| "1", 
+        userId: currentUser?.user?.id || "1",
         motivation:
           data.motivation === "health" ? "Muốn cải thiện sức khỏe" : data.motivation === "money" ? "Tiết kiệm tiền" : "Khác",
         smokingDurationYear: data.smokingYears,
@@ -105,23 +105,23 @@ export default function AssessmentPage() {
           data.peakSmokingTimes === "morning-stress"
             ? "Sáng và khi căng thẳng"
             : data.peakSmokingTimes === "evening"
-            ? "Buổi tối"
-            : data.peakSmokingTimes === "after-meals"
-            ? "Sau bữa ăn"
-            : "Khác",
+              ? "Buổi tối"
+              : data.peakSmokingTimes === "after-meals"
+                ? "Sau bữa ăn"
+                : "Khác",
         quitAttempts: parseInt(data.previousAttempts.split("-")[0]) || 0,
         supportNeeded:
           data.supportSystem.includes("counseling") && data.supportSystem.includes("reminders")
             ? "Tư vấn tâm lý và nhắc nhở"
             : data.supportSystem.includes("counseling")
-            ? "Tư vấn tâm lý"
-            : data.supportSystem.includes("reminders")
-            ? "Nhắc nhở"
-            : data.supportSystem.includes("peer-support")
-            ? "Hỗ trợ từ bạn bè"
-            : data.supportSystem.includes("app-support")
-            ? "Hỗ trợ qua ứng dụng"
-            : "Khác",
+              ? "Tư vấn tâm lý"
+              : data.supportSystem.includes("reminders")
+                ? "Nhắc nhở"
+                : data.supportSystem.includes("peer-support")
+                  ? "Hỗ trợ từ bạn bè"
+                  : data.supportSystem.includes("app-support")
+                    ? "Hỗ trợ qua ứng dụng"
+                    : "Khác",
       };
       console.log("Dữ liệu gửi đi:", assessmentData);
 

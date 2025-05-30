@@ -78,6 +78,20 @@ export const resetPasswordApi = createAsyncThunk(
   }
 );
 
+export const loginWithGoogleApi = createAsyncThunk(
+  "auth/loginWithGoogle",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetcher.get("/auth/me");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -153,6 +167,20 @@ const authSlice = createSlice({
     builder.addCase(resetPasswordApi.rejected, (state, { payload }) => {
       state.isLoading = false;
       state.error = payload;
+    });
+    builder.addCase(loginWithGoogleApi.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(loginWithGoogleApi.fulfilled, (state, { payload }) => {
+      state.isLoading = false;
+      state.currentUser = payload.data;
+      localStorage.setItem("currentUser", JSON.stringify(payload.data));
+      toast.success("Google login successful");
+    });
+    builder.addCase(loginWithGoogleApi.rejected, (state, { payload }) => {
+      state.isLoading = false;
+      state.error = payload;
+      toast.error(payload?.message || 'Google login failed');
     });
   },
 });
