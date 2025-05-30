@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetcher } from "../../apis/fetcher";
+import fetcher from "../../apis/fetcher";
 
 // Lấy thông tin đánh giá theo id
 export const fetchAssessment = createAsyncThunk(
