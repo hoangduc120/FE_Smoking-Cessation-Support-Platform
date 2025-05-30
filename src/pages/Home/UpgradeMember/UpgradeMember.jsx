@@ -15,11 +15,24 @@ import {
   CircularProgress,
   Modal,
   Alert,
-  MenuItem,
 } from "@mui/material";
-import "./UpgradeMember.css";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMembership } from "../../../store/slices/membershipSlice";
+import "./UpgradeMember.css";
+
+// Bank data with image URLs (using placeholder CDN images for demo)
+const bankOptions = [
+  {
+    value: "VNPay",
+    name: "VNPay",
+    logo: "https://cdn.pixabay.com/photo/2016/03/31/22/18/image-1298140_1280.png",
+  },
+  {
+    value: "MoMo",
+    name: "MoMo",
+    logo: "https://cdn.pixabay.com/photo/2016/03/31/22/18/image-1298140_1280.png",
+  },
+];
 
 const UpgradeMember = () => {
   const dispatch = useDispatch();
@@ -27,12 +40,21 @@ const UpgradeMember = () => {
     (state) => state.membership
   );
 
+
+  const user = useSelector((state) => state.user) || {
+    name: "Nguyễn Văn A",
+    email: "nguyenvana@example.com",
+    phone: "0123456789",
+  };
+
+  const info = user.user
+
   const [value, setValue] = useState(0);
   const [selectedCard, setSelectedCard] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [showNoSelectionError, setShowNoSelectionError] = useState(false);
+  const [selectedBank, setSelectedBank] = useState(null);
 
-  // Gọi API khi component được tải
   useEffect(() => {
     dispatch(fetchMembership());
   }, [dispatch]);
@@ -43,7 +65,7 @@ const UpgradeMember = () => {
 
   const handleCardSelect = (index) => {
     setSelectedCard(index);
-    setShowNoSelectionError(false); // Xóa lỗi khi chọn gói
+    setShowNoSelectionError(false);
   };
 
   const handleOpenModal = () => {
@@ -57,15 +79,24 @@ const UpgradeMember = () => {
 
   const handleCloseModal = () => {
     setOpenModal(false);
+    setSelectedBank(null);
+  };
+
+  const handleSelectBank = (bank) => {
+    setSelectedBank(bank);
   };
 
   const handleConfirm = () => {
-    if (selectedCard !== null && plans[selectedCard]) {
-      console.log("Gói được xác nhận:", plans[selectedCard]);
-      // TODO: Thêm logic gọi API hoặc xử lý xác nhận ở đây, ví dụ:
-      // dispatch(fetchMembershipById(plans[selectedCard]._id));
+    if (selectedCard !== null && plans[selectedCard] && selectedBank) {
+      console.log("Xác nhận thanh toán:", {
+        user,
+        plan: plans[selectedCard],
+        paymentMethod: selectedBank.name,
+      });
+      // TODO: Thêm logic gọi API để xử lý thanh toán
     }
     setOpenModal(false);
+    setSelectedBank(null);
   };
 
   const plans = Array.isArray(membershipData)
@@ -99,7 +130,7 @@ const UpgradeMember = () => {
           Chọn gói thành viên phù hợp với nhu cầu của bạn
         </Typography>
         <Box sx={{ width: "100%" }}>
-          <Tabs value={value} onChange={handleChange} centered>
+          <Tabs value={value} onChange={handleChange} centered className="tabs">
             <Tab label="Gói thành viên" />
             <Tab label="So sánh tính năng" />
           </Tabs>
@@ -111,10 +142,7 @@ const UpgradeMember = () => {
           </Box>
         ) : isError ? (
           <Typography color="error" align="center" sx={{ mt: 4 }}>
-            Lỗi:{" "}
-            {errorMessage?.message ||
-              errorMessage ||
-              "Không thể tải dữ liệu gói thành viên."}
+            Lỗi: {errorMessage?.message || errorMessage || "Không thể tải dữ liệu gói thành viên."}
           </Typography>
         ) : (
           <>
@@ -129,8 +157,12 @@ const UpgradeMember = () => {
                   plans.map((plan, index) => (
                     <Card
                       key={index}
-                      className="plan-card"
+                      className={`plan-card ${selectedCard === index ? "highlighted" : ""}`}
                       onClick={() => handleCardSelect(index)}
+                      sx={{
+                        borderRadius: "10px",
+                        boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px",
+                      }}
                     >
                       <CardContent>
                         <Box
@@ -141,26 +173,13 @@ const UpgradeMember = () => {
                             height: "100%",
                           }}
                         >
-                          <Typography
-                            variant="h6"
-                            gutterBottom
-                            sx={{ fontWeight: "bold" }}
-                          >
+                          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
                             {plan.title}
                           </Typography>
-                          <Typography
-                            variant="h5"
-                            color="black"
-                            gutterBottom
-                            sx={{ fontWeight: "bold" }}
-                          >
+                          <Typography variant="h5" color="black" gutterBottom sx={{ fontWeight: "bold" }}>
                             {plan.price}
                           </Typography>
-                          <Typography
-                            variant="body2"
-                            color="textSecondary"
-                            gutterBottom
-                          >
+                          <Typography variant="body2" color="textSecondary" gutterBottom>
                             {plan.duration}
                           </Typography>
                         </Box>
@@ -176,11 +195,7 @@ const UpgradeMember = () => {
                               borderBottomRightRadius: "8px",
                             }}
                           >
-                            <Typography
-                              className="selected-text"
-                              variant="body2"
-                              color="white"
-                            >
+                            <Typography className="selected-text" variant="body2" color="white">
                               Đã chọn
                             </Typography>
                           </Box>
@@ -227,11 +242,7 @@ const UpgradeMember = () => {
                           <TableCell>{info.feature}</TableCell>
                           {plans.map((plan, idx) => (
                             <TableCell key={idx} align="center">
-                              {info[plan.title] ? (
-                                <span className="check-mark">✓</span>
-                              ) : (
-                                "-"
-                              )}
+                              {info[plan.title] ? <span className="check-mark">✓</span> : "-"}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -260,73 +271,96 @@ const UpgradeMember = () => {
           </>
         )}
 
-        {/* Modal hiển thị chi tiết gói */}
+        {/* Single Payment Modal */}
         <Modal
           open={openModal}
           onClose={handleCloseModal}
           aria-labelledby="modal-title"
-          aria-describedby="modal-description"
         >
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: 400,
-              bgcolor: "background.paper",
-              boxShadow: 24,
-              p: 4,
-              borderRadius: 2,
-            }}
-          >
-            <Typography
-              id="modal-title"
-              variant="h6"
-              component="h2"
-              gutterBottom
-            >
-              Xác Nhận Gói Thành Viên
+          <Box className="modal-content">
+            <Typography id="modal-title" className="modal-title">
+              Xác Nhận Thanh Toán
             </Typography>
             {selectedCard !== null && plans[selectedCard] ? (
-              <>
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  Gói thành viên: {plans[selectedCard].title}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  Giá: {plans[selectedCard].price}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  Thời gian: {plans[selectedCard].duration}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  Các tính năng:
-                </Typography>
-                <MenuItem sx={{ display: "block" }}>
-                  {plans[selectedCard].features.map((feature, idx) => (
-                    <li key={idx}>{feature}</li>
-                  ))}
-                </MenuItem>
-              
-                <Box
-                  sx={{
-                    mt: 2,
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    gap: 2,
-                  }}
-                >
-                  <Button variant="outlined" onClick={handleCloseModal}>
-                    Hủy
-                  </Button>
-                  <Button variant="contained" onClick={handleConfirm} sx={{ backgroundColor: "black", color: "white" }}>
-                    Xác nhận
-                  </Button>
-                </Box>
-              </>
+              <div className="modal-content-wrapper">
+                <div className="modal-info-column">
+                  <Box className="modal-info-section">
+                    <Typography className="modal-info-title">Thông tin người dùng</Typography>
+                    <Typography className="modal-info">Họ tên: {info.userName}</Typography>
+                    <Typography className="modal-info">Email: {info.email}</Typography>
+                    <Typography className="modal-info">
+                      Số điện thoại: {info.phone}
+                    </Typography>
+                  </Box>
+
+                  <Box className="modal-info-section">
+                    <Typography className="modal-info-title">Thông tin gói</Typography>
+                    <Typography className="modal-info">
+                      Gói thành viên: {plans[selectedCard].title}
+                    </Typography>
+                    <Typography className="modal-info">
+                      Giá: {plans[selectedCard].price}
+                    </Typography>
+                    <Typography className="modal-info">
+                      Thời gian: {plans[selectedCard].duration}
+                    </Typography>
+                    <Typography className="modal-info">Các tính năng:</Typography>
+                    <ul className="modal-features">
+                      {plans[selectedCard].features.map((feature, idx) => (
+                        <li key={idx}>
+                          <span className="check-mark">✓</span> {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </Box>
+                </div>
+
+                <div className="modal-bank-column">
+                  <Box className="modal-info-section">
+                    <Typography className="modal-info-title">
+                      Chọn phương thức thanh toán
+                    </Typography>
+                    <div className="bank-grid">
+                      {bankOptions.map((bank) => (
+                        <div
+                          key={bank.value}
+                          className={`bank-option ${
+                            selectedBank?.value === bank.value ? "bank-option-selected" : ""
+                          }`}
+                          onClick={() => handleSelectBank(bank)}
+                        >
+                          <img
+                            src={bank.logo}
+                            alt={bank.name}
+                            className="bank-logo"
+                          />
+                          <Typography className="bank-name">{bank.name}</Typography>
+                        </div>
+                      ))}
+                    </div>
+                  </Box>
+                </div>
+              </div>
             ) : (
-              <Typography>Không có gói nào được chọn.</Typography>
+              <Typography>Không có thông tin để xác nhận.</Typography>
             )}
+            <Box className="modal-buttons">
+              <Button
+                variant="outlined"
+                className="modal-cancel-button"
+                onClick={handleCloseModal}
+              >
+                Hủy
+              </Button>
+              <Button
+                variant="contained"
+                className="modal-confirm-button"
+                onClick={handleConfirm}
+                disabled={!selectedBank}
+              >
+                Xác nhận
+              </Button>
+            </Box>
           </Box>
         </Modal>
       </Box>

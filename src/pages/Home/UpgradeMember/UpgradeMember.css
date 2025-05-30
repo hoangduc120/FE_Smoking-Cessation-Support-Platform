@@ -1,3 +1,4 @@
+/* Original CSS */
 .subscription-container {
   max-width: 900px;
   margin: 0 auto;
@@ -10,17 +11,16 @@
   justify-content: center;
   gap: 20px;
   margin-bottom: 20px;
-
 }
 
 .tabs span {
-  padding: 10px 20px;
+
   cursor: pointer;
   border-bottom: 2px solid transparent;
 }
 
 .tabs span:hover {
-  border-bottom-color: #1976d2;
+  border-bottom-color: #0a529b;
 }
 
 .plans-container {
@@ -28,16 +28,15 @@
   display: flex;
   justify-content: center;
   gap: 50px;
-  /* flex-wrap: wrap; */
 }
 
 .plan-card {
-    position: relative;
+  position: relative;
   width: 500px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
-  border: solid 1px black
+  border: solid 1px black;
 }
 
 .plan-card:hover {
@@ -69,13 +68,14 @@
 button.choose-button {
   margin-top: 20px;
   width: 100%;
-  background-color: #18181a;
+  background-color: black;
   color: white !important;
   border: 1px solid #ccc;
+  transition: 0.5s;
 }
 
 .choose-button:hover {
-  background-color: black;
+  background-color: #269a48;
 }
 
 button.continue-button {
@@ -84,34 +84,29 @@ button.continue-button {
   background-color: #000;
 }
 
-@media (max-width: 600px) {
-  .plans-container {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .plan-card {
-    width: 100%;
-  }
-}
-
 .modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: #ffffff;
   border-radius: 12px;
   border: 1px solid #e0e0e0;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   padding: 24px;
   width: 90%;
-  max-width: 500px; /* Tăng kích thước modal */
+  max-width: 700px; /* Increased width for two-column layout */
   max-height: 80vh;
-  overflow-y: auto; /* Cho phép cuộn nếu nội dung dài */
+  overflow-y: auto;
 }
 
 .modal-title {
-  font-weight: 700;
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 16px;
+  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+  color: #333 !important;
+  margin-bottom: 16px !important;
+  text-align: center;
+  padding-bottom: 20px;
 }
 
 .modal-info {
@@ -174,13 +169,84 @@ button.continue-button {
   background-color: #1565c0;
 }
 
+.modal-info-section {
+  margin-bottom: 24px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px !important;
+}
+
+.modal-info-title {
+  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+  color: #333 !important;
+  margin-bottom: 12px !important;
+  
+}
+
+.bank-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.bank-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.bank-option:hover {
+  border-color: #1976d2;
+  background-color: #f0f8ff;
+}
+
+.bank-option-selected {
+  border-color: #1976d2;
+  background-color: #e6f0ff;
+}
+
+.bank-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-right: 12px;
+}
+
+.bank-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.selected-text {
+  text-align: center;
+  padding-top: 2px;
+}
+
+/* New CSS for two-column modal layout */
+.modal-content-wrapper {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.modal-info-column {
+  flex: 1;
+  min-width: 250px;
+}
+
+.modal-bank-column {
+  flex: 1;
+  min-width: 200px;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
-  .modal-content {
-    width: 95%;
-    padding: 16px;
-  }
-
   .plans-container {
     flex-direction: column;
     align-items: center;
@@ -193,5 +259,18 @@ button.continue-button {
 
   .continue-button {
     width: 100%;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 16px;
+  }
+
+  .modal-content-wrapper {
+    flex-direction: column;
+  }
+
+  .bank-grid {
+    grid-template-columns: 1fr;
   }
 }
