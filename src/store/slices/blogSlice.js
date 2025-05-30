@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
-import { fetcher } from "../../apis/fetcher";
+import fetcher from "../../apis/fetcher";
 
 // Normalize blog data to match frontend expectations
 const normalizeBlog = (blog, currentUserId) => ({
