@@ -6,6 +6,7 @@ import "./Header.css";
 import { PATH } from "../../routes/path";
 import { logoutApi } from "../../store/slices/authSlice";
 import toast from "react-hot-toast";
+import { fetchUser } from "../../store/slices/userSlice";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -14,6 +15,10 @@ const Header = () => {
   console.log("auth", user);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+
+  useEffect(() => {
+    dispatch(fetchUser()); 
+  }, [dispatch]);
 
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);

@@ -19,6 +19,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMembership } from "../../../store/slices/membershipSlice";
 import "./UpgradeMember.css";
+import { fetchUser } from "../../../store/slices/userSlice";
 
 // Bank data with image URLs (using placeholder CDN images for demo)
 const bankOptions = [
@@ -47,7 +48,9 @@ const UpgradeMember = () => {
     phone: "0123456789",
   };
 
-  const info = user.user
+  console.log("user",user)
+
+const info = user.user
 
   const [value, setValue] = useState(0);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -57,6 +60,7 @@ const UpgradeMember = () => {
 
   useEffect(() => {
     dispatch(fetchMembership());
+    dispatch(fetchUser());
   }, [dispatch]);
 
   const handleChange = (event, newValue) => {
