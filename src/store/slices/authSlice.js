@@ -78,6 +78,36 @@ export const resetPasswordApi = createAsyncThunk(
   }
 );
 
+// Google Login Callback Handler
+export const googleLoginCallback = createAsyncThunk(
+  "auth/googleLoginCallback",
+  async (accessToken, { rejectWithValue }) => {
+    try {
+      const response = await fetcher.get("/users/profile/me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      const userData = response.data.data.user;
+
+      // Lưu thông tin vào localStorage
+      localStorage.setItem("currentUser", JSON.stringify({
+        user: userData,
+        token: accessToken
+      }));
+      localStorage.setItem("token", accessToken);
+
+      return {
+        user: userData,
+        token: accessToken
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -151,6 +181,21 @@ const authSlice = createSlice({
       state.error = null;
     });
     builder.addCase(resetPasswordApi.rejected, (state, { payload }) => {
+      state.isLoading = false;
+      state.error = payload;
+    });
+
+    // Google Login Callback handlers
+    builder.addCase(googleLoginCallback.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(googleLoginCallback.fulfilled, (state, { payload }) => {
+      state.isLoading = false;
+      state.error = null;
+      state.currentUser = payload;
+    });
+    builder.addCase(googleLoginCallback.rejected, (state, { payload }) => {
       state.isLoading = false;
       state.error = payload;
     });

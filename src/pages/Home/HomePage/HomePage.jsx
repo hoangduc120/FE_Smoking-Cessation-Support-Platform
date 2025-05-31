@@ -35,7 +35,6 @@ const navigate = useNavigate();
   useEffect(() => {
     console.log("currentUser:", currentUser);
     if (!currentUser || !currentUser.token) {
-      toast.error("Vui lòng đăng nhập để tiếp tục!");
       navigate(PATH.LOGIN);
       return
     }

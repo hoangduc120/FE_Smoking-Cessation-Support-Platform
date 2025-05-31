@@ -17,7 +17,7 @@ const Header = () => {
   const open = Boolean(anchorEl);
 
   useEffect(() => {
-    dispatch(fetchUser()); 
+    dispatch(fetchUser());
   }, [dispatch]);
 
   const handleAvatarClick = (event) => {

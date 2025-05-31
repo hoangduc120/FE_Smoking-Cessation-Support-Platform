@@ -171,6 +171,11 @@ export default function useRouterElement() {
       ),
       children: [{ index: true, element: <DashBoardAdmin /> }],
     },
+    // ROUTE NOT FOUND
+    {
+      path: "*",
+      element: <Navigate to={PATH.HOME} />,
+    },
   ]);
   return element;
 }

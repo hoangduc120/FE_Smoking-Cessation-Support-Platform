@@ -9,12 +9,32 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { loginApi } from "../../../store/slices/authSlice";
 import toast from "react-hot-toast";
-
+import GoogleButton from 'react-google-button'
 export default function LoginPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const { register, handleSubmit } = useForm({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
+
+  const loginGoogle = () => {
+    window.location.href = `${BASE_URL}/auth/google`;
+  };
+
+  const handleGoogleLogin = () => {
+    setIsLoading(true);
+    try {
+      loginGoogle();
+    } catch (error) {
+      console.error("Error initiating Google login:", error);
+      toast.error("Google login failed. Please try again!");
+      setIsLoading(false);
+    }
+  };
+
+
 
   const onSubmit = async (data) => {
     dispatch(loginApi(data))
@@ -159,28 +179,17 @@ export default function LoginPage() {
                 >
                   Hoặc tiếp tục với
                 </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 2,
-                    mt: 2,
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    sx={{
-                      flex: 1,
-                      mr: 1,
-                      borderRadius: "8px",
-                      color: "#000",
-                      borderColor: "#ccc",
-                    }}
-                  >
-                    Google
-                  </Button>
-                </Box>
               </form>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  mb: 2,
+                  mt: 2,
+                }}
+              >
+                <GoogleButton onClick={handleGoogleLogin} />
+              </Box>
             </Box>
           </Box>
         </Grid>
