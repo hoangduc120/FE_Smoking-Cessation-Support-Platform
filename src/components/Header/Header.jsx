@@ -50,7 +50,10 @@ const Header = () => {
     handleClose();
     navigate(PATH.PROFILE);
   };
-
+  const handleChat = () => {
+    handleClose();
+    navigate(PATH.CHATPAGE);
+  };
   const handleRoadmap = () => {
     handleClose();
     navigate(PATH.ROADMAP);
@@ -86,8 +89,7 @@ const Header = () => {
         <Link to="/resources" className="nav-link">
           Tài nguyên
         </Link>
-
-        <Link to="/contact" className="nav-link">
+        <Link to={PATH.CONTACT} className="nav-link">
           Liên hệ
         </Link>
       </Box>
@@ -113,6 +115,7 @@ const Header = () => {
           }}
         >
           <MenuItem onClick={handleProfile}>Hồ sơ</MenuItem>
+          <MenuItem onClick={handleChat}>Tin nhắn</MenuItem>
           <MenuItem onClick={handleRoadmap}>Lộ trình</MenuItem>
           <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
         </Menu>
