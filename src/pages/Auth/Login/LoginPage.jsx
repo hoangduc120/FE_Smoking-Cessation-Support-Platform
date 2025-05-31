@@ -4,47 +4,37 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import "./LoginPage.css";
 import { Link, useNavigate } from "react-router-dom";
 import { PATH } from "../../../routes/path";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
-import { loginApi, loginWithGoogleApi } from "../../../store/slices/authSlice";
+import { loginApi } from "../../../store/slices/authSlice";
 import toast from "react-hot-toast";
 import GoogleButton from 'react-google-button'
 export default function LoginPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { register, handleSubmit } = useForm({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const BASE_URL = import.meta.env.VITE_API_URL;
 
 
-  useEffect(() => {
-    const checkGoogleLogin = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const auth = urlParams.get('auth');
-      const error = urlParams.get('error');
-      if (auth === 'google' || sessionStorage.getItem('googleLoginAttempt')) {
-        sessionStorage.removeItem('googleLoginAttempt');
-        try {
-          const result = await dispatch(loginWithGoogleApi()).unwrap();
-          toast.success('Google login successful');
-          navigate('/', { replace: true });
-        } catch (error) {
-          toast.error(error?.message || 'Google login failed. Please try again.');
-          navigate(PATH.LOGIN, { replace: true });
-        }
-      } else if (error) {
-        toast.error('Google login failed: ' + error);
-        navigate(PATH.LOGIN, { replace: true });
-      }
-    };
-    checkGoogleLogin();
-  }, [dispatch, navigate]);
-
-  const handleGoogleLogin = () => {
-    sessionStorage.setItem('googleLoginAttempt', 'true');
+  const loginGoogle = () => {
     window.location.href = `${BASE_URL}/auth/google`;
   };
+
+  const handleGoogleLogin = () => {
+    setIsLoading(true);
+    try {
+      loginGoogle();
+    } catch (error) {
+      console.error("Error initiating Google login:", error);
+      toast.error("Google login failed. Please try again!");
+      setIsLoading(false);
+    }
+  };
+
+
 
   const onSubmit = async (data) => {
     dispatch(loginApi(data))
