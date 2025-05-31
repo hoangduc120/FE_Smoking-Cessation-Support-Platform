@@ -17,7 +17,8 @@ export const PATH = {
   BLOGPAGE: "/blog",
   BLOGDETAIL: "/blog/:slug",
   CREATEBLOG: "/blog/create",
-
+  CONTACT: "/contact",
+  CHATPAGE: "chat",
   COACH: "/coach",
   PLANMANAGEMEMTPAGE: "/coach/plan-management",
   COACH_MESSAGING: "/coach/messaging",

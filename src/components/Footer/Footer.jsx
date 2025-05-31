@@ -1,4 +1,3 @@
-"use client";
 import {
   Box,
   Container,
@@ -36,12 +35,12 @@ const QuitSmokeFooter = () => {
       component="footer"
     >
       <Container maxWidth="lg">
-        <Grid container spacing={10}>
+        <Grid container spacing={8}>
           {/* Contact Information - Left Side */}
           <Grid item xs={12} md={3}>
             <Box mb={2} display="flex" alignItems="center">
               <Chat sx={{ mr: 1, color: "#4caf50", fontSize: 18 }} />
-              <Typography variant="body2">Chat With Support</Typography>
+              <Typography variant="body2">Trò chuyện để được hỗ trợ</Typography>
             </Box>
 
             <Box mb={2} display="flex" alignItems="center">
@@ -64,16 +63,16 @@ const QuitSmokeFooter = () => {
               mb={2}
               fontSize="1rem"
             >
-              Solutions
+              Giải pháp
             </Typography>
             <Box display="flex" flexDirection="column" gap={1}>
               {[
-                "Personalized Quit Plans",
-                "Nicotine Replacement",
-                "Support Groups",
-                "Mobile App Support",
-                "Counseling Services",
-                "Wellness Programs",
+                "Kế hoạch bỏ thuốc cá nhân",
+                "Thay thế nicotine",
+                "Nhóm hỗ trợ",
+                "Hỗ trợ qua ứng dụng",
+                "Tư vấn chuyên nghiệp",
+                "Chương trình sức khỏe",
               ].map((item) => (
                 <Link
                   key={item}
@@ -101,16 +100,16 @@ const QuitSmokeFooter = () => {
               mb={2}
               fontSize="1rem"
             >
-              Company
+              Công ty
             </Typography>
             <Box display="flex" flexDirection="column" gap={1}>
               {[
-                "About Us",
-                "Careers",
-                "Success Stories",
-                "Contact",
-                "Legal",
-                "Press Kit",
+                "Về chúng tôi",
+                "Cơ hội nghề nghiệp",
+                "Câu chuyện thành công",
+                "Liên hệ",
+                "Pháp lý",
+                "Tài liệu báo chí",
               ].map((item) => (
                 <Link
                   key={item}
@@ -138,16 +137,16 @@ const QuitSmokeFooter = () => {
               mb={2}
               fontSize="1rem"
             >
-              Resources
+              Tài nguyên
             </Typography>
             <Box display="flex" flexDirection="column" gap={1}>
               {[
                 "Blog",
-                "eBooks",
-                "Knowledge Base",
-                "Customer Reviews",
-                "Affiliate Program",
-                "Strategic Partners",
+                "Sách điện tử",
+                "Kho kiến thức",
+                "Đánh giá khách hàng",
+                "Chương trình cộng tác viên",
+                "Đối tác chiến lược",
               ].map((item) => (
                 <Link
                   key={item}
@@ -214,7 +213,7 @@ const QuitSmokeFooter = () => {
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item display="flex" alignItems="center">
             <SmokeFree sx={{ mr: 1, color: "#4caf50", fontSize: 20 }} />
-            <Typography variant="body2">Powered by QuitSmoke</Typography>
+            <Typography variant="body2">Được hỗ trợ bởi QuitSmoke</Typography>
           </Grid>
           <Grid item>
             <Link
@@ -224,7 +223,7 @@ const QuitSmokeFooter = () => {
               sx={{ "&:hover": { color: "#4caf50" } }}
             >
               <Typography variant="body2">
-                Start Your Smoke-Free Journey Today
+                Bắt đầu hành trình không thuốc lá hôm nay
               </Typography>
             </Link>
           </Grid>
