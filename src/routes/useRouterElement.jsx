@@ -25,8 +25,7 @@ import SidebarCoach from "../layouts/Sidebar-Coach/SidebarCoach"; // Import the 
 import PlanManagementPage from "../pages/Coacher/PlanManagementPage/PlanManagementPage";
 import MessagingPage from "../pages/Coacher/MessagingPage/MessagingPage";
 import CreateBlog from "../pages/Home/Blogs/CreateBlog";
-import Contact from "../pages/Home/Contact/Contact";
-import ChatApp from "../pages/Home/ChatMessages/ChatPage";
+import Roadmap from "../pages/Home/Roadmap/Roadmap";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -146,15 +145,14 @@ export default function useRouterElement() {
             </ProtectedRoute>
           ),
         },
-        {
-          path: PATH.CHATPAGE,
+             {
+          path: PATH.ROADMAP,
           element: (
             <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
-              <ChatApp />
+              <Roadmap />
             </ProtectedRoute>
           ),
         },
-        { path: PATH.CONTACT, element: <Contact /> },
       ],
     },
     // COACH
