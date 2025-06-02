@@ -13,9 +13,14 @@ import { format, parse } from "date-fns";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 
-import { useState } from "react";
-import { createPlan, fetchPlan, updatePlan } from "../../../store/slices/planeSlice";
+import toast from "react-hot-toast";
+import {
+  createPlan,
+  fetchAllPlan,
+  updatePlan,
+} from "../../../store/slices/planeSlice";
 
 // Define Yup schema for validation
 const schema = yup.object().shape({
@@ -23,40 +28,40 @@ const schema = yup.object().shape({
     .string()
     .required("Tên kế hoạch là bắt buộc")
     .min(3, "Tên kế hoạch phải có ít nhất 3 ký tự"),
-  description: yup
+  reason: yup
     .string()
-    .required("Mô tả là bắt buộc")
-    .min(10, "Mô tả phải có ít nhất 10 ký tự"),
-  expectedQuitDate: yup
+    .required("Lý do là bắt buộc")
+    .min(10, "Lý do phải có ít nhất 10 ký tự"),
+  startDate: yup
     .string()
-    .required("Ngày dự kiến cai thuốc là bắt buộc")
+    .required("Ngày bắt đầu là bắt buộc")
     .test(
       "is-future-date",
-      "Ngày dự kiến không được trước ngày hiện tại",
+      "Ngày bắt đầu không được trước ngày hiện tại",
       (value) => {
-        const today = format(new Date(), "yyyy-MM-dd"); // Lấy ngày hiện tại động
+        const today = format(new Date(), "yyyy-MM-dd");
         return value >= today;
+      }
+    ),
+  endDate: yup
+    .string()
+    .required("Ngày kết thúc là bắt buộc")
+    .test(
+      "is-after-start-date",
+      "Ngày kết thúc phải sau ngày bắt đầu",
+      (value, context) => {
+        const { startDate } = context.parent;
+        return !startDate || !value || value >= startDate;
       }
     ),
 });
 
-export default function CreatePlanDialog({ open, setOpen, coachId, planToEdit }) {
-  // Khởi tạo React Hook Form với Yup resolver
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      title: planToEdit?.title || "",
-      description: planToEdit?.description || "",
-      expectedQuitDate: planToEdit?.expectedQuitDate || "",
-    },
-    resolver: yupResolver(schema),
-    mode: "onChange",
-  });
-
+export default function CreatePlanDialog({
+  open,
+  setOpen,
+  coachId,
+  planToEdit,
+}) {
   const dispatch = useDispatch();
   const { isLoading } = useSelector((state) => state.plan);
   const [toastOpen, setToastOpen] = useState(false);
@@ -64,12 +69,55 @@ export default function CreatePlanDialog({ open, setOpen, coachId, planToEdit })
   const [errorMessage, setErrorMessage] = useState("");
   const isEditMode = !!planToEdit;
 
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      title: "",
+      reason: "",
+      startDate: "",
+      endDate: "",
+      status: "template",
+    },
+    resolver: yupResolver(schema),
+    mode: "onChange",
+  });
+
+  useEffect(() => {
+    if (planToEdit) {
+      reset({
+        title: planToEdit.title || "",
+        reason: planToEdit.reason || "",
+        startDate: planToEdit.startDate
+          ? format(new Date(planToEdit.startDate), "yyyy-MM-dd")
+          : "",
+        endDate: planToEdit.endDate
+          ? format(new Date(planToEdit.endDate), "yyyy-MM-dd")
+          : "",
+        status: planToEdit.status || "template",
+      });
+    } else {
+      reset({
+        title: "",
+        reason: "",
+        startDate: "",
+        endDate: "",
+        status: "template",
+      });
+    }
+  }, [planToEdit, reset]);
+
   const handleCloseDialog = () => {
     setOpen(false);
     reset({
       title: "",
-      description: "",
-      expectedQuitDate: "",
+      reason: "",
+      startDate: "",
+      endDate: "",
+      status: "template",
     });
   };
 
@@ -81,60 +129,63 @@ export default function CreatePlanDialog({ open, setOpen, coachId, planToEdit })
     setErrorToastOpen(false);
   };
 
-  // Xử lý submit form
+  // Handle form submission
   const onSubmit = async (data) => {
     try {
       const formattedData = {
         ...data,
-        expectedQuitDate: data.expectedQuitDate
+        startDate: data.startDate
           ? format(
-              parse(data.expectedQuitDate, "yyyy-MM-dd", new Date()),
+              parse(data.startDate, "yyyy-MM-dd", new Date()),
               "yyyy-MM-dd"
             )
           : "",
+        endDate: data.endDate
+          ? format(parse(data.endDate, "yyyy-MM-dd", new Date()), "yyyy-MM-dd")
+          : "",
+        coachId,
       };
 
-      let result;
       if (isEditMode) {
-        // Cập nhật kế hoạch
-        result = await dispatch(
+        await dispatch(
           updatePlan({ id: planToEdit._id, data: formattedData })
         ).unwrap();
-
+        toast.success("Cập nhật kế hoạch thành công!");
       } else {
-        // Tạo kế hoạch mới
-        result = await dispatch(createPlan({ data: formattedData })).unwrap();
-        console.log("CreatePlan success:", result);
+        await dispatch(createPlan({ data: formattedData })).unwrap();
+        toast.success("Tạo kế hoạch thành công!");
       }
 
-      // Hiển thị thông báo thành công
-      setToastOpen(true);
-
-      // Gọi lại fetchPlan để làm mới danh sách
       if (coachId) {
-        await dispatch(fetchPlan({ coachId })).unwrap();
-       
+        await dispatch(fetchAllPlan({ coachId, page: 1, limit: 1 })).unwrap();
       } else {
         console.warn("coachId is undefined, cannot fetch plans.");
       }
 
       handleCloseDialog();
     } catch (error) {
-      console.error(`${isEditMode ? "UpdatePlan" : "CreatePlan"} error:`, error);
-      setErrorMessage(error.message || `${isEditMode ? "Cập nhật" : "Tạo"} kế hoạch thất bại!`);
+      console.error(
+        `${isEditMode ? "UpdatePlan" : "CreatePlan"} error:`,
+        error
+      );
+      setErrorMessage(
+        error.message || `${isEditMode ? "Cập nhật" : "Tạo"} kế hoạch thất bại!`
+      );
       setErrorToastOpen(true);
     }
   };
 
-  // Lấy ngày hiện tại động
+  // Get today's date dynamically
   const today = format(new Date(), "yyyy-MM-dd");
 
   return (
     <>
       <Dialog open={open} onClose={handleCloseDialog}>
-        <DialogTitle>{isEditMode ? "Cập nhật kế hoạch" : "Tạo kế hoạch mới"}</DialogTitle>
+        <DialogTitle>
+          {isEditMode ? "Cập nhật kế hoạch" : "Tạo kế hoạch mới"}
+        </DialogTitle>
         <DialogContent>
-          {/* Trường title */}
+          {/* Title field */}
           <Controller
             name="title"
             control={control}
@@ -153,45 +204,65 @@ export default function CreatePlanDialog({ open, setOpen, coachId, planToEdit })
             )}
           />
 
-          {/* Trường description */}
+          {/* Reason field */}
           <Controller
-            name="description"
+            name="reason"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
                 margin="dense"
-                label="Mô tả"
+                label="Lý do"
                 type="text"
                 fullWidth
-                error={!!errors.description}
-                helperText={errors.description?.message}
+                error={!!errors.reason}
+                helperText={errors.reason?.message}
                 sx={{ mb: 2 }}
               />
             )}
           />
 
-          {/* Trường expectedQuitDate */}
+          {/* StartDate field */}
           <Controller
-            name="expectedQuitDate"
+            name="startDate"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
                 margin="dense"
-                label="Ngày dự kiến cai thuốc"
+                label="Ngày bắt đầu"
                 type="date"
                 fullWidth
                 InputLabelProps={{ shrink: true }}
-                error={!!errors.expectedQuitDate}
-                helperText={errors.expectedQuitDate?.message}
+                error={!!errors.startDate}
+                helperText={errors.startDate?.message}
                 sx={{ mb: 2 }}
-                inputProps={{
-                  min: today, // Giới hạn ngày tối thiểu là hôm nay
-                }}
+                inputProps={{ min: today }}
               />
             )}
           />
+
+          {/* EndDate field */}
+          <Controller
+            name="endDate"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                margin="dense"
+                label="Ngày kết thúc"
+                type="date"
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                error={!!errors.endDate}
+                helperText={errors.endDate?.message}
+                sx={{ mb: 2 }}
+                inputProps={{ min: today }}
+              />
+            )}
+          />
+
+          {/* Status field */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="inherit">
@@ -207,26 +278,36 @@ export default function CreatePlanDialog({ open, setOpen, coachId, planToEdit })
         </DialogActions>
       </Dialog>
 
-      {/* Thông báo thành công */}
+      {/* Success notification */}
       <Snackbar
         open={toastOpen}
         autoHideDuration={3000}
         onClose={handleCloseToast}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseToast} severity="success" sx={{ width: "100%" }}>
-          {isEditMode ? "Cập nhật kế hoạch thành công!" : "Tạo kế hoạch thành công!"}
+        <Alert
+          onClose={handleCloseToast}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {isEditMode
+            ? "Cập nhật kế hoạch thành công!"
+            : "Tạo kế hoạch thành công!"}
         </Alert>
       </Snackbar>
 
-      {/* Thông báo lỗi */}
+      {/* Error notification */}
       <Snackbar
         open={errorToastOpen}
         autoHideDuration={3000}
         onClose={handleCloseErrorToast}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseErrorToast} severity="error" sx={{ width: "100%" }}>
+        <Alert
+          onClose={handleCloseErrorToast}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
           {errorMessage}
         </Alert>
       </Snackbar>
