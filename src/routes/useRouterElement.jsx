@@ -26,6 +26,7 @@ import PlanManagementPage from "../pages/Coacher/PlanManagementPage/PlanManageme
 import MessagingPage from "../pages/Coacher/MessagingPage/MessagingPage";
 import CreateBlog from "../pages/Home/Blogs/CreateBlog";
 import Roadmap from "../pages/Home/Roadmap/Roadmap";
+import ChatApp from "../pages/Home/ChatMessages/ChatPage";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -145,7 +146,15 @@ export default function useRouterElement() {
             </ProtectedRoute>
           ),
         },
-             {
+        {
+          path: PATH.CHATPAGE,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach"]}>
+              <ChatApp />
+            </ProtectedRoute>
+          ),
+        },
+        {
           path: PATH.ROADMAP,
           element: (
             <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>

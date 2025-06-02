@@ -36,35 +36,12 @@ import {
 } from "../../../store/slices/blogSlice";
 import { PATH } from "../../../routes/path";
 
-const QuillFallback = ({ text }) => {
-  const plainText = text?.replace(/<[^>]*>/g, "") || "";
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      sx={{
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        display: "-webkit-box",
-        WebkitLineClamp: 3,
-        WebkitBoxOrient: "vertical",
-        height: "4.5rem",
-      }}
-    >
-      {plainText.substring(0, 150)}
-      {plainText.length > 150 ? "..." : ""}
-    </Typography>
-  );
-};
-
 const BlogItem = memo(
   ({ blog, onTagClick, onLike, onNavigate, isLastElement, refCallback }) => {
     return (
       <Grid
         item
-        xs={12}
-        sm={6}
-        md={3}
+        size={{ xs: 12, sm: 6, md: 3 }}
         key={blog.id}
         ref={isLastElement ? refCallback : null}
       >
@@ -590,10 +567,10 @@ const BlogPage = () => {
           <>
             <Grid
               container
-              spacing={2} // Giảm spacing để đảm bảo 4 cột vừa khít
+              spacing={2}
               sx={{
-                width: "100%", // Đảm bảo Grid container chiếm toàn bộ chiều rộng
-                margin: 0, // Loại bỏ margin mặc định
+                width: "100%",
+                margin: 0,
                 display: "flex",
                 flexWrap: "wrap",
               }}
