@@ -7,41 +7,57 @@ import {
   Card,
   CardContent,
   CardMedia,
+  Pagination,
+  Stack,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import "./CoachPlane.css";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPlan } from "../../../store/slices/planeSlice";
 import { Link } from "react-router-dom";
+import { fetchPlan } from "../../../store/slices/planeSlice";
 
 const CoachPlane = () => {
   const dispatch = useDispatch();
   const { plans, isLoading, isError, errorMessage } = useSelector(
-    (state) => state.plane
+    (state) =>
+      state.plan || {
+        plans: { data: [] },
+        isLoading: false,
+        isError: false,
+        errorMessage: "",
+      }
   );
 
-  console.log("mockCoachPlans", plans);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 3;
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
-    dispatch(fetchPlan());
+    dispatch(fetchPlan({ page: 1, limit: 100 }));
   }, [dispatch]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterSuccess, setFilterSuccess] = useState("all");
 
-  const filteredPlans = plans
-    .flatMap((coach) => coach.plans)
-    .filter(
-      (plan) =>
-        plan.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (filterSuccess === "all" ||
-          (filterSuccess === "high" && plan.successRate >= 80) ||
-          (filterSuccess === "low" && plan.successRate < 80))
-    );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
 
-  const getCoachInfo = (plan) => {
-    const coach = plans.find((c) => c.plans.some((p) => p.id === plan.id));
-    return coach || { name: "Không xác định", specialty: "Không xác định" };
+  const filteredPlans = (plans?.data || []).filter(
+    (plan) =>
+      plan.title?.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (filterStatus === "all" || plan.status === filterStatus)
+  );
+
+  const totalPlans = filteredPlans.length;
+  const totalPages = Math.ceil(totalPlans / pageSize);
+
+  // Lấy dữ liệu cho trang hiện tại
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const currentPlans = filteredPlans.slice(startIndex, endIndex);
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
   };
 
   if (isLoading) return <Typography>Đang tải...</Typography>;
@@ -49,6 +65,8 @@ const CoachPlane = () => {
     return (
       <Typography color="error">{errorMessage || "Có lỗi xảy ra!"}</Typography>
     );
+  if (!plans?.data || plans.data.length === 0)
+    return <Typography>Không có kế hoạch nào.</Typography>;
 
   return (
     <Box className="homePage">
@@ -73,113 +91,114 @@ const CoachPlane = () => {
       </Box>
       <Box className="planeCoach-filterButtons">
         <Button
-          variant={filterSuccess === "all" ? "contained" : "outlined"}
-          onClick={() => setFilterSuccess("all")}
+          variant={filterStatus === "all" ? "contained" : "outlined"}
+          onClick={() => setFilterStatus("all")}
           startIcon={<FilterListIcon />}
           className="planeCoach-filterButton"
           sx={{
-            backgroundColor:
-              filterSuccess === "all" ? "#4CAF50" : "transparent",
-            color: filterSuccess === "all" ? "#fff" : "#000",
+            backgroundColor: filterStatus === "all" ? "#4CAF50" : "transparent",
+            color: filterStatus === "all" ? "#fff" : "#000",
             borderColor: "#4CAF50",
             "&:hover": {
-              backgroundColor: filterSuccess === "all" ? "#45a049" : "#e8f5e9",
+              backgroundColor: filterStatus === "all" ? "#45a049" : "#e8f5e9",
               borderColor: "#4CAF50",
-              color: filterSuccess === "all" ? "#fff" : "#000",
+              color: filterStatus === "all" ? "#fff" : "#000",
             },
           }}
         >
           Tất cả
         </Button>
         <Button
-          variant={filterSuccess === "high" ? "contained" : "outlined"}
-          onClick={() => setFilterSuccess("high")}
+          variant={filterStatus === "template" ? "contained" : "outlined"}
+          onClick={() => setFilterStatus("template")}
           startIcon={<FilterListIcon />}
           className="planeCoach-filterButton"
           sx={{
             backgroundColor:
-              filterSuccess === "high" ? "#4CAF50" : "transparent",
-            color: filterSuccess === "high" ? "#fff" : "#000",
+              filterStatus === "template" ? "#4CAF50" : "transparent",
+            color: filterStatus === "template" ? "#fff" : "#000",
             borderColor: "#4CAF50",
             "&:hover": {
-              backgroundColor: filterSuccess === "high" ? "#45a049" : "#e8f5e9",
+              backgroundColor:
+                filterStatus === "template" ? "#45a049" : "#e8f5e9",
               borderColor: "#4CAF50",
-              color: filterSuccess === "high" ? "#fff" : "#000",
+              color: filterStatus === "template" ? "#fff" : "#000",
             },
           }}
         >
-          Thành công cao (&gt;80%)
+          Đang hoạt động
         </Button>
         <Button
-          variant={filterSuccess === "low" ? "contained" : "outlined"}
-          onClick={() => setFilterSuccess("low")}
+          variant={filterStatus === "draft" ? "contained" : "outlined"}
+          onClick={() => setFilterStatus("draft")}
           startIcon={<FilterListIcon />}
           sx={{
             backgroundColor:
-              filterSuccess === "low" ? "#4CAF50" : "transparent",
-            color: filterSuccess === "low" ? "#fff" : "#000",
+              filterStatus === "draft" ? "#4CAF50" : "transparent",
+            color: filterStatus === "draft" ? "#fff" : "#000",
             borderColor: "#4CAF50",
             "&:hover": {
-              backgroundColor: filterSuccess === "low" ? "#45a049" : "#e8f5e9",
-              color: filterSuccess === "low" ? "#fff" : "#000",
+              backgroundColor: filterStatus === "draft" ? "#45a049" : "#e8f5e9",
+              color: filterStatus === "draft" ? "#fff" : "#000",
             },
           }}
         >
-          Thành công thấp (&lt;80%)
+          Bản nháp
         </Button>
       </Box>
       <Box className="planeCoach-container">
-        {filteredPlans.length > 0 ? (
-          filteredPlans.map((plan) => {
-            const coach = getCoachInfo(plan);
-            return (
-              <Card key={plan.id} className="planeCoach-planCard">
-                <CardMedia
-                  component="img"
-                  className="planeCoach-planImage"
-                  image={plan.thumbnail}
-                  alt={plan.title}
-                />
-                <CardContent className="planeCoach-planContent">
-                  <Typography
-                    variant="h6"
-                    sx={{ fontSize: "25px", fontWeight: "bold" }}
-                  >
-                    {plan.title}
-                    {coach.specialty}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {coach.name}
-                  </Typography>
-                  <Box
-                    className="planeCoach-description"
-                    color="text.secondary"
-                  >
-                    {plan.description}
-                  </Box>
-
-                  <Button
-                    variant="text"
-                    color="primary"
-                    className="planeCoach-viewButton"
-                    component={Link}
-                    to={`/coachPlane/${plan.id}`}
-                    sx={{
-                      backgroundColor: "#357a2f",
-                      color: "#fff",
-                      width: "200px",
-                    }}
-                  >
-                    Xem thêm
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })
-        ) : (
-          <Typography variant="body1">Không tìm thấy kế hoạch nào.</Typography>
-        )}
+        {currentPlans.map((plan) => (
+          <Card key={plan._id} className="planeCoach-planCard">
+            <CardMedia
+              component="img"
+              className="planeCoach-planImage"
+              image="https://via.placeholder.com/150" // Fallback vì API không có thumbnail
+              alt={plan.title}
+            />
+            <CardContent className="planeCoach-planContent">
+              <Typography
+                variant="h6"
+                sx={{ fontSize: "25px", fontWeight: "bold" }}
+              >
+                {plan.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Huấn luyện viên: {plan.coachId?.email || "Không xác định"}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Lý do: {plan.reason || "Không có lý do"}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Trạng thái:{" "}
+                {plan.status === "template" ? "Đang hoạt động" : "Bản nháp"}
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                className="planeCoach-viewButton"
+                component={Link}
+                to={`/coachPlane/${plan._id}`}
+                sx={{
+                  backgroundColor: "#357a2f",
+                  color: "#fff",
+                  width: "200px",
+                  "&:hover": { backgroundColor: "#2e6b27" },
+                }}
+              >
+                Xem thêm
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </Box>
+      <Stack spacing={2} alignItems="center" sx={{ mt: 4 }}>
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={handlePageChange}
+          color="primary"
+        />
+      </Stack>
     </Box>
   );
 };
