@@ -26,16 +26,16 @@ const HeaderAuth = () => {
         <Link to={PATH.BLOGPAGE} className="nav-link">
           Bài viết
         </Link>
-        <Link to="/about" className="nav-link">
+        <Link to={PATH.ABOUTUS} className="nav-link">
           Về chúng tôi
         </Link>
-        <Link to="/benefits" className="nav-link">
+        <Link to={PATH.BENEFIT} className="nav-link">
           Lợi ích cai thuốc
         </Link>
-        <Link to="/resources" className="nav-link">
+        <Link to={PATH.RESOURCES} className="nav-link">
           Tài nguyên
         </Link>
-        <Link to="/contact" className="nav-link">
+        <Link to={PATH.CONTACT} className="nav-link">
           Liên hệ
         </Link>
       </Box>
