@@ -27,6 +27,10 @@ import MessagingPage from "../pages/Coacher/MessagingPage/MessagingPage";
 import CreateBlog from "../pages/Home/Blogs/CreateBlog";
 import Roadmap from "../pages/Home/Roadmap/Roadmap";
 import ChatApp from "../pages/Home/ChatMessages/ChatPage";
+import AboutUs from "../pages/Home/AboutUs/AboutUs";
+import Benefits from "../pages/Home/Benefit/Benefit";
+import Resources from "../pages/Home/Resources/Resources";
+import Contact from "../pages/Home/Contact/Contact";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -162,6 +166,10 @@ export default function useRouterElement() {
             </ProtectedRoute>
           ),
         },
+        { path: PATH.ABOUTUS, element: <AboutUs /> },
+        { path: PATH.BENEFIT, element: <Benefits /> },
+        { path: PATH.RESOURCES, element: <Resources /> },
+        { path: PATH.CONTACT, element: <Contact /> },
       ],
     },
     // COACH

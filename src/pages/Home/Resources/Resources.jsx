@@ -8,10 +8,18 @@ import {
   Avatar,
   Divider,
   Button,
-  TextField,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { Email, Phone, LocationOn } from "@mui/icons-material";
+import {
+  Article,
+  VideoLibrary,
+  Forum,
+  LocalLibrary,
+} from "@mui/icons-material";
 
 // Custom styled components
 const HeroSection = styled(Box)(({ theme }) => ({
@@ -42,7 +50,7 @@ const StyledAvatar = styled(Avatar)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-const Contact = () => {
+const Resources = () => {
   return (
     <Box>
       <HeroSection>
@@ -53,15 +61,15 @@ const Contact = () => {
             gutterBottom
             fontWeight="bold"
           >
-            Liên Hệ
+            Tài Nguyên
           </Typography>
           <Typography
             variant="h5"
             component="h2"
             sx={{ mb: 4, maxWidth: "800px", mx: "auto" }}
           >
-            Kết nối với chúng tôi để nhận hỗ trợ và tư vấn trong hành trình cai
-            thuốc lá
+            Khám phá các tài liệu, công cụ và hỗ trợ để giúp bạn cai thuốc lá
+            thành công
           </Typography>
           <Button
             variant="contained"
@@ -74,7 +82,7 @@ const Contact = () => {
               },
             }}
           >
-            Gửi Tin Nhắn
+            Tìm Hiểu Thêm
           </Button>
         </Container>
       </HeroSection>
@@ -89,7 +97,7 @@ const Contact = () => {
             color="#1b5e20"
             fontWeight="bold"
           >
-            Thông Tin Liên Hệ
+            Tài Liệu Hữu Ích
           </Typography>
           <Divider
             sx={{
@@ -106,8 +114,9 @@ const Contact = () => {
             align="center"
             sx={{ maxWidth: "800px", mx: "auto", fontSize: "1.1rem" }}
           >
-            Chúng tôi luôn sẵn sàng hỗ trợ bạn qua nhiều kênh liên lạc. Hãy liên
-            hệ để được tư vấn miễn phí hoặc tham gia cộng đồng của chúng tôi.
+            Chúng tôi cung cấp nhiều loại tài nguyên từ bài viết chuyên sâu,
+            video hướng dẫn, đến các công cụ thực tiễn để hỗ trợ bạn trong hành
+            trình cai thuốc lá.
           </Typography>
         </Box>
 
@@ -116,7 +125,7 @@ const Contact = () => {
             <StyledCard elevation={3}>
               <CardContent sx={{ textAlign: "center", flexGrow: 1 }}>
                 <StyledAvatar>
-                  <Email fontSize="large" />
+                  <Article fontSize="large" />
                 </StyledAvatar>
                 <Typography
                   variant="h5"
@@ -125,13 +134,11 @@ const Contact = () => {
                   color="#2e7d32"
                   fontWeight="bold"
                 >
-                  Email
+                  Bài Viết Chuyên Sâu
                 </Typography>
                 <Typography variant="body1">
-                  Gửi thắc mắc của bạn tới: <br />
-                  <a href="mailto:support@quitsmoke.com">
-                    support@quitsmoke.com
-                  </a>
+                  Các bài viết được viết bởi chuyên gia về tác hại của thuốc lá,
+                  lợi ích của việc cai thuốc và các chiến lược hiệu quả.
                 </Typography>
               </CardContent>
             </StyledCard>
@@ -140,7 +147,7 @@ const Contact = () => {
             <StyledCard elevation={3}>
               <CardContent sx={{ textAlign: "center", flexGrow: 1 }}>
                 <StyledAvatar>
-                  <Phone fontSize="large" />
+                  <VideoLibrary fontSize="large" />
                 </StyledAvatar>
                 <Typography
                   variant="h5"
@@ -149,11 +156,11 @@ const Contact = () => {
                   color="#2e7d32"
                   fontWeight="bold"
                 >
-                  Điện Thoại
+                  Video Hướng Dẫn
                 </Typography>
                 <Typography variant="body1">
-                  Gọi chúng tôi tại: <br />
-                  <a href="tel:+842412345678">+84 24 1234 5678</a>
+                  Xem các video hướng dẫn từng bước về cách quản lý cơn thèm
+                  thuốc và duy trì lối sống không thuốc lá.
                 </Typography>
               </CardContent>
             </StyledCard>
@@ -162,7 +169,7 @@ const Contact = () => {
             <StyledCard elevation={3}>
               <CardContent sx={{ textAlign: "center", flexGrow: 1 }}>
                 <StyledAvatar>
-                  <LocationOn fontSize="large" />
+                  <Forum fontSize="large" />
                 </StyledAvatar>
                 <Typography
                   variant="h5"
@@ -171,10 +178,11 @@ const Contact = () => {
                   color="#2e7d32"
                   fontWeight="bold"
                 >
-                  Văn Phòng
+                  Diễn Đàn Cộng Đồng
                 </Typography>
                 <Typography variant="body1">
-                  Tầng 5, Tòa nhà Sức Khỏe, 123 Đường Láng, Hà Nội, Việt Nam
+                  Tham gia diễn đàn của chúng tôi để kết nối, chia sẻ kinh
+                  nghiệm và nhận hỗ trợ từ những người cùng mục tiêu.
                 </Typography>
               </CardContent>
             </StyledCard>
@@ -190,7 +198,7 @@ const Contact = () => {
             color="#1b5e20"
             fontWeight="bold"
           >
-            Gửi Tin Nhắn Cho Chúng Tôi
+            Công Cụ Hỗ Trợ
           </Typography>
           <Divider
             sx={{
@@ -201,35 +209,36 @@ const Contact = () => {
               mx: "auto",
             }}
           />
-          <Box
-            sx={{
-              maxWidth: "600px",
-              mx: "auto",
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-            }}
-          >
-            <TextField
-              label="Họ và Tên"
-              variant="outlined"
-              fullWidth
-              sx={{ backgroundColor: "white" }}
-            />
-            <TextField
-              label="Email"
-              variant="outlined"
-              fullWidth
-              sx={{ backgroundColor: "white" }}
-            />
-            <TextField
-              label="Tin Nhắn"
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={4}
-              sx={{ backgroundColor: "white" }}
-            />
+          <List>
+            <ListItem>
+              <ListItemIcon>
+                <LocalLibrary sx={{ color: "#2e7d32" }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Ứng dụng theo dõi tiến trình"
+                secondary="Theo dõi hành trình cai thuốc của bạn với ứng dụng thân thiện của chúng tôi."
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <LocalLibrary sx={{ color: "#2e7d32" }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Kế hoạch cá nhân hóa"
+                secondary="Nhận kế hoạch cai thuốc được thiết kế riêng dựa trên thói quen và mục tiêu của bạn."
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <LocalLibrary sx={{ color: "#2e7d32" }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Tài liệu in sẵn"
+                secondary="Tải xuống các hướng dẫn và nhật ký có thể in để hỗ trợ bạn mọi lúc."
+              />
+            </ListItem>
+          </List>
+          <Box sx={{ textAlign: "center", mt: 4 }}>
             <Button
               variant="contained"
               size="large"
@@ -240,7 +249,7 @@ const Contact = () => {
                 },
               }}
             >
-              Gửi
+              Tải Công Cụ Ngay
             </Button>
           </Box>
         </Box>
@@ -249,4 +258,4 @@ const Contact = () => {
   );
 };
 
-export default Contact;
+export default Resources;

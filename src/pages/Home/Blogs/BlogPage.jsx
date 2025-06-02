@@ -20,6 +20,7 @@ import {
   Paper,
   Stack,
   alpha,
+  Pagination,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -36,183 +37,175 @@ import {
 } from "../../../store/slices/blogSlice";
 import { PATH } from "../../../routes/path";
 
-const BlogItem = memo(
-  ({ blog, onTagClick, onLike, onNavigate, isLastElement, refCallback }) => {
-    return (
-      <Grid
-        item
-        size={{ xs: 12, sm: 6, md: 3 }}
-        key={blog.id}
-        ref={isLastElement ? refCallback : null}
+const BlogItem = memo(({ blog, onTagClick, onLike, onNavigate }) => {
+  return (
+    <Grid item size={{ xs: 12, sm: 6, md: 3 }} key={blog.id}>
+      <Card
+        sx={{
+          height: "100%",
+          minHeight: 420,
+          display: "flex",
+          flexDirection: "column",
+          cursor: "pointer",
+          borderRadius: 3,
+          width: "100%",
+          border: `1px solid ${alpha("#4CAF50", 0.2)}`,
+          transition: "all 0.3s ease-in-out",
+          "&:hover": {
+            transform: "translateY(-8px)",
+            boxShadow: `0 12px 24px ${alpha("#4CAF50", 0.15)}`,
+            borderColor: "#4CAF50",
+          },
+        }}
+        onClick={() => onNavigate(blog.slug)}
       >
-        <Card
-          sx={{
-            height: "100%",
-            minHeight: 420,
-            display: "flex",
-            flexDirection: "column",
-            cursor: "pointer",
-            borderRadius: 3,
-            width: "100%", // Đảm bảo Card chiếm toàn bộ chiều rộng của Grid item
-            border: `1px solid ${alpha("#4CAF50", 0.2)}`,
-            transition: "all 0.3s ease-in-out",
-            "&:hover": {
-              transform: "translateY(-8px)",
-              boxShadow: `0 12px 24px ${alpha("#4CAF50", 0.15)}`,
-              borderColor: "#4CAF50",
-            },
-          }}
-          onClick={() => onNavigate(blog.slug)}
-        >
-          <Box sx={{ position: "relative", pt: "56.25%", height: 0 }}>
-            <CardMedia
-              component="img"
-              loading="lazy"
-              image={blog.imageUrl || "/placeholder.svg?height=200&width=300"}
-              alt={blog.title}
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-            <Box
-              sx={{
-                position: "absolute",
-                top: 12,
-                right: 12,
-                bgcolor: alpha("#4CAF50", 0.9),
-                borderRadius: 1,
-                px: 1,
-                py: 0.5,
-                display: "flex",
-                alignItems: "center",
-              }}
+        <Box sx={{ position: "relative", pt: "56.25%", height: 0 }}>
+          <CardMedia
+            component="img"
+            loading="lazy"
+            image={blog.imageUrl || "/placeholder.svg?height=200&width=300"}
+            alt={blog.title}
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              bgcolor: alpha("#4CAF50", 0.9),
+              borderRadius: 1,
+              px: 1,
+              py: 0.5,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <AccessTimeIcon sx={{ fontSize: 14, color: "white", mr: 0.5 }} />
+            <Typography
+              variant="caption"
+              sx={{ color: "white", fontWeight: 500 }}
             >
-              <AccessTimeIcon sx={{ fontSize: 14, color: "white", mr: 0.5 }} />
-              <Typography
-                variant="caption"
-                sx={{ color: "white", fontWeight: 500 }}
+              {format(new Date(blog.createdAt), "dd MMM", { locale: vi })}
+            </Typography>
+          </Box>
+        </Box>
+        <CardContent sx={{ flexGrow: 1, p: 3 }}>
+          <Box sx={{ mb: 2, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+            {blog.tags.slice(0, 3).map((tag, index) => (
+              <Chip
+                key={index}
+                label={tag}
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTagClick(tag);
+                }}
+                sx={{
+                  bgcolor: alpha("#4CAF50", 0.1),
+                  color: "#2E7D32",
+                  border: `1px solid ${alpha("#4CAF50", 0.3)}`,
+                  fontSize: "0.75rem",
+                  "&:hover": {
+                    bgcolor: alpha("#4CAF50", 0.2),
+                  },
+                }}
+              />
+            ))}
+          </Box>
+          <Typography
+            variant="h6"
+            component="h2"
+            gutterBottom
+            sx={{
+              fontWeight: 600,
+              color: "#2E7D32",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              height: "3.6rem",
+              mb: 2,
+            }}
+          >
+            {blog.title}
+          </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              height: "4.5rem",
+              mb: 2,
+              lineHeight: 1.5,
+            }}
+          >
+            {blog.description?.replace(/<[^>]*>/g, "").substring(0, 120)}
+            {blog.description?.replace(/<[^>]*>/g, "").length > 120
+              ? "..."
+              : ""}
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: "auto",
+              pt: 2,
+              borderTop: `1px solid ${alpha("#4CAF50", 0.1)}`,
+            }}
+          >
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 500 }}
+            >
+              {format(new Date(blog.createdAt), "dd MMM, yyyy", {
+                locale: vi,
+              })}
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLike(blog.id);
+                }}
+                sx={{
+                  color: blog.isLiked ? "#E53E3E" : "#4CAF50",
+                  "&:hover": {
+                    bgcolor: blog.isLiked
+                      ? alpha("#E53E3E", 0.1)
+                      : alpha("#4CAF50", 0.1),
+                  },
+                }}
               >
-                {format(new Date(blog.createdAt), "dd MMM", { locale: vi })}
+                {blog.isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+              </IconButton>
+              <Typography
+                variant="body2"
+                sx={{ color: "#2E7D32", fontWeight: 500 }}
+              >
+                {blog.likeCount}
               </Typography>
             </Box>
           </Box>
-          <CardContent sx={{ flexGrow: 1, p: 3 }}>
-            <Box sx={{ mb: 2, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-              {blog.tags.slice(0, 3).map((tag, index) => (
-                <Chip
-                  key={index}
-                  label={tag}
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onTagClick(tag);
-                  }}
-                  sx={{
-                    bgcolor: alpha("#4CAF50", 0.1),
-                    color: "#2E7D32",
-                    border: `1px solid ${alpha("#4CAF50", 0.3)}`,
-                    fontSize: "0.75rem",
-                    "&:hover": {
-                      bgcolor: alpha("#4CAF50", 0.2),
-                    },
-                  }}
-                />
-              ))}
-            </Box>
-            <Typography
-              variant="h6"
-              component="h2"
-              gutterBottom
-              sx={{
-                fontWeight: 600,
-                color: "#2E7D32",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                height: "3.6rem",
-                mb: 2,
-              }}
-            >
-              {blog.title}
-            </Typography>
-
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                display: "-webkit-box",
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: "vertical",
-                height: "4.5rem",
-                mb: 2,
-                lineHeight: 1.5,
-              }}
-            >
-              {blog.description?.replace(/<[^>]*>/g, "").substring(0, 120)}
-              {blog.description?.replace(/<[^>]*>/g, "").length > 120
-                ? "..."
-                : ""}
-            </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mt: "auto",
-                pt: 2,
-                borderTop: `1px solid ${alpha("#4CAF50", 0.1)}`,
-              }}
-            >
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ fontWeight: 500 }}
-              >
-                {format(new Date(blog.createdAt), "dd MMM, yyyy", {
-                  locale: vi,
-                })}
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onLike(blog.id);
-                  }}
-                  sx={{
-                    color: blog.isLiked ? "#E53E3E" : "#4CAF50",
-                    "&:hover": {
-                      bgcolor: blog.isLiked
-                        ? alpha("#E53E3E", 0.1)
-                        : alpha("#4CAF50", 0.1),
-                    },
-                  }}
-                >
-                  {blog.isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                </IconButton>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#2E7D32", fontWeight: 500 }}
-                >
-                  {blog.likeCount}
-                </Typography>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
-    );
-  }
-);
+        </CardContent>
+      </Card>
+    </Grid>
+  );
+});
 
 const BlogSkeleton = () => (
   <Grid item xs={12} sm={6} md={3}>
@@ -250,119 +243,96 @@ const BlogPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState(null);
-  const [localBlogs, setLocalBlogs] = useState([]);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
-  const loader = useRef(null);
+  const [isFetching, setIsFetching] = useState(false);
   const isMounted = useRef(true);
 
+  // Sync state with URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const tagParam = urlParams.get("tag");
+    const searchParam = urlParams.get("search");
+    const pageParam = urlParams.get("page") || "1";
+
+    const newPage = parseInt(pageParam, 10) || 1;
+    const newTag = tagParam || null;
+    const newSearch = searchParam || "";
+
+    setSelectedTag(newTag);
+    setSearchTerm(newSearch);
+    setDebouncedSearchTerm(newSearch);
+    setPage(newPage);
+  }, [location.search]);
+
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Fetch blogs
+  useEffect(() => {
+    if (!isMounted.current) return;
+
+    const fetchBlogs = async () => {
+      setIsFetching(true);
+      const params = {
+        page,
+        limit: 8,
+        sortBy: "createdAt",
+        sortOrder: "desc",
+      };
+
+      if (selectedTag) params.tag = selectedTag;
+      if (debouncedSearchTerm) params.search = debouncedSearchTerm;
+
+      try {
+        console.log("Fetching blogs with params:", params);
+        const result = await dispatch(fetchBlogsApi(params)).unwrap();
+        if (!isMounted.current) return;
+        console.log("API Response:", result);
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+      } finally {
+        if (isMounted.current) setIsFetching(false);
+      }
+    };
+
+    fetchBlogs();
+  }, [dispatch, page, debouncedSearchTerm, selectedTag]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       isMounted.current = false;
     };
   }, []);
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const tagParam = urlParams.get("tag");
-    const searchParam = urlParams.get("search");
-
-    if (tagParam && tagParam !== selectedTag) {
-      setSelectedTag(tagParam);
-    }
-
-    if (searchParam && searchParam !== searchTerm) {
-      setSearchTerm(searchParam);
-      setDebouncedSearchTerm(searchParam);
-    }
-  }, [location.search]);
-
-  useEffect(() => {
-    if (isSearching) return;
-
-    const fetchBlogs = async () => {
-      setIsSearching(true);
-
-      const params = {
-        page,
-        limit: 12,
-        sortBy: "createdAt",
-        sortOrder: "desc",
-      };
-
-      if (selectedTag) {
-        params.tag = selectedTag;
-      }
-
-      if (debouncedSearchTerm) {
-        params.search = debouncedSearchTerm;
-      }
-
-      try {
-        const result = await dispatch(fetchBlogsApi(params)).unwrap();
-        if (!isMounted.current) return;
-
-        if (page === 1) {
-          setLocalBlogs(result.blogs);
-        } else {
-          setLocalBlogs((prev) => [...prev, ...result.blogs]);
-        }
-
-        setHasMore(page < result.pagination.totalPages);
-      } catch (error) {
-        console.error("Lỗi khi tải blog:", error);
-      } finally {
-        if (isMounted.current) {
-          setIsSearching(false);
-        }
-      }
-    };
-
-    if (window.requestIdleCallback) {
-      window.requestIdleCallback(() => fetchBlogs());
-    } else {
-      setTimeout(fetchBlogs, 0);
-    }
-  }, [dispatch, page, debouncedSearchTerm, selectedTag]);
-
-  const lastBlogElementRef = useCallback(
-    (node) => {
-      if (isLoading || isSearching) return;
-      if (loader.current) loader.current.disconnect();
-
-      loader.current = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting && hasMore) {
-            setPage((prevPage) => prevPage + 1);
-          }
-        },
-        { rootMargin: "200px" }
-      );
-
-      if (node) loader.current.observe(node);
-    },
-    [isLoading, isSearching, hasMore]
-  );
-
   const handleSearch = (e) => {
     e.preventDefault();
-
     const urlParams = new URLSearchParams();
     if (searchTerm) urlParams.append("search", searchTerm);
     if (selectedTag) urlParams.append("tag", selectedTag);
-
+    urlParams.append("page", "1");
     navigate(`/blog?${urlParams.toString()}`);
   };
 
   const handleTagClick = (tag) => {
     const newTag = tag === selectedTag ? null : tag;
-    setSelectedTag(newTag);
-
     const urlParams = new URLSearchParams();
     if (newTag) urlParams.append("tag", newTag);
     if (debouncedSearchTerm) urlParams.append("search", debouncedSearchTerm);
+    urlParams.append("page", "1");
+    navigate(`/blog?${urlParams.toString()}`);
+  };
 
+  const handlePageChange = (event, value) => {
+    const urlParams = new URLSearchParams();
+    if (debouncedSearchTerm) urlParams.append("search", debouncedSearchTerm);
+    if (selectedTag) urlParams.append("tag", selectedTag);
+    urlParams.append("page", value);
     navigate(`/blog?${urlParams.toString()}`);
   };
 
@@ -536,13 +506,13 @@ const BlogPage = () => {
         )}
         <Divider sx={{ mb: 4, borderColor: alpha("#4CAF50", 0.2) }} />
         {/* Blog List */}
-        {isLoading && page === 1 ? (
+        {isLoading || isFetching ? (
           <Grid container spacing={2}>
-            {[...Array(8)].map((_, index) => (
+            {[...Array(5)].map((_, index) => (
               <BlogSkeleton key={index} />
             ))}
           </Grid>
-        ) : localBlogs.length === 0 ? (
+        ) : blogs.length === 0 ? (
           <Paper
             elevation={0}
             sx={{
@@ -564,47 +534,52 @@ const BlogPage = () => {
             </Typography>
           </Paper>
         ) : (
-          <>
-            <Grid
-              container
-              spacing={2}
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              width: "100%",
+              margin: 0,
+              display: "flex",
+              flexWrap: "wrap",
+            }}
+          >
+            {blogs.map((blog, index) => (
+              <BlogItem
+                key={blog.id + "-" + index}
+                blog={blog}
+                onTagClick={handleTagClick}
+                onLike={handleLike}
+                onNavigate={navigateToBlog}
+              />
+            ))}
+          </Grid>
+        )}
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <Pagination
+              count={pagination.totalPages || 1}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
               sx={{
-                width: "100%",
-                margin: 0,
-                display: "flex",
-                flexWrap: "wrap",
+                "& .MuiPaginationItem-root": {
+                  color: "#2E7D32",
+                  "&:hover": {
+                    bgcolor: alpha("#4CAF50", 0.1),
+                  },
+                  "&.Mui-selected": {
+                    bgcolor: "#4CAF50",
+                    color: "#FFFFFF",
+                    "&:hover": {
+                      bgcolor: "#45a049",
+                    },
+                  },
+                },
               }}
-            >
-              {localBlogs.map((blog, index) => {
-                const isLastElement = index === localBlogs.length - 1;
-                return (
-                  <BlogItem
-                    key={blog.id + "-" + index}
-                    blog={blog}
-                    onTagClick={handleTagClick}
-                    onLike={handleLike}
-                    onNavigate={navigateToBlog}
-                    isLastElement={isLastElement}
-                    refCallback={lastBlogElementRef}
-                    xs={12} // Chiếm toàn bộ chiều rộng trên màn hình nhỏ
-                    sm={6} // 2 cột trên màn hình nhỏ
-                    md={3}
-                  />
-                );
-              })}
-              {(isLoading || isSearching) &&
-                page > 1 &&
-                hasMore &&
-                [...Array(4)].map((_, index) => (
-                  <BlogSkeleton key={`skeleton-${index}`} />
-                ))}
-            </Grid>
-            {(isLoading || isSearching) && page > 1 && hasMore && (
-              <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
-                <CircularProgress size={30} sx={{ color: "#4CAF50" }} />
-              </Box>
-            )}
-          </>
+            />
+          </Box>
         )}
       </Container>
     </Box>
