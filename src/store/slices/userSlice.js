@@ -37,11 +37,11 @@ export const updateUser = createAsyncThunk(
 
 // Update avatar image
 export const changeImageApi = createAsyncThunk(
-  "user/updateImage",
+  "user/changeImage",
   async (formData, { rejectWithValue }) => {
     try {
       const response = await fetcher.put("/users/upload-avatar", formData);
-      return response.data.data.user;
+      return response.data.user;
     } catch (error) {
       return rejectWithValue(
         error.response ? error.response.data.message : error.message
@@ -88,21 +88,21 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = payload;
-      })
-      .addCase(changeImageApi.pending, (state) => {
-        state.isLoading = true;
-        state.isError = false;
-      })
-      .addCase(changeImageApi.fulfilled, (state, { payload }) => {
-        state.isLoading = false;
-        state.isError = false;
-        state.user = payload;
-      })
-      .addCase(changeImageApi.rejected, (state, { payload }) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.errorMessage = payload;
       });
+    builder.addCase(changeImageApi.pending, (state) => {
+      state.isLoading = true;
+      state.isError = false;
+      state.errorMessage = "";
+    });
+    builder.addCase(changeImageApi.fulfilled, (state, { payload }) => {
+      state.isLoading = false;
+      state.user = payload;
+    });
+    builder.addCase(changeImageApi.rejected, (state, { payload }) => {
+      state.isLoading = false;
+      state.isError = true;
+      state.errorMessage = payload || "Lỗi khi upload ảnh";
+    });
   },
 });
 

@@ -75,15 +75,22 @@ export const profileSchema = yup.object().shape({
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
-  const { user, isLoading: userLoading, isError: userError, errorMessage: userErrorMessage } = useSelector(
-    (state) => state.user
-  );
-  const { assessmentData, isLoading: assessmentLoading, isError: assessmentError, errorMessage: assessmentErrorMessage } = useSelector(
-    (state) => state.quitSmoking
-  );
+  const {
+    user,
+    isLoading: userLoading,
+    isError: userError,
+    errorMessage: userErrorMessage,
+  } = useSelector((state) => state.user);
+  const {
+    assessmentData,
+    isLoading: assessmentLoading,
+    isError: assessmentError,
+    errorMessage: assessmentErrorMessage,
+  } = useSelector((state) => state.quitSmoking);
 
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null); // State để lưu URL xem trước ảnh
   const hasFetchedAssessment = useRef(false);
 
   const fileInputRef = useRef(null);
@@ -123,7 +130,12 @@ export default function ProfilePage() {
       dispatch(fetchUser());
     }
 
-    if (user?._id && !hasFetchedAssessment.current && !assessmentLoading && !assessmentData) {
+    if (
+      user?._id &&
+      !hasFetchedAssessment.current &&
+      !assessmentLoading &&
+      !assessmentData
+    ) {
       hasFetchedAssessment.current = true;
       dispatch(fetchAssessment(user._id));
     }
@@ -137,13 +149,14 @@ export default function ProfilePage() {
       setIsEditing(false);
     } catch (error) {
       console.error("Update error:", error);
-      toast.error(error || "Cập nhật thông tin thất bại");
+      toast.error(error.message || "Cập nhật thông tin thất bại");
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setSelectedFile(null);
+    setPreviewUrl(null); // Xóa ảnh xem trước khi hủy
     reset({
       userName: user?.userName || "",
       gender: user?.gender || "",
@@ -158,6 +171,9 @@ export default function ProfilePage() {
     if (file) {
       setSelectedFile(file);
       setValue("profilePicture", file);
+      // Tạo URL để xem trước ảnh
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
   };
 
@@ -175,11 +191,21 @@ export default function ProfilePage() {
       toast.success("Upload ảnh thành công!");
       await dispatch(fetchUser()).unwrap();
       setSelectedFile(null);
+      setPreviewUrl(null); // Xóa ảnh xem trước sau khi upload thành công
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Upload ảnh thất bại: " + error.message);
+      toast.error(error.message || "Upload ảnh thất bại");
     }
   };
+
+  // Giải phóng URL xem trước khi component bị hủy
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   if (userLoading || assessmentLoading) {
     return <Typography variant="body1">Đang tải hồ sơ...</Typography>;
@@ -225,7 +251,7 @@ export default function ProfilePage() {
                 <CardContent className="profile-card-content">
                   <Box className="avatar-container">
                     <Avatar
-                      src={user.profilePicture || ""}
+                      src={previewUrl || user.profilePicture || ""} // Hiển thị ảnh xem trước nếu có
                       alt="User"
                       className="avatar"
                     >
@@ -269,10 +295,10 @@ export default function ProfilePage() {
                           user?.role === "user"
                             ? "Thành viên"
                             : user?.role === "coach"
-                            ? "Coach"
-                            : user?.role === "admin"
-                            ? "Quản trị viên"
-                            : "Người dùng"
+                              ? "Coach"
+                              : user?.role === "admin"
+                                ? "Quản trị viên"
+                                : "Người dùng"
                         }
                         color="primary"
                         variant="outlined"
@@ -423,7 +449,11 @@ export default function ProfilePage() {
                           </FormControl>
                         ) : (
                           <Typography>
-                            {user?.gender === "male" ? "Nam" : "Nữ"}
+                            {user?.gender === "male"
+                              ? "Nam"
+                              : user?.gender === "female"
+                                ? "Nữ"
+                                : "Chưa cập nhật"}
                           </Typography>
                         )}
                       </Box>
@@ -500,7 +530,9 @@ export default function ProfilePage() {
                             helperText={errors.phone?.message}
                           />
                         ) : (
-                          <Typography>{user.phone || "Chưa cập nhật"}</Typography>
+                          <Typography>
+                            {user.phone || "Chưa cập nhật"}
+                          </Typography>
                         )}
                       </Box>
                     </Box>
@@ -556,8 +588,13 @@ export default function ProfilePage() {
                               Động lực cai thuốc
                             </Typography>
                             <Box className="info-box">
-                              <SmokeFree fontSize="small" className="info-icon" />
-                              <Typography>{survey.motivation || "Chưa cập nhật"}</Typography>
+                              <SmokeFree
+                                fontSize="small"
+                                className="info-icon"
+                              />
+                              <Typography>
+                                {survey.motivation || "Chưa cập nhật"}
+                              </Typography>
                             </Box>
                           </Box>
                           <Box className="form-field">
@@ -569,8 +606,13 @@ export default function ProfilePage() {
                               Thời gian hút thuốc (năm)
                             </Typography>
                             <Box className="info-box">
-                              <SmokeFree fontSize="small" className="info-icon" />
-                              <Typography>{survey.smokingDurationYear || "Chưa cập nhật"}</Typography>
+                              <SmokeFree
+                                fontSize="small"
+                                className="info-icon"
+                              />
+                              <Typography>
+                                {survey.smokingDurationYear || "Chưa cập nhật"}
+                              </Typography>
                             </Box>
                           </Box>
                           <Box className="form-field">
@@ -582,8 +624,13 @@ export default function ProfilePage() {
                               Thời điểm hút thuốc nhiều nhất
                             </Typography>
                             <Box className="info-box">
-                              <SmokeFree fontSize="small" className="info-icon" />
-                              <Typography>{survey.peakSmokingTimes || "Chưa cập nhật"}</Typography>
+                              <SmokeFree
+                                fontSize="small"
+                                className="info-icon"
+                              />
+                              <Typography>
+                                {survey.peakSmokingTimes || "Chưa cập nhật"}
+                              </Typography>
                             </Box>
                           </Box>
                           <Box className="form-field">
@@ -595,8 +642,13 @@ export default function ProfilePage() {
                               Số lần thử cai thuốc
                             </Typography>
                             <Box className="info-box">
-                              <SmokeFree fontSize="small" className="info-icon" />
-                              <Typography>{survey.quitAttempts || "Chưa cập nhật"}</Typography>
+                              <SmokeFree
+                                fontSize="small"
+                                className="info-icon"
+                              />
+                              <Typography>
+                                {survey.quitAttempts || "Chưa cập nhật"}
+                              </Typography>
                             </Box>
                           </Box>
                           <Box className="form-field">
@@ -608,8 +660,13 @@ export default function ProfilePage() {
                               Hỗ trợ cần thiết
                             </Typography>
                             <Box className="info-box">
-                              <SmokeFree fontSize="small" className="info-icon" />
-                              <Typography>{survey.supportNeeded || "Chưa cập nhật"}</Typography>
+                              <SmokeFree
+                                fontSize="small"
+                                className="info-icon"
+                              />
+                              <Typography>
+                                {survey.supportNeeded || "Chưa cập nhật"}
+                              </Typography>
                             </Box>
                           </Box>
                         </Box>

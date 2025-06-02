@@ -1,18 +1,14 @@
-import useRouterElement from "./routes/useRouterElement"
-import { useGoogleCallback } from "./hooks/useGoogleCallback"
+import useRouterElement from "./routes/useRouterElement";
+import { useGoogleCallback } from "./hooks/useGoogleCallback";
 
 function App() {
   //  nơi chứa các route
-  const routerElement = useRouterElement()
+  const routerElement = useRouterElement();
 
   // Xử lý Google login callback
-  useGoogleCallback()
+  useGoogleCallback();
 
-  return (
-    <>
-      {routerElement}
-    </>
-  )
+  return <>{routerElement}</>;
 }
 
-export default App
+export default App;
