@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 import fetcher from "../../apis/fetcher";
 
-// Normalize blog data to match frontend expectations
 const normalizeBlog = (blog, currentUserId) => ({
   id: blog._id,
   slug: blog.slug,
@@ -16,7 +15,16 @@ const normalizeBlog = (blog, currentUserId) => ({
   avatar: "/placeholder.svg?height=40&width=40",
   likeCount: blog.likes?.length || 0,
   isLiked: currentUserId ? blog.likes?.includes(currentUserId) : false,
-  comments: blog.comments || [],
+  comments: (blog.comments || []).map((comment, index) => ({
+    id: comment._id || `fallback-${index}-${blog._id}`,
+    text: comment.text || "Không có nội dung",
+    author: {
+      id: comment.author?._id || "unknown",
+      name: comment.author?.name || comment.author?.email?.split("@")[0] || "Người dùng",
+      avatar: comment.author?.avatar || "/placeholder.svg",
+    },
+    createdAt: comment.createdAt || new Date().toISOString(),
+  })),
 });
 
 export const fetchBlogsApi = createAsyncThunk(
@@ -143,10 +151,12 @@ export const addCommentApi = createAsyncThunk(
       return {
         blogId,
         comment: {
+          id: comment._id || `temp-${Date.now()}`,
           text: comment.text,
           author: {
             id: comment.author?._id || currentUserId,
             name: comment.author?.name || comment.author?.email?.split("@")[0] || "Người dùng",
+            avatar: comment.author?.avatar || "/placeholder.svg",
           },
           createdAt: comment.createdAt,
         },
@@ -201,7 +211,7 @@ const blogSlice = createSlice({
       if (state.selectedBlog && state.selectedBlog.id === payload.blogId) {
         state.selectedBlog.comments = [
           payload.comment,
-          ...state.selectedBlog.comments,
+          ...(state.selectedBlog.comments || []),
         ];
       }
     },
@@ -277,24 +287,31 @@ const blogSlice = createSlice({
     });
 
     builder.addCase(addCommentApi.pending, (state) => {
-      state.isLoading = true;
+      state.isLoading = false;
     });
     builder.addCase(addCommentApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
       if (state.selectedBlog && state.selectedBlog.id === payload.blogId) {
+        console.log('Current comments:', state.selectedBlog.comments);
         state.selectedBlog.comments = [
           payload.comment,
-          ...state.selectedBlog.comments,
+          ...state.selectedBlog.comments.filter(
+            (c) => !c.id || !c.id.startsWith('temp-')
+          ),
         ];
       }
       state.error = null;
-      toast.success("Thêm bình luận thành công");
-    });
+    })
     builder.addCase(addCommentApi.rejected, (state, { payload }) => {
       state.isLoading = false;
       state.error = payload;
+      if (payload?.blogId && payload?.commentId) {
+        state.selectedBlog.comments = state.selectedBlog.comments.filter(
+          (comment) => comment.id !== payload.commentId
+        );
+      }
       toast.error(payload?.message || "Không thể thêm bình luận");
-    });
+    })
   },
 });
 

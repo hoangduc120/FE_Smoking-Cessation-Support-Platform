@@ -40,6 +40,7 @@ const BlogDetail = () => {
   const [comment, setComment] = useState("");
   const [isLikeProcessing, setIsLikeProcessing] = useState(false);
   const [visibleComments, setVisibleComments] = useState(5);
+  const { currentUser } = useSelector((state) => state.auth)
 
   const handleShowMoreComments = () => {
     setVisibleComments((prev) =>
@@ -90,12 +91,38 @@ const BlogDetail = () => {
   const handleSubmitComment = (e) => {
     e.preventDefault();
     if (comment.trim() && selectedBlog) {
+      const tempComment = {
+        id: `temp-${Date.now()}`,
+        text: comment,
+        author: {
+          id: currentUser?.userId || 'unknown',
+          name: currentUser?.email?.split('@')[0] || 'Người dùng',
+          avatar: currentUser?.avatar || '/placeholder.svg',
+        },
+        createdAt: new Date().toISOString(),
+      };
+      dispatch({
+        type: 'blogs/addComment',
+        payload: { blogId: selectedBlog.id, comment: tempComment },
+      });
       dispatch(
         addCommentApi({
           blogId: selectedBlog.id,
           comment: comment,
         })
-      );
+      )
+        .unwrap()
+        .then(() => {
+          toast.success('Bình luận đã được thêm!');
+        })
+        .catch((error) => {
+          dispatch({
+            type: 'blogs/addCommentApi/rejected',
+            payload: { blogId: selectedBlog.id, commentId: tempComment.id },
+          });
+          toast.error(error.message || 'Không thể thêm bình luận');
+        });
+
       setComment("");
     }
   };
@@ -461,7 +488,7 @@ const BlogDetail = () => {
                     >
                       <Avatar
                         alt={comment.author?.name || "Người dùng"}
-                        src={comment.author?.avatar || "/placeholder.svg"}
+                        src={comment.author?.profilePicture || "/placeholder.svg"}
                         sx={{
                           width: 40,
                           height: 40,

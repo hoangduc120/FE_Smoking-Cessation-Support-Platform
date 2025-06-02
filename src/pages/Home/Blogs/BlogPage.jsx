@@ -302,22 +302,6 @@ const BlogPage = () => {
   }, [location.search]);
 
   useEffect(() => {
-    const timerId = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500);
-
-    return () => {
-      clearTimeout(timerId);
-    };
-  }, [searchTerm]);
-
-  useEffect(() => {
-    setLocalBlogs([]);
-    setPage(1);
-    setHasMore(true);
-  }, [debouncedSearchTerm, selectedTag]);
-
-  useEffect(() => {
     if (isSearching) return;
 
     const fetchBlogs = async () => {
@@ -325,7 +309,7 @@ const BlogPage = () => {
 
       const params = {
         page,
-        limit: 12, // Tăng limit để đảm bảo có đủ bài viết
+        limit: 12,
         sortBy: "createdAt",
         sortOrder: "desc",
       };
@@ -340,7 +324,6 @@ const BlogPage = () => {
 
       try {
         const result = await dispatch(fetchBlogsApi(params)).unwrap();
-
         if (!isMounted.current) return;
 
         if (page === 1) {
