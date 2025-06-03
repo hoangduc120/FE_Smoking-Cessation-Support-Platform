@@ -2,6 +2,7 @@ import { MessageSquare, Calendar, Users, Settings, Menu } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import StairsIcon from '@mui/icons-material/Stairs';
 import "./SidebarCoach.css";
 
 const SIDEBAR_COACH_ITEMS = [
@@ -18,10 +19,10 @@ const SIDEBAR_COACH_ITEMS = [
     href: "/coach/messaging",
   },
   {
-    name: "Clients",
-    icon: Users,
+    name: "Quit Plan Stage",
+    icon: StairsIcon,
     color: "#10B981",
-    href: "/coach/clients",
+    href: "/coach/planStage",
   },
   {
     name: "Settings",

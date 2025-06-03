@@ -8,6 +8,7 @@ export const fetchPlan = createAsyncThunk(
       const response = await fetcher.get(
         `/plans/quitplans?page=${page}&limit=${limit}`
       );
+      console.log("API /plans/quitplans response:", response.data);
 
       return response.data;
     } catch (error) {
@@ -97,7 +98,7 @@ export const planSlice = createSlice({
       .addCase(fetchPlan.fulfilled, (state, action) => {
         state.isLoading = false;
         state.plans = {
-          data: action.payload.data || [], // Lưu mảng kế hoạch vào plans.data
+          data: action.payload.data || [], 
           total: action.payload.total || action.payload.data?.length || 0,
           totalPages:
             action.payload.totalPages ||

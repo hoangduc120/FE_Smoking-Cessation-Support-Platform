@@ -28,8 +28,9 @@ export const PATH = {
   COACH: "/coach",
   PLANMANAGEMEMTPAGE: "/coach/plan-management",
   COACH_MESSAGING: "/coach/messaging",
-  COACH_CLIENTS: "/coach/clients",
+  COACH_PLAN_STAGES: "/coach/planStage",
   COACH_SETTINGS: "/coach/settings",
+
 
   // ADMIN
   ADMIN: "/admin",
