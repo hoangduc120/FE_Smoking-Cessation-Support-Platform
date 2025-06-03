@@ -58,7 +58,7 @@ export default function PlanManagementPage() {
     if (!auth?.currentUser) {
       navigate(PATH.LOGIN);
     } else if (coachId) {
-      dispatch(fetchAllPlan({ coachId, page: 1, limit: 100 })); // Lấy tối đa 100 bản ghi
+      dispatch(fetchAllPlan({ coachId, page: 1, limit: 1000 })); // Lấy tối đa 100 bản ghi
     } else {
       console.warn("coachId is undefined, cannot fetch plans.");
     }

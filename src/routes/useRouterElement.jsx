@@ -31,6 +31,7 @@ import AboutUs from "../pages/Home/AboutUs/AboutUs";
 import Benefits from "../pages/Home/Benefit/Benefit";
 import Resources from "../pages/Home/Resources/Resources";
 import Contact from "../pages/Home/Contact/Contact";
+import PlaneStage from "../pages/Coacher/PlaneStage/PlaneStage";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -183,6 +184,7 @@ export default function useRouterElement() {
       children: [
         { path: PATH.PLANMANAGEMEMTPAGE, element: <PlanManagementPage /> },
         { path: PATH.COACH_MESSAGING, element: <MessagingPage /> },
+        { path: PATH.COACH_PLAN_STAGES, element: <PlaneStage /> },
       ],
     },
     // ADMIN
