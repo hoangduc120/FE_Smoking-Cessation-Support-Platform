@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import {
   Button,
@@ -46,12 +44,16 @@ import {
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import toast from "react-hot-toast";
+import { isValid, parseISO } from "date-fns";
 import "./PlanStage.css";
 import { useDispatch, useSelector } from "react-redux";
-
 import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../routes/path";
 import { fetchAllPlan } from "../../../store/slices/planeSlice";
+import {
+  createStageApi,
+  updateStageApi,
+} from "../../../store/slices/stagesSlice";
 
 // Yup validation schema
 const stageSchema = Yup.object().shape({
@@ -68,10 +70,14 @@ const stageSchema = Yup.object().shape({
   start_date: Yup.string().required("Vui lòng chọn ngày bắt đầu"),
   end_date: Yup.string()
     .required("Vui lòng chọn ngày kết thúc")
-    .test("is-after-start", "Ngày kết thúc phải sau ngày bắt đầu", function (value) {
-      const { start_date } = this.parent;
-      return !start_date || !value || new Date(value) >= new Date(start_date);
-    }),
+    .test(
+      "is-after-start",
+      "Ngày kết thúc phải sau ngày bắt đầu",
+      function (value) {
+        const { start_date } = this.parent;
+        return !start_date || !value || new Date(value) >= new Date(start_date);
+      }
+    ),
   status: Yup.string()
     .required("Vui lòng chọn trạng thái")
     .oneOf(["draft", "active", "completed"]),
@@ -81,9 +87,11 @@ export default function StagesManagementPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.auth);
-  const { plans, loading: plansLoading, error: plansError } = useSelector(
-    (state) => state.plan
-  );
+  const {
+    plans,
+    loading: plansLoading,
+    error: plansError,
+  } = useSelector((state) => state.plan);
   const coachId = currentUser?.user?.id;
 
   const [stages, setStages] = useState([]);
@@ -98,7 +106,12 @@ export default function StagesManagementPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // React Hook Form setup
-  const { control, handleSubmit, reset, formState: { errors } } = useForm({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
     resolver: yupResolver(stageSchema),
     defaultValues: {
       quitPlanId: plans?.data?.[0]?._id || "",
@@ -111,30 +124,33 @@ export default function StagesManagementPage() {
     },
   });
 
-
   useEffect(() => {
     if (!currentUser) {
       navigate(PATH.LOGIN);
-    } else if (coachId && !plansLoading && (!plans?.data || plans.data.length === 0)) {
-
+    } else if (
+      coachId &&
+      !plansLoading &&
+      (!plans?.data || plans.data.length === 0)
+    ) {
       dispatch(fetchAllPlan({ coachId, page: 1, limit: 1000 }))
         .unwrap()
- 
         .catch((error) => {
-       
-          toast.error("Không thể tải danh sách kế hoạch: " + (error.message || "Lỗi không xác định"));
+          toast.error(
+            "Không thể tải danh sách kế hoạch: " +
+              (error.message || "Lỗi không xác định")
+          );
         });
     }
   }, [currentUser, coachId, dispatch, navigate, plansLoading, plans?.data]);
 
-
   useEffect(() => {
     const mockStages = [
       {
-        id: "1",
+        _id: "1", // Sử dụng _id thay vì id để đồng bộ với API
         quitPlanId: plans?.data?.[0]?._id || "683ea9f0d8426fddf79eb975",
         stage_name: "Tuần 1: Giảm dần số lượng",
-        description: "Giảm số lượng thuốc lá xuống còn 50% so với thói quen ban đầu",
+        description:
+          "Giảm số lượng thuốc lá xuống còn 50% so với thói quen ban đầu",
         order_index: 1,
         start_date: "2025-06-02",
         end_date: "2025-06-09",
@@ -142,10 +158,11 @@ export default function StagesManagementPage() {
         tasks_count: 5,
       },
       {
-        id: "2",
+        _id: "2",
         quitPlanId: plans?.data?.[0]?._id || "683ea9f0d8426fddf79eb975",
         stage_name: "Tuần 2: Thay thế thói quen",
-        description: "Thay thế thói quen hút thuốc bằng các hoạt động tích cực khác",
+        description:
+          "Thay thế thói quen hút thuốc bằng các hoạt động tích cực khác",
         order_index: 2,
         start_date: "2025-06-09",
         end_date: "2025-06-16",
@@ -159,29 +176,37 @@ export default function StagesManagementPage() {
   const filteredStages = stages
     .filter((stage) => {
       const matchesSearch =
-        stage.stage_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        stage.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || stage.status === statusFilter;
-      const matchesPlan = selectedPlan === "all" || stage.quitPlanId === selectedPlan;
+        (stage.stage_name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (stage.description || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" || stage.status === statusFilter;
+      const matchesPlan =
+        selectedPlan === "all" || stage.quitPlanId === selectedPlan;
       return matchesSearch && matchesStatus && matchesPlan;
     })
     .sort((a, b) => a.order_index - b.order_index);
 
   const handleCreateStage = async (data) => {
+    console.log("Dữ liệu gửi đi khi tạo giai đoạn:", data);
     setIsLoading(true);
     try {
-      const newStage = {
-        id: Date.now().toString(),
-        ...data,
-        tasks_count: 0,
-      };
-      setStages([...stages, newStage]);
+      const response = await dispatch(
+        createStageApi({ data, id: data.quitPlanId })
+      ).unwrap();
+      console.log("Response từ BE khi tạo:", response);
+      setStages([...stages, { ...response, tasks_count: 0 }]);
       setIsCreateDialogOpen(false);
       reset();
       toast.success("Tạo giai đoạn thành công");
     } catch (error) {
       console.error("Error creating stage:", error);
-      toast.error("Không thể tạo giai đoạn: " + (error.message || "Lỗi không xác định"));
+      toast.error(
+        "Không thể tạo giai đoạn: " + (error.message || "Lỗi không xác định")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -189,19 +214,28 @@ export default function StagesManagementPage() {
 
   const handleEditStage = async (data) => {
     if (!editingStage) return;
+    console.log("Dữ liệu gửi đi khi chỉnh sửa giai đoạn:", data);
     setIsLoading(true);
     try {
-      const updatedStages = stages.map((stage) =>
-        stage.id === editingStage.id ? { ...stage, ...data } : stage
+      const response = await dispatch(
+        updateStageApi({ data, id: editingStage._id })
+      ).unwrap();
+      console.log("Response từ BE khi cập nhật:", response);
+      setStages(
+        stages.map((stage) =>
+          stage._id === editingStage._id ? { ...stage, ...response } : stage
+        )
       );
-      setStages(updatedStages);
       setIsEditDialogOpen(false);
       setEditingStage(null);
       reset();
       toast.success("Cập nhật giai đoạn thành công");
     } catch (error) {
       console.error("Error updating stage:", error);
-      toast.error("Không thể cập nhật giai đoạn: " + (error.message || "Lỗi không xác định"));
+      toast.error(
+        "Không thể cập nhật giai đoạn: " +
+          (error.message || "Lỗi không xác định")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -210,13 +244,15 @@ export default function StagesManagementPage() {
   const handleDeleteStage = async (stageId) => {
     setIsLoading(true);
     try {
-      setStages(stages.filter((stage) => stage.id !== stageId));
+      setStages(stages.filter((stage) => stage._id !== stageId));
       setIsDeleteDialogOpen(false);
       setStageToDelete(null);
       toast.success("Xóa giai đoạn thành công");
     } catch (error) {
       console.error("Error deleting stage:", error);
-      toast.error("Không thể xóa giai đoạn: " + (error.message || "Lỗi không xác định"));
+      toast.error(
+        "Không thể xóa giai đoạn: " + (error.message || "Lỗi không xác định")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +264,7 @@ export default function StagesManagementPage() {
   };
 
   const handleMoveStage = (stageId, direction) => {
-    const stageIndex = stages.findIndex((s) => s.id === stageId);
+    const stageIndex = stages.findIndex((s) => s._id === stageId);
     if (stageIndex === -1) return;
 
     const newStages = [...stages];
@@ -241,6 +277,11 @@ export default function StagesManagementPage() {
           prevStage.order_index,
           currentStage.order_index,
         ];
+        // Gọi API để cập nhật order_index nếu cần
+        dispatch(
+          updateStageApi({ data: { ...currentStage }, id: currentStage._id })
+        );
+        dispatch(updateStageApi({ data: { ...prevStage }, id: prevStage._id }));
       }
     } else if (direction === "down" && stageIndex < newStages.length - 1) {
       const nextStage = newStages[stageIndex + 1];
@@ -249,9 +290,13 @@ export default function StagesManagementPage() {
           nextStage.order_index,
           currentStage.order_index,
         ];
+        // Gọi API để cập nhật order_index nếu cần
+        dispatch(
+          updateStageApi({ data: { ...currentStage }, id: currentStage._id })
+        );
+        dispatch(updateStageApi({ data: { ...nextStage }, id: nextStage._id }));
       }
     }
-
     setStages(newStages);
   };
 
@@ -293,17 +338,24 @@ export default function StagesManagementPage() {
   };
 
   const getDuration = (startDate, endDate) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    if (!isValid(start) || !isValid(end)) {
+      return "N/A";
+    }
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return `${diffDays} ngày`;
   };
 
-  // Show loading if not authenticated
   if (!currentUser) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
         <CircularProgress />
         <Typography ml={2}>Đang kiểm tra đăng nhập...</Typography>
       </Box>
@@ -335,7 +387,9 @@ export default function StagesManagementPage() {
       <Card className="planStage-card">
         <CardHeader
           className="planStage-card-header"
-          title={<Typography className="planStage-card-title">Bộ lọc</Typography>}
+          title={
+            <Typography className="planStage-card-title">Bộ lọc</Typography>
+          }
         />
         <CardContent className="planStage-card-content">
           <Grid container spacing={2} className="planStage-filters">
@@ -420,7 +474,12 @@ export default function StagesManagementPage() {
         />
         <CardContent className="planStage-card-content">
           {plansLoading ? (
-            <Box display="flex" justifyContent="center" alignItems="center" height={200}>
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              height={200}
+            >
               <CircularProgress />
               <Typography ml={2}>Đang tải danh sách kế hoạch...</Typography>
             </Box>
@@ -433,13 +492,27 @@ export default function StagesManagementPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell className="planStage-table-cell">Thứ tự</TableCell>
-                    <TableCell className="planStage-table-cell">Tên giai đoạn</TableCell>
-                    <TableCell className="planStage-table-cell">Kế hoạch</TableCell>
-                    <TableCell className="planStage-table-cell">Thời gian</TableCell>
-                    <TableCell className="planStage-table-cell">Trạng thái</TableCell>
-                    <TableCell className="planStage-table-cell">Nhiệm vụ</TableCell>
-                    <TableCell className="planStage-table-cell">Thao tác</TableCell>
+                    <TableCell className="planStage-table-cell">
+                      Thứ tự
+                    </TableCell>
+                    <TableCell className="planStage-table-cell">
+                      Tên giai đoạn
+                    </TableCell>
+                    <TableCell className="planStage-table-cell">
+                      Kế hoạch
+                    </TableCell>
+                    <TableCell className="planStage-table-cell">
+                      Thời gian
+                    </TableCell>
+                    <TableCell className="planStage-table-cell">
+                      Trạng thái
+                    </TableCell>
+                    <TableCell className="planStage-table-cell">
+                      Nhiệm vụ
+                    </TableCell>
+                    <TableCell className="planStage-table-cell">
+                      Thao tác
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -451,9 +524,11 @@ export default function StagesManagementPage() {
                     </TableRow>
                   ) : (
                     filteredStages.map((stage) => {
-                      const plan = plans?.data?.find((p) => p._id === stage.quitPlanId);
+                      const plan = plans?.data?.find(
+                        (p) => p._id === stage.quitPlanId
+                      );
                       return (
-                        <TableRow key={stage.id}>
+                        <TableRow key={stage._id}>
                           <TableCell className="planStage-table-cell">
                             <Box display="flex" alignItems="center" gap={2}>
                               <Typography fontWeight="medium">
@@ -462,13 +537,17 @@ export default function StagesManagementPage() {
                               <Box className="planStage-order-controls">
                                 <IconButton
                                   size="small"
-                                  onClick={() => handleMoveStage(stage.id, "up")}
+                                  onClick={() =>
+                                    handleMoveStage(stage._id, "up")
+                                  }
                                 >
                                   <ArrowUpIcon fontSize="small" />
                                 </IconButton>
                                 <IconButton
                                   size="small"
-                                  onClick={() => handleMoveStage(stage.id, "down")}
+                                  onClick={() =>
+                                    handleMoveStage(stage._id, "down")
+                                  }
                                 >
                                   <ArrowDownIcon fontSize="small" />
                                 </IconButton>
@@ -495,17 +574,31 @@ export default function StagesManagementPage() {
                               <Box className="planStage-duration-row">
                                 <CalendarIcon fontSize="small" />
                                 <Typography fontSize="0.875rem">
-                                  {format(
-                                    new Date(stage.start_date),
-                                    "dd/MM/yyyy",
-                                    { locale: vi }
-                                  )}
+                                  {stage.start_date &&
+                                  isValid(parseISO(stage.start_date))
+                                    ? format(
+                                        parseISO(stage.start_date),
+                                        "dd/MM/yyyy",
+                                        { locale: vi }
+                                      )
+                                    : "Invalid Date"}
                                 </Typography>
                               </Box>
                               <Box className="planStage-duration-row">
                                 <ClockIcon fontSize="small" />
-                                <Typography fontSize="0.875rem" color="textSecondary">
-                                  {getDuration(stage.start_date, stage.end_date)}
+                                <Typography
+                                  fontSize="0.875rem"
+                                  color="textSecondary"
+                                >
+                                  {stage.start_date &&
+                                  stage.end_date &&
+                                  isValid(parseISO(stage.start_date)) &&
+                                  isValid(parseISO(stage.end_date))
+                                    ? getDuration(
+                                        stage.start_date,
+                                        stage.end_date
+                                      )
+                                    : "N/A"}
                                 </Typography>
                               </Box>
                             </Box>
@@ -524,7 +617,9 @@ export default function StagesManagementPage() {
                               <IconButton onClick={() => openEditDialog(stage)}>
                                 <EditIcon />
                               </IconButton>
-                              <IconButton onClick={() => openDeleteDialog(stage)}>
+                              <IconButton
+                                onClick={() => openDeleteDialog(stage)}
+                              >
                                 <TrashIcon />
                               </IconButton>
                             </Box>
@@ -541,10 +636,15 @@ export default function StagesManagementPage() {
       </Card>
 
       {/* Create Dialog */}
-      <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
+      <Dialog
+        open={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+      >
         <DialogTitle>Tạo giai đoạn mới</DialogTitle>
         <DialogContent>
-          <DialogContentText>Thêm một giai đoạn mới vào kế hoạch cai thuốc</DialogContentText>
+          <DialogContentText>
+            Thêm một giai đoạn mới vào kế hoạch cai thuốc
+          </DialogContentText>
           <Box component="form" className="planStage-form-grid">
             <FormControl fullWidth margin="normal" error={!!errors.quitPlanId}>
               <InputLabel>Kế hoạch cai thuốc</InputLabel>
@@ -552,7 +652,11 @@ export default function StagesManagementPage() {
                 name="quitPlanId"
                 control={control}
                 render={({ field }) => (
-                  <Select {...field} label="Kế hoạch cai thuốc" disabled={plansLoading}>
+                  <Select
+                    {...field}
+                    label="Kế hoạch cai thuốc"
+                    disabled={plansLoading}
+                  >
                     {plansLoading ? (
                       <MenuItem disabled>
                         <CircularProgress size={20} />
@@ -571,7 +675,9 @@ export default function StagesManagementPage() {
                 )}
               />
               {errors.quitPlanId && (
-                <Typography color="error">{errors.quitPlanId.message}</Typography>
+                <Typography color="error">
+                  {errors.quitPlanId.message}
+                </Typography>
               )}
             </FormControl>
             <Controller
@@ -640,7 +746,9 @@ export default function StagesManagementPage() {
                     )}
                   />
                   {errors.status && (
-                    <Typography color="error">{errors.status.message}</Typography>
+                    <Typography color="error">
+                      {errors.status.message}
+                    </Typography>
                   )}
                 </FormControl>
               </Grid>
@@ -686,7 +794,10 @@ export default function StagesManagementPage() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsCreateDialogOpen(false)} variant="outlined">
+          <Button
+            onClick={() => setIsCreateDialogOpen(false)}
+            variant="outlined"
+          >
             Hủy bỏ
           </Button>
           <Button
@@ -699,7 +810,10 @@ export default function StagesManagementPage() {
       </Dialog>
 
       {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)}>
+      <Dialog
+        open={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+      >
         <DialogTitle>Chỉnh sửa giai đoạn</DialogTitle>
         <DialogContent>
           <DialogContentText>Cập nhật thông tin giai đoạn</DialogContentText>
@@ -710,7 +824,11 @@ export default function StagesManagementPage() {
                 name="quitPlanId"
                 control={control}
                 render={({ field }) => (
-                  <Select {...field} label="Kế hoạch cai thuốc" disabled={plansLoading}>
+                  <Select
+                    {...field}
+                    label="Kế hoạch cai thuốc"
+                    disabled={plansLoading}
+                  >
                     {plansLoading ? (
                       <MenuItem disabled>
                         <CircularProgress size={20} />
@@ -729,7 +847,9 @@ export default function StagesManagementPage() {
                 )}
               />
               {errors.quitPlanId && (
-                <Typography color="error">{errors.quitPlanId.message}</Typography>
+                <Typography color="error">
+                  {errors.quitPlanId.message}
+                </Typography>
               )}
             </FormControl>
             <Controller
@@ -798,7 +918,9 @@ export default function StagesManagementPage() {
                     )}
                   />
                   {errors.status && (
-                    <Typography color="error">{errors.status.message}</Typography>
+                    <Typography color="error">
+                      {errors.status.message}
+                    </Typography>
                   )}
                 </FormControl>
               </Grid>
@@ -857,19 +979,26 @@ export default function StagesManagementPage() {
       </Dialog>
 
       {/* Delete Dialog */}
-      <Dialog open={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+      >
         <DialogTitle>Xác nhận xóa</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Bạn có chắc chắn muốn xóa giai đoạn "{stageToDelete?.stage_name}"? Hành động này không thể hoàn tác.
+            Bạn có chắc chắn muốn xóa giai đoạn "{stageToDelete?.stage_name}"?
+            Hành động này không thể hoàn tác.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsDeleteDialogOpen(false)} variant="outlined">
+          <Button
+            onClick={() => setIsDeleteDialogOpen(false)}
+            variant="outlined"
+          >
             Hủy
           </Button>
           <Button
-            onClick={() => handleDeleteStage(stageToDelete.id)}
+            onClick={() => handleDeleteStage(stageToDelete._id)}
             color="error"
             disabled={isLoading}
           >
