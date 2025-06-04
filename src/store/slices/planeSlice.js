@@ -12,7 +12,6 @@ export const fetchPlan = createAsyncThunk(
 
       return response.data;
     } catch (error) {
-      console.log("FetchPlan error:", error);
       return rejectWithValue(
         error.response ? error.response.data : error.message
       );
@@ -30,7 +29,21 @@ export const fetchAllPlan = createAsyncThunk(
       console.log("lnas", response.data);
       return response.data;
     } catch (error) {
-      console.error("FetchPlan error:", error);
+      return rejectWithValue(
+        error.response?.data || { message: error.message }
+      );
+    }
+  }
+);
+
+export const fetchPlanById = createAsyncThunk(
+  "plan/fetchPlanById",
+  async ({ id }, rejectWithValue) => {
+    try {
+      const response = await fetcher.get(`/plans/quitplans/${id}`);
+      console.log(response.data)
+      return response.data;
+    } catch (error) {
       return rejectWithValue(
         error.response?.data || { message: error.message }
       );
@@ -98,7 +111,7 @@ export const planSlice = createSlice({
       .addCase(fetchPlan.fulfilled, (state, action) => {
         state.isLoading = false;
         state.plans = {
-          data: action.payload.data || [], 
+          data: action.payload.data || [],
           total: action.payload.total || action.payload.data?.length || 0,
           totalPages:
             action.payload.totalPages ||
@@ -163,6 +176,19 @@ export const planSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = payload.message || "Có lỗi xảy ra khi lấy dữ liệu";
+      })
+      .addCase(fetchPlanById.pending, (state) => {
+        state.isLoading = true;
+        state.isError = null;
+        state.errorMessage = "";
+      })
+      .addCase(fetchPlanById.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.plan = Array.isArray(payload) ? payload : payload.data || [];
+      })
+      .addCase(fetchPlanById.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = payload;
       });
   },
 });

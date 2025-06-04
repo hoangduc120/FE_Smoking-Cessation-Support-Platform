@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import {
@@ -10,29 +10,85 @@ import {
   AccordionDetails,
   MenuItem,
   Button,
+  IconButton,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import EditIcon from "@mui/icons-material/Edit";
 import "./CoachPlaneDetail.css";
-import { fetchPlan } from "../../../store/slices/planeSlice";
-import LastPageIcon from "@mui/icons-material/LastPage";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import StairsIcon from "@mui/icons-material/Stairs";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import InsightsIcon from "@mui/icons-material/Insights";
 import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 
+import { getStageById } from "../../../store/slices/stagesSlice";
+import CreateStageDialog from "../../Coacher/PlanManagementPage/CreateStageDialog";
+import { format, differenceInDays, parse } from "date-fns";
+import { fetchPlanById } from "../../../store/slices/planeSlice";
+
 export default function CoachPlaneDetail() {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { plans, isLoading, isError, errorMessage } = useSelector(
-    (state) => state.plane
+  const { plan, isLoading, isError, errorMessage } = useSelector(
+    (state) => state.plan
   );
+  const {
+    stages,
+    isLoading: isStageLoading,
+    isError: stageError,
+  } = useSelector((state) => state.stages);
+  const auth = useSelector((state) => state.auth);
+  const coach = auth?.currentUser?.user;
+
+  const [openStageDialog, setOpenStageDialog] = useState(false);
+  const [stageToEdit, setStageToEdit] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchPlan()); // Fetch all plans to search for the specific plan ID
-  }, [dispatch]);
+    if (id) {
+      dispatch(fetchPlanById({ id }));
+      dispatch(getStageById({ id, page: 1, limit: 100 }));
+    }
+  }, [dispatch, id]);
 
-  if (isLoading) {
+  const handleEditStage = (stage) => {
+    setStageToEdit(stage);
+    setOpenStageDialog(true);
+  };
+
+  const handleStageUpdated = () => {
+    if (id) {
+      dispatch(getStageById({ id, page: 1, limit: 100 }));
+    }
+  };
+
+  // Calculate duration
+  const calculateDuration = () => {
+    if (!plan?.quitPlan?.startDate || !plan?.quitPlan?.endDate) {
+      return { value: null, error: "Thiếu ngày bắt đầu hoặc kết thúc" };
+    }
+    let start, end;
+    try {
+      start = new Date(plan.quitPlan.startDate);
+      end = new Date(plan.quitPlan.endDate);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        start = parse(plan.quitPlan.startDate, "dd/MM/yyyy", new Date());
+        end = parse(plan.quitPlan.endDate, "dd/MM/yyyy", new Date());
+      }
+      const duration = differenceInDays(end, start);
+      return { value: duration, error: null };
+    } catch (error) {
+      console.log("Error parsing dates:", error.message);
+      return { value: null, error: "Lỗi xử lý ngày" };
+    }
+  };
+
+  const durationResult = calculateDuration();
+  const durationDisplay =
+    durationResult.value !== null
+      ? `${durationResult.value} ngày`
+      : durationResult.error;
+
+  if (isLoading || isStageLoading) {
     return (
       <Box className="homePage">
         <Typography>Đang tải...</Typography>
@@ -40,23 +96,19 @@ export default function CoachPlaneDetail() {
     );
   }
 
-  if (isError) {
+  if (isError || stageError) {
     return (
       <Box className="homePage">
         <Typography color="error">
-          {errorMessage || "Có lỗi xảy ra khi tải kế hoạch!"}
+          {errorMessage ||
+            stageError?.message ||
+            "Có lỗi xảy ra khi tải dữ liệu!"}
         </Typography>
       </Box>
     );
   }
 
-  // Find the coach and plan by plan.id
-  const coach = Array.isArray(plans)
-    ? plans.find((c) => c.plans.some((p) => p.id === parseInt(id)))
-    : null;
-  const plan = coach?.plans.find((p) => p.id === parseInt(id)) || null;
-
-  if (!coach || !plan) {
+  if (!plan || !plan.quitPlan) {
     return (
       <Box className="homePage">
         <Typography>Không tìm thấy kế hoạch!</Typography>
@@ -64,7 +116,7 @@ export default function CoachPlaneDetail() {
     );
   }
 
-  const totalSteps = plan.steps?.length || 0;
+  const totalStages = stages?.length || 0;
 
   return (
     <Box className="homePage">
@@ -74,9 +126,9 @@ export default function CoachPlaneDetail() {
             <Box className="CoachPlaneDetail-content">
               <Box className="CoachPlaneDetail-content-title">
                 <Typography sx={{ fontSize: "30px", fontWeight: "bold" }}>
-                  {plan.title}
+                  {plan.quitPlan.title}
                 </Typography>
-                <span style={{ color: "#767676" }}>{plan.description}</span>
+                <span style={{ color: "#767676" }}>{plan.quitPlan.reason}</span>
               </Box>
               <Box className="CoachPlaneDetail-content-text">
                 <Typography
@@ -100,9 +152,8 @@ export default function CoachPlaneDetail() {
                       color: "black",
                     }}
                   >
-                    {" "}
                     <StairsIcon sx={{ color: "#e8bb4b" }} />
-                    {totalSteps} bước
+                    {totalStages} giai đoạn
                   </Typography>
                   <Typography
                     variant="body2"
@@ -112,9 +163,8 @@ export default function CoachPlaneDetail() {
                       color: "black",
                     }}
                   >
-                    {" "}
                     <CalendarMonthIcon sx={{ color: "#e66f51" }} />
-                    30 ngày
+                    {durationDisplay}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -124,16 +174,15 @@ export default function CoachPlaneDetail() {
                       color: "black",
                     }}
                   >
-                    {" "}
                     <InsightsIcon sx={{ color: "#2a9d8e" }} />
-                    98% thành công
+                    {plan.quitPlan.successRate || 98}% thành công
                   </Typography>
                 </Box>
                 <Box className="CoachPlaneDetail-steps">
-                  {plan.steps && plan.steps.length > 0 ? (
-                    plan.steps.map((step, index) => (
+                  {stages && stages.length > 0 ? (
+                    stages.map((stage, index) => (
                       <Accordion
-                        key={index}
+                        key={stage._id}
                         className="CoachPlaneDetail-accordion"
                       >
                         <AccordionSummary
@@ -148,10 +197,18 @@ export default function CoachPlaneDetail() {
                               fontSize: "18px",
                             }}
                           >
-                            {" "}
-                            <LastPageIcon sx={{ color: "#479062" }} />
-                            {step.step}
+                            <StairsIcon sx={{ color: "#479062" }} />
+                            {stage.stage_name}
                           </Typography>
+                          <IconButton
+                            color="primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditStage(stage);
+                            }}
+                          >
+                            <EditIcon />
+                          </IconButton>
                         </AccordionSummary>
                         <AccordionDetails>
                           <Box
@@ -168,7 +225,10 @@ export default function CoachPlaneDetail() {
                                     paddingRight: "10px",
                                   }}
                                 />
-                                <strong>Thời gian: </strong> {step.duration}
+                                <strong>Thời gian: </strong>
+                                {stage.start_date && stage.end_date
+                                  ? `${format(new Date(stage.start_date), "dd/MM/yyyy")} - ${format(new Date(stage.end_date), "dd/MM/yyyy")}`
+                                  : "N/A"}
                               </Typography>
                             </MenuItem>
                             <MenuItem>
@@ -181,7 +241,25 @@ export default function CoachPlaneDetail() {
                                     paddingRight: "10px",
                                   }}
                                 />
-                                <strong>Chi tiết: </strong> {step.task}
+                                <strong>Chi tiết: </strong> {stage.description}
+                              </Typography>
+                            </MenuItem>
+                            <MenuItem>
+                              <Typography
+                                sx={{ display: "flex", alignItems: "center" }}
+                              >
+                                <PlayCircleFilledIcon
+                                  sx={{
+                                    color: "#44b194",
+                                    paddingRight: "10px",
+                                  }}
+                                />
+                                <strong>Trạng thái: </strong>
+                                {stage.status === "draft"
+                                  ? "Nháp"
+                                  : stage.status === "active"
+                                    ? "Đang hoạt động"
+                                    : "Hoàn thành"}
                               </Typography>
                             </MenuItem>
                           </Box>
@@ -189,7 +267,9 @@ export default function CoachPlaneDetail() {
                       </Accordion>
                     ))
                   ) : (
-                    <Typography>Không có bước nào trong kế hoạch!</Typography>
+                    <Typography>
+                      Không có giai đoạn nào trong kế hoạch!
+                    </Typography>
                   )}
                 </Box>
               </Box>
@@ -198,8 +278,8 @@ export default function CoachPlaneDetail() {
           <Grid item size={4} md={6}>
             <Box className="CoachPlaneDetail-image">
               <img
-                src={plan.thumbnail || "https://via.placeholder.com/150"}
-                alt={plan.title || "Kế hoạch"}
+                src={plan.quitPlan.image || "https://via.placeholder.com/150"}
+                alt={plan.quitPlan.title || "Kế hoạch"}
                 style={{ width: "100%", height: "auto" }}
               />
               <Box className="CoachPlaneDetail-image-text">
@@ -219,7 +299,7 @@ export default function CoachPlaneDetail() {
                     <PermIdentityIcon
                       sx={{ color: "#6967ac", paddingRight: "10px" }}
                     />
-                    {coach.name}
+                    {coach?.name || "N/A"}
                   </Typography>
                   <Typography
                     variant="body1"
@@ -230,11 +310,10 @@ export default function CoachPlaneDetail() {
                       lineHeight: "2.5",
                     }}
                   >
-                    {" "}
                     <StairsIcon
                       sx={{ color: "#e8bb4b", paddingRight: "10px" }}
                     />
-                    Tổng số bước {totalSteps}
+                    Tổng số giai đoạn {totalStages}
                   </Typography>
                   <Typography
                     variant="body1"
@@ -245,11 +324,10 @@ export default function CoachPlaneDetail() {
                       lineHeight: "2.5",
                     }}
                   >
-                    {" "}
                     <CalendarMonthIcon
                       sx={{ color: "#e66f51", paddingRight: "10px" }}
                     />
-                    Thời gian lộ trình 30 ngày
+                    Thời gian lộ trình {durationDisplay}
                   </Typography>
                   <Typography
                     variant="body1"
@@ -260,11 +338,10 @@ export default function CoachPlaneDetail() {
                       lineHeight: "2.5",
                     }}
                   >
-                    {" "}
                     <InsightsIcon
                       sx={{ color: "#2a9d8e", paddingRight: "10px" }}
                     />
-                    Tỷ lệ thành công 98%
+                    Tỷ lệ thành công {plan.quitPlan.successRate || 98}%
                   </Typography>
                 </Box>
               </Box>
@@ -272,6 +349,14 @@ export default function CoachPlaneDetail() {
           </Grid>
         </Grid>
       </Box>
+      <CreateStageDialog
+        open={openStageDialog}
+        setOpen={setOpenStageDialog}
+        plans={{ data: [plan.quitPlan] }} // Truyền plan.quitPlan
+        isLoading={isLoading}
+        stageToEdit={stageToEdit}
+        onStageUpdated={handleStageUpdated}
+      />
     </Box>
   );
 }

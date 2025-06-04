@@ -47,6 +47,23 @@ export const deleteStageApi = createAsyncThunk(
   }
 );
 
+
+export const getStageById = createAsyncThunk(
+  "stages/getStageById",
+  async ({ id, page, limit }, { rejectWithValue }) => {
+    try {
+      const response = await fetcher.get(
+        `/plans/quitplans/${id}/stages?page=${page}&limit=${limit}`
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+);
+
 export const stagesSlice = createSlice({
   name: "stages",
   initialState: {
@@ -77,8 +94,8 @@ export const stagesSlice = createSlice({
       .addCase(updateStageApi.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.isError = null;
-        state.plan = state.plan.map((plan) =>
-          plan._id === payload._id ? payload : plan
+        state.stages = state.stages.map((stages) =>
+          stages._id === payload._id ? payload : stages
         );
       })
       .addCase(updateStageApi.rejected, (state, { payload }) => {
@@ -91,9 +108,22 @@ export const stagesSlice = createSlice({
       .addCase(deleteStageApi.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.isError = null;
-        state.plan = state.plan.filter((plan) => plan._id !== payload);
+        state.stages = state.stages.filter((stages) => stages._id !== payload);
       })
       .addCase(deleteStageApi.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = payload;
+      })
+    .addCase(getStageById.pending, (state) => {
+        state.isLoading = true;
+        state.isError = null;
+      })
+      .addCase(getStageById.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.stages = Array.isArray(payload) ? payload : payload.data || [];
+      })
+      .addCase(getStageById.rejected, (state, { payload }) => {
         state.isLoading = false;
         state.isError = payload;
       });

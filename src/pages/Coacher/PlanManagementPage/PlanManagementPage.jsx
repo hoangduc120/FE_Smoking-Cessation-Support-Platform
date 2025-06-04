@@ -1,3 +1,4 @@
+
 import {
   Box,
   Button,
@@ -28,15 +29,20 @@ import AddTaskIcon from "@mui/icons-material/AddTask";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
+import AddIcon from "@mui/icons-material/Add";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import CreatePlanDialog from "./CreatePlanDialog";
+import CreateStageDialog from "./CreateStageDialog";
+import StageListDialog from "./StageListDialog";
 import "./PlanManagementPage.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../routes/path";
 import toast from "react-hot-toast";
 import { deletePlan, fetchAllPlan } from "../../../store/slices/planeSlice";
+import { getStageById } from "../../../store/slices/stagesSlice";
 
 export default function PlanManagementPage() {
   const dispatch = useDispatch();
@@ -52,19 +58,22 @@ export default function PlanManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("tat-ca");
-  const pageSize = 3; // Hiển thị 3 kế hoạch mỗi trang
+  const [openStageDialog, setOpenStageDialog] = useState(false);
+  const [openStageDetailDialog, setOpenStageDetailDialog] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState(null);
+  const [stageToEdit, setStageToEdit] = useState(null);
+  const pageSize = 3;
 
   useEffect(() => {
     if (!auth?.currentUser) {
       navigate(PATH.LOGIN);
     } else if (coachId) {
-      dispatch(fetchAllPlan({ coachId, page: 1, limit: 1000 })); // Lấy tối đa 100 bản ghi
+      dispatch(fetchAllPlan({ coachId, page: 1, limit: 1000 }));
     } else {
       console.warn("coachId is undefined, cannot fetch plans.");
     }
   }, [auth, coachId, dispatch, navigate]);
 
-  // Reset trang khi tìm kiếm hoặc lọc thay đổi
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterStatus]);
@@ -103,14 +112,35 @@ export default function PlanManagementPage() {
     }
   };
 
-  // Lọc kế hoạch dựa trên tiêu đề và trạng thái
+  const handleOpenStageDetailDialog = (planId) => {
+    setSelectedPlanId(planId);
+    setOpenStageDetailDialog(true);
+  };
+
+  const handleEditStage = (stage) => {
+    setStageToEdit(stage);
+    setOpenStageDialog(true);
+  };
+
+  const handleStageUpdated = () => {
+    if (selectedPlanId) {
+      dispatch(getStageById({ id: selectedPlanId, page: 1, limit: 100 }))
+        .unwrap()
+        .catch((error) => {
+          toast.error(
+            "Không thể tải danh sách giai đoạn: " +
+              (error.message || "Lỗi không xác định")
+          );
+        });
+    }
+  };
+
   const filteredPlans = (plans?.data || []).filter(
     (plan) =>
       (plan.title || "").toLowerCase().includes(searchTerm.toLowerCase()) &&
       (filterStatus === "tat-ca" || plan.status === filterStatus)
   );
 
-  // Tính toán phân trang
   const totalPlans = filteredPlans.length;
   const totalPages = Math.ceil(totalPlans / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
@@ -145,12 +175,21 @@ export default function PlanManagementPage() {
               Tạo và quản lý các kế hoạch cai thuốc của bạn
             </span>
           </Typography>
-          <Button
-            className="planeManager-btn"
-            onClick={() => handleOpenDialog()}
-          >
-            Tạo kế hoạch mới
-          </Button>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              className="planeManager-btn"
+              onClick={() => handleOpenDialog()}
+            >
+              Tạo kế hoạch mới
+            </Button>
+            <Button
+              className="planeManager-btn"
+              onClick={() => setOpenStageDialog(true)}
+              startIcon={<AddIcon />}
+            >
+              Thêm giai đoạn mới
+            </Button>
+          </Box>
         </Box>
         <Box className="planeManager-card">
           <Grid container spacing={2}>
@@ -366,6 +405,13 @@ export default function PlanManagementPage() {
                             >
                               <DeleteIcon />
                             </Button>
+                            <Button
+                              size="small"
+                              color="warning"
+                              onClick={() => handleOpenStageDetailDialog(planItem._id)}
+                            >
+                              <VisibilityIcon />
+                            </Button>
                           </Box>
                         </TableCell>
                       </TableRow>
@@ -390,6 +436,20 @@ export default function PlanManagementPage() {
         setOpen={setOpenDialog}
         coachId={coachId}
         planToEdit={planToEdit}
+      />
+      <CreateStageDialog
+        open={openStageDialog}
+        setOpen={setOpenStageDialog}
+        plans={plans}
+        isLoading={isLoading}
+        stageToEdit={stageToEdit}
+        onStageUpdated={handleStageUpdated}
+      />
+      <StageListDialog
+        open={openStageDetailDialog}
+        setOpen={setOpenStageDetailDialog}
+        planId={selectedPlanId}
+        onEditStage={handleEditStage}
       />
       <Dialog
         open={openConfirmDialog}
