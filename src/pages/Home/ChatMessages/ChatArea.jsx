@@ -14,7 +14,15 @@ export default function ChatArea({ contact, messages, onSendMessage }) {
       }}
     >
       <ChatHeader contact={contact} />
-      <MessageList messages={messages} />
+      <Box
+        sx={{
+          flexGrow: 1,
+          overflowY: "auto", // Cho phép cuộn nội dung
+          backgroundColor: "#f5f5f5", // Đồng nhất nền với MessageList
+        }}
+      >
+        <MessageList messages={messages} />
+      </Box>
       <MessageInput onSendMessage={onSendMessage} />
     </Box>
   );

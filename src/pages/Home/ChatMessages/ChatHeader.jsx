@@ -11,6 +11,9 @@ export default function ChatHeader({ contact }) {
         borderBottom: 1,
         borderColor: "divider",
         backgroundColor: "background.paper",
+        position: "sticky", // Cố định ChatHeader ở đầu ChatArea
+        top: 0, // Đặt ở đỉnh của container cha
+        zIndex: 1050, // Dưới ChatPage (zIndex: 1100) và Header chính (zIndex: 1200)
       }}
     >
       <Avatar src={contact?.avatar} sx={{ mr: 2 }} />

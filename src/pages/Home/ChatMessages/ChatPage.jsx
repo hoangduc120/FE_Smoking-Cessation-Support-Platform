@@ -12,24 +12,45 @@ export default function ChatApp() {
     currentContact,
     currentMessages,
     handleSendMessage,
+    isLoading,
+    isError,
+    errorMessage,
   } = useChat();
 
-  return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <Box sx={{ display: "flex", flexGrow: 1, overflow: "hidden" }}>
-        <ContactList
-          contacts={contacts}
-          selectedContact={selectedContact}
-          onContactSelect={setSelectedContact}
-          onContactUpdate={setContacts}
-        />
+  // Thêm xử lý trạng thái loading và error
+  if (isLoading) {
+    return <Box>Đang tải...</Box>;
+  }
 
-        <ChatArea
-          contact={currentContact}
-          messages={currentMessages}
-          onSendMessage={handleSendMessage}
-        />
-      </Box>
+  if (isError) {
+    return <Box>Lỗi: {errorMessage}</Box>;
+  }
+
+  return (
+    <Box
+      sx={{
+        position: "fixed",
+        top: "64px",
+        left: 0,
+        right: 0,
+        height: "calc(100vh - 64px)",
+        display: "flex",
+        flexDirection: "row",
+        zIndex: 1100,
+        overflow: "hidden",
+      }}
+    >
+      <ContactList
+        contacts={contacts}
+        selectedContact={selectedContact}
+        onContactSelect={setSelectedContact}
+        onContactUpdate={setContacts}
+      />
+      <ChatArea
+        contact={currentContact}
+        messages={currentMessages}
+        onSendMessage={handleSendMessage}
+      />
     </Box>
   );
 }
