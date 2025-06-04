@@ -54,6 +54,7 @@ export default function ContactList({
           border: "none",
           borderRight: "1px solid",
           borderColor: "divider",
+          zIndex: 1000,
         },
       }}
     >
@@ -82,7 +83,7 @@ export default function ContactList({
         {filteredContacts.map((contact) => (
           <ListItem
             key={contact.id}
-            button
+            button // Chỉ cần button, không cần button={true}
             selected={selectedContact === contact.id}
             onClick={() => handleContactSelect(contact.id)}
             sx={{
@@ -131,6 +132,7 @@ export default function ContactList({
               }
               secondary={
                 <Box
+                  component="span" // Sử dụng span thay vì div
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
@@ -138,6 +140,7 @@ export default function ContactList({
                   }}
                 >
                   <Typography
+                    component="span" // Ngăn render thành <p>
                     variant="body2"
                     color="text.secondary"
                     sx={{

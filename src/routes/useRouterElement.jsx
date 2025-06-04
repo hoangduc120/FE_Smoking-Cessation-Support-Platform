@@ -32,6 +32,7 @@ import Benefits from "../pages/Home/Benefit/Benefit";
 import Resources from "../pages/Home/Resources/Resources";
 import Contact from "../pages/Home/Contact/Contact";
 import PlaneStage from "../pages/Coacher/PlaneStage/PlaneStage";
+import UserLayout from "../layouts/UserLayout/UserLayout";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -151,14 +152,14 @@ export default function useRouterElement() {
             </ProtectedRoute>
           ),
         },
-        {
-          path: PATH.CHATPAGE,
-          element: (
-            <ProtectedRoute allowedRoles={["user", "coach"]}>
-              <ChatApp />
-            </ProtectedRoute>
-          ),
-        },
+        // {
+        //   path: PATH.CHATPAGE,
+        //   element: (
+        //     <ProtectedRoute allowedRoles={["user", "coach"]}>
+        //       <ChatApp />
+        //     </ProtectedRoute>
+        //   ),
+        // },
         {
           path: PATH.ROADMAP,
           element: (
@@ -172,6 +173,16 @@ export default function useRouterElement() {
         { path: PATH.RESOURCES, element: <Resources /> },
         { path: PATH.CONTACT, element: <Contact /> },
       ],
+    },
+
+    {
+      path: PATH.CHATPAGE,
+      element: (
+        <ProtectedRoute allowedRoles={["user", "coach"]}>
+          <UserLayout />
+        </ProtectedRoute>
+      ),
+      children: [{ index: true, element: <ChatApp /> }],
     },
     // COACH
     {

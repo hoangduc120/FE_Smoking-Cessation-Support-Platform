@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Box, TextField, IconButton, Paper } from "@mui/material";
+import {
+  Box,
+  TextField,
+  IconButton,
+  Paper,
+  Input,
+  Typography,
+} from "@mui/material";
 import {
   Send as SendIcon,
   AttachFile as AttachFileIcon,
@@ -8,11 +15,13 @@ import {
 
 export default function MessageInput({ onSendMessage }) {
   const [newMessage, setNewMessage] = useState("");
+  const [image, setImage] = useState(null);
 
   const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      onSendMessage(newMessage);
+    if (newMessage.trim() || image) {
+      onSendMessage({ text: newMessage, image });
       setNewMessage("");
+      setImage(null);
     }
   };
 
@@ -23,11 +32,23 @@ export default function MessageInput({ onSendMessage }) {
     }
   };
 
+  const handleImageChange = (e) => {
+    if (e.target.files[0]) {
+      setImage(e.target.files[0]);
+    }
+  };
+
   return (
     <Paper sx={{ p: 2, borderRadius: 0 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <IconButton>
+        <IconButton component="label">
           <AttachFileIcon />
+          <Input
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleImageChange}
+          />
         </IconButton>
         <TextField
           fullWidth
@@ -45,11 +66,12 @@ export default function MessageInput({ onSendMessage }) {
         <IconButton
           color="primary"
           onClick={handleSendMessage}
-          disabled={!newMessage.trim()}
+          disabled={!newMessage.trim() && !image}
         >
           <SendIcon />
         </IconButton>
       </Box>
+      {image && <Typography variant="caption">{image.name}</Typography>}
     </Paper>
   );
 }
