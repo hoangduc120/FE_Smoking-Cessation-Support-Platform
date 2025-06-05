@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Grid,
@@ -11,6 +11,11 @@ import {
   MenuItem,
   Button,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
@@ -25,10 +30,13 @@ import { getStageById } from "../../../store/slices/stagesSlice";
 import CreateStageDialog from "../../Coacher/PlanManagementPage/CreateStageDialog";
 import { format, differenceInDays, parse } from "date-fns";
 import { fetchPlanById } from "../../../store/slices/planeSlice";
+import { selectPlan } from "../../../store/slices/planeSlice";
+import toast from "react-hot-toast";
 
 export default function CoachPlaneDetail() {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { plan, isLoading, isError, errorMessage } = useSelector(
     (state) => state.plan
   );
@@ -42,6 +50,8 @@ export default function CoachPlaneDetail() {
 
   const [openStageDialog, setOpenStageDialog] = useState(false);
   const [stageToEdit, setStageToEdit] = useState(null);
+  const [openErrorModal, setOpenErrorModal] = useState(false);
+  const [errorMessageModal, setErrorMessageModal] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -61,7 +71,6 @@ export default function CoachPlaneDetail() {
     }
   };
 
-  // Calculate duration
   const calculateDuration = () => {
     if (!plan?.quitPlan?.startDate || !plan?.quitPlan?.endDate) {
       return { value: null, error: "Thiếu ngày bắt đầu hoặc kết thúc" };
@@ -88,6 +97,35 @@ export default function CoachPlaneDetail() {
       ? `${durationResult.value} ngày`
       : durationResult.error;
 
+  const handleRegisterPlan = () => {
+    if (plan?.quitPlan?._id) {
+      console.log("Sending quitPlanId:", plan.quitPlan._id);
+      dispatch(selectPlan({ quitPlanId: plan.quitPlan._id }))
+        .unwrap()
+        .then(() => {
+          toast.success("Đăng ký kế hoạch thành công!");
+          setTimeout(() => {
+            navigate("/roadmap");
+          }, 1000);
+        })
+        .catch((error) => {
+          const errorMsg = error?.message || "Đã có lỗi xảy ra!";
+          console.log("Setting error message to:", errorMsg);
+          setErrorMessageModal(errorMsg);
+          setOpenErrorModal(true);
+          console.log("Modal state set to:", true);
+        });
+    } else {
+      console.log("plan.quitPlan._id is undefined or null");
+    }
+  };
+
+  const handleCloseErrorModal = () => {
+    setOpenErrorModal(false);
+    navigate("/coachPlan");
+  };
+
+  // Chỉ hiển thị lỗi tải dữ liệu ban đầu, không liên quan đến selectPlan
   if (isLoading || isStageLoading) {
     return (
       <Box className="homePage">
@@ -96,13 +134,11 @@ export default function CoachPlaneDetail() {
     );
   }
 
-  if (isError || stageError) {
+  if (isError && !openErrorModal && !isLoading) {
     return (
       <Box className="homePage">
         <Typography color="error">
-          {errorMessage ||
-            stageError?.message ||
-            "Có lỗi xảy ra khi tải dữ liệu!"}
+          {errorMessage || "Có lỗi xảy ra khi tải dữ liệu!"}
         </Typography>
       </Box>
     );
@@ -120,6 +156,18 @@ export default function CoachPlaneDetail() {
 
   return (
     <Box className="homePage">
+      <Dialog open={openErrorModal} onClose={handleCloseErrorModal}>
+        <DialogTitle>Lỗi đăng ký kế hoạch</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{errorMessageModal}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseErrorModal} color="primary">
+            Quay lại
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box className="CoachPlaneDetail">
         <Grid container spacing={8}>
           <Grid item size={8} md={6}>
@@ -227,7 +275,13 @@ export default function CoachPlaneDetail() {
                                 />
                                 <strong>Thời gian: </strong>
                                 {stage.start_date && stage.end_date
-                                  ? `${format(new Date(stage.start_date), "dd/MM/yyyy")} - ${format(new Date(stage.end_date), "dd/MM/yyyy")}`
+                                  ? `${format(
+                                      new Date(stage.start_date),
+                                      "dd/MM/yyyy"
+                                    )} - ${format(
+                                      new Date(stage.end_date),
+                                      "dd/MM/yyyy"
+                                    )}`
                                   : "N/A"}
                               </Typography>
                             </MenuItem>
@@ -283,7 +337,13 @@ export default function CoachPlaneDetail() {
                 style={{ width: "100%", height: "auto" }}
               />
               <Box className="CoachPlaneDetail-image-text">
-                <Button className="btn-apply">Đăng ký ngay</Button>
+                <Button
+                  className="btn-apply"
+                  onClick={handleRegisterPlan}
+                  disabled={isLoading || !plan?.quitPlan?._id}
+                >
+                  Đăng ký ngay
+                </Button>
                 <Box>
                   <Typography
                     variant="body1"
@@ -352,7 +412,7 @@ export default function CoachPlaneDetail() {
       <CreateStageDialog
         open={openStageDialog}
         setOpen={setOpenStageDialog}
-        plans={{ data: [plan.quitPlan] }} // Truyền plan.quitPlan
+        plans={{ data: [plan.quitPlan] }}
         isLoading={isLoading}
         stageToEdit={stageToEdit}
         onStageUpdated={handleStageUpdated}

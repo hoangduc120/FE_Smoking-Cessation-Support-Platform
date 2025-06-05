@@ -1,0 +1,43 @@
+.error-page {
+  position: relative;
+  text-align: center;
+}
+
+.error-title {
+  position: absolute;
+  top: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-size: 60px;
+  color: #e982ad;
+}
+
+.error-text {
+  position: absolute;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-size: 50px;
+  font-weight: bold;
+}
+
+.error-button {
+  position: absolute;
+  bottom: 10px;
+  background: #44b194;
+  right: 50%;
+  transform: translateX(50%);
+  padding: 10px 20px;
+  text-transform: uppercase;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+}
+
+.error-button:hover {
+  transform: translateX(50%) scale(0.9);
+}
