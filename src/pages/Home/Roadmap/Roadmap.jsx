@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Button,
@@ -26,51 +26,101 @@ import {
   Users,
 } from "lucide-react";
 import "./Roadmap.css";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPlanCurrent } from "../../../store/slices/planeSlice";
+
+// Hardcode data for sections not provided by API
+const hardcodedData = {
+  todayTasks: [
+    { id: 1, title: "Giảm xuống còn 5 điếu", completed: false },
+    { id: 2, title: "Uống 2L nước", completed: true },
+    { id: 3, title: "Tập thể dục 15 phút", completed: false },
+    { id: 4, title: "Ghi lại cảm xúc", completed: false },
+  ],
+  recentAchievements: [
+    { id: 1, title: "Hoàn thành 1 tuần giảm dần", date: "24/05/2025" },
+    { id: 2, title: "Tiết kiệm 350.000đ", date: "25/05/2025" },
+  ],
+  savings: 350000,
+  healthImprovement: 15,
+  daysWithoutSmoking: 0,
+  cravingsManaged: 24,
+};
 
 const Roadmap = () => {
   const [tabValue, setTabValue] = useState("community");
+  const dispatch = useDispatch();
+  const { plan, stages, isLoading, isError, errorMessage } = useSelector(
+    (state) => state.plan
+  );
+
+  console.log("Redux state:", {
+    plan,
+    stages,
+    isLoading,
+    isError,
+    errorMessage,
+  });
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  const roadmapData = {
-    id: "roadmap-123",
-    title: "Cai thuốc lá trong 90 ngày",
-    coach: "Nguyễn Văn A",
-    coachId: "coach-123",
-    progress: 35,
-    startDate: "01/05/2025",
-    endDate: "30/07/2025",
-    currentStage: 2,
-    totalStages: 5,
-    stages: [
-      { id: 1, title: "Chuẩn bị", completed: true, duration: "14 ngày" },
-      {
-        id: 2,
-        title: "Giảm dần",
-        completed: false,
-        duration: "21 ngày",
-        current: true,
-      },
-      { id: 3, title: "Ngừng hoàn toàn", completed: false, duration: "7 ngày" },
-      { id: 4, title: "Duy trì", completed: false, duration: "30 ngày" },
-      { id: 5, title: "Củng cố", completed: false, duration: "18 ngày" },
-    ],
-    todayTasks: [
-      { id: 1, title: "Giảm xuống còn 5 điếu", completed: false },
-      { id: 2, title: "Uống 2L nước", completed: true },
-      { id: 3, title: "Tập thể dục 15 phút", completed: false },
-      { id: 4, title: "Ghi lại cảm xúc", completed: false },
-    ],
-    recentAchievements: [
-      { id: 1, title: "Hoàn thành 1 tuần giảm dần", date: "24/05/2025" },
-      { id: 2, title: "Tiết kiệm 350.000đ", date: "25/05/2025" },
-    ],
-    savings: 350000,
-    healthImprovement: 15,
-    daysWithoutSmoking: 0,
-    cravingsManaged: 24,
+  useEffect(() => {
+    console.log("Dispatching fetchPlanCurrent");
+    dispatch(fetchPlanCurrent());
+  }, [dispatch]);
+
+  if (isLoading) {
+    return <Typography>Đang tải dữ liệu...</Typography>;
+  }
+
+  if (isError) {
+    return <Typography color="error">Lỗi: {errorMessage}</Typography>;
+  }
+
+  if (!plan || !stages || stages.length === 0) {
+    return (
+      <Typography>
+        Bạn chưa có kế hoạch nào. Hãy bắt đầu hành trình cai thuốc lá!
+        <Button
+          component={Link}
+          to="/create-plan"
+          variant="contained"
+          sx={{ mt: 2, background: "black", color: "white" }}
+        >
+          Tạo kế hoạch mới
+        </Button>
+      </Typography>
+    );
+  }
+
+  // Calculate progress based on completed stages
+  const totalStages = stages.length;
+  const completedStages = stages.filter((stage) => stage.completed).length;
+  const progress = Math.round((completedStages / totalStages) * 100);
+
+  // Determine current stage
+  const currentStage = stages.find((stage) => !stage.completed) || stages[0];
+  const currentStageIndex =
+    stages.findIndex((stage) => stage._id === currentStage._id) + 1;
+
+  // Format dates
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  // Calculate remaining days
+  const calculateRemainingDays = (endDate) => {
+    const end = new Date(endDate);
+    const today = new Date();
+    const diffTime = end - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
   return (
@@ -88,9 +138,7 @@ const Roadmap = () => {
           <Button
             variant="contained"
             className="roadMap-action-button"
-            sx={{
-              background: "black",
-            }}
+            sx={{ background: "black" }}
           >
             <Link
               style={{
@@ -98,7 +146,7 @@ const Roadmap = () => {
                 color: "white",
                 border: "none",
               }}
-              to={`/member/my-roadmap/stage/${roadmapData.currentStage}`}
+              to={`/member/my-roadmap/stage/${currentStageIndex}`}
             >
               Giai đoạn hiện tại
             </Link>
@@ -112,7 +160,7 @@ const Roadmap = () => {
             <div className="roadMap-card-header-content">
               <div>
                 <Typography variant="h5" className="roadMap-card-title">
-                  {roadmapData.title}
+                  {plan.title}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -120,17 +168,18 @@ const Roadmap = () => {
                 >
                   <Users size={16} className="roadMap-icon" /> Coach:{" "}
                   <Typography className="roadMap-coach-link">
-                    {roadmapData.coach}
+                    {plan.coachId.email}
                   </Typography>
                 </Typography>
               </div>
               <div className="roadMap-card-badges">
                 <Badge color="secondary" className="roadMap-badge">
                   <CalendarDays size={12} className="roadMap-icon" />{" "}
-                  {roadmapData.startDate} - {roadmapData.endDate}
+                  {formatDate(plan.startDate)} - {formatDate(plan.endDate)}
                 </Badge>
                 <Badge color="secondary" className="roadMap-badge">
-                  <Clock size={12} className="roadMap-icon" /> Còn lại: 65 ngày
+                  <Clock size={12} className="roadMap-icon" /> Còn lại:{" "}
+                  {calculateRemainingDays(plan.endDate)} ngày
                 </Badge>
               </div>
             </div>
@@ -141,23 +190,23 @@ const Roadmap = () => {
           <div className="roadMap-progress-section">
             <div className="roadMap-progress-header">
               <span>Tiến độ tổng thể</span>
-              <span>{roadmapData.progress}%</span>
+              <span>{progress}%</span>
             </div>
             <LinearProgress
               variant="determinate"
-              value={roadmapData.progress}
+              value={progress}
               className="roadMap-progress-bar"
             />
           </div>
           <div className="roadMap-timeline">
             <div className="roadMap-timeline-markers">
-              {roadmapData.stages.map((stage) => (
-                <div key={stage.id} className="roadMap-timeline-marker">
+              {stages.map((stage, index) => (
+                <div key={stage._id} className="roadMap-timeline-marker">
                   <div
                     className={`roadMap-timeline-circle ${
                       stage.completed
                         ? "roadMap-timeline-completed"
-                        : stage.current
+                        : stage._id === currentStage._id
                           ? "roadMap-timeline-current"
                           : "roadMap-timeline-pending"
                     }`}
@@ -165,7 +214,7 @@ const Roadmap = () => {
                     {stage.completed ? (
                       <CheckCircle2 size={16} color="white" />
                     ) : (
-                      stage.id
+                      index + 1
                     )}
                   </div>
                 </div>
@@ -174,19 +223,23 @@ const Roadmap = () => {
             <div className="roadMap-timeline-line"></div>
             <div
               className="roadMap-timeline-progress"
-              style={{ width: `${roadmapData.progress}%` }}
+              style={{ width: `${progress}%` }}
             ></div>
             <div className="roadMap-timeline-labels">
-              {roadmapData.stages.map((stage) => (
-                <div key={stage.id} className="roadMap-timeline-label">
+              {stages.map((stage, index) => (
+                <div key={stage._id} className="roadMap-timeline-label">
                   <Link
-                    to={`/member/my-roadmap/stage/${stage.id}`}
-                    className={`roadMap-timeline-link ${stage.current ? "roadMap-timeline-current" : ""}`}
+                    to={`/member/my-roadmap/stage/${index + 1}`}
+                    className={`roadMap-timeline-link ${
+                      stage._id === currentStage._id
+                        ? "roadMap-timeline-current"
+                        : ""
+                    }`}
                   >
-                    {stage.title}
+                    {stage.stage_name}
                   </Link>
                   <span className="roadMap-timeline-duration">
-                    {stage.duration}
+                    {stage.description}
                   </span>
                 </div>
               ))}
@@ -196,9 +249,9 @@ const Roadmap = () => {
         <CardActions className="roadMap-card-footer">
           <div className="roadMap-footer-left">
             <Badge color="primary" className="roadMap-badge">
-              Giai đoạn {roadmapData.currentStage}/{roadmapData.totalStages}
+              Giai đoạn {currentStageIndex}/{totalStages}
             </Badge>
-            <span>{roadmapData.stages.find((s) => s.current)?.title}</span>
+            <span>{currentStage.stage_name}</span>
           </div>
           <div className="roadMap-footer-actions">
             <Button
@@ -249,7 +302,7 @@ const Roadmap = () => {
                 subheader="Hoàn thành các nhiệm vụ để tiến gần hơn đến mục tiêu"
               />
               <CardContent>
-                {roadmapData.todayTasks.map((task) => (
+                {hardcodedData.todayTasks.map((task) => (
                   <div key={task.id} className="roadMap-task-item">
                     <Checkbox checked={task.completed} id={`task-${task.id}`} />
                     <label
@@ -287,7 +340,7 @@ const Roadmap = () => {
                 }
               />
               <CardContent>
-                {roadmapData.recentAchievements.map((achievement) => (
+                {hardcodedData.recentAchievements.map((achievement) => (
                   <div
                     key={achievement.id}
                     className="roadMap-achievement-item"
@@ -335,25 +388,25 @@ const Roadmap = () => {
                 <Grid container spacing={2}>
                   {[
                     {
-                      value: roadmapData.savings.toLocaleString() + "đ",
+                      value: hardcodedData.savings.toLocaleString() + "đ",
                       label: "Tiết kiệm",
                       color: "#3d7433",
                       bg: "#e6f4e4",
                     },
                     {
-                      value: `+${roadmapData.healthImprovement}%`,
+                      value: `+${hardcodedData.healthImprovement}%`,
                       label: "Sức khỏe",
                       color: "#3d7433",
                       bg: "#e6f4e4",
                     },
                     {
-                      value: roadmapData.daysWithoutSmoking,
+                      value: hardcodedData.daysWithoutSmoking,
                       label: "Ngày không hút",
                       color: "#3d7433",
                       bg: "#e6f4e4",
                     },
                     {
-                      value: roadmapData.cravingsManaged,
+                      value: hardcodedData.cravingsManaged,
                       label: "Cơn thèm đã vượt qua",
                       color: "#3d7433",
                       bg: "#e6f4e4",
@@ -396,6 +449,7 @@ const Roadmap = () => {
           </Grid>
         </Grid>
       </Box>
+
       <Box sx={{ marginTop: "40px" }}>
         <Card className="roadMap-card" sx={{ width: "100%" }}>
           <CardHeader title="Hỗ trợ & Tài nguyên" />
