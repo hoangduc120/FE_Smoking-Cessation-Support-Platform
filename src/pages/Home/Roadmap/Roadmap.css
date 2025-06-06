@@ -124,17 +124,15 @@ button.roadMap-action-button {
 }
 
 .roadMap-card {
- border: 1px solid #dedede;
+  border: 1px solid #dedede;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  
 }
 
 .roadMap-progress-section {
   margin-bottom: 24px;
 }
-
 
 .roadMap-progress-header {
   display: flex;
@@ -357,10 +355,14 @@ button.roadMap-action-button {
   margin-bottom: 4px;
 }
 
+.roadMap-progress-content{
+box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;
+}
+
 /* Support Section */
 .roadMap-tabs-list {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Chỉ có 2 tab nên điều chỉnh lại */
+  grid-template-columns: repeat(2, 1fr);
   margin-bottom: 16px;
 }
 

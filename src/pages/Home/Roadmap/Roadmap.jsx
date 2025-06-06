@@ -12,8 +12,9 @@ import {
   Box,
   Badge,
   Grid,
-  Checkbox,
   LinearProgress,
+  TextField,
+  Collapse,
 } from "@mui/material";
 import {
   CalendarDays,
@@ -27,16 +28,15 @@ import {
 } from "lucide-react";
 import "./Roadmap.css";
 import { useDispatch, useSelector } from "react-redux";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as Yup from "yup";
+
 import { fetchPlanCurrent } from "../../../store/slices/planeSlice";
+import { createQuitProgree } from "../../../store/slices/progressSlice";
 
 // Hardcode data for sections not provided by API
 const hardcodedData = {
-  todayTasks: [
-    { id: 1, title: "Giảm xuống còn 5 điếu", completed: false },
-    { id: 2, title: "Uống 2L nước", completed: true },
-    { id: 3, title: "Tập thể dục 15 phút", completed: false },
-    { id: 4, title: "Ghi lại cảm xúc", completed: false },
-  ],
   recentAchievements: [
     { id: 1, title: "Hoàn thành 1 tuần giảm dần", date: "24/05/2025" },
     { id: 2, title: "Tiết kiệm 350.000đ", date: "25/05/2025" },
@@ -47,27 +47,93 @@ const hardcodedData = {
   cravingsManaged: 24,
 };
 
+// Validation schema using Yup
+const validationSchema = Yup.object().shape({
+  cigarettesSmoked: Yup.number()
+    .typeError("Số điếu thuốc phải là số")
+    .required("Số điếu thuốc là bắt buộc")
+    .min(0, "Số điếu thuốc không được âm"),
+  healthStatus: Yup.string()
+    .required("Trạng thái sức khỏe là bắt buộc")
+    .trim()
+    .min(1, "Trạng thái sức khỏe không được để trống"),
+  notes: Yup.string().nullable(),
+});
+
 const Roadmap = () => {
   const [tabValue, setTabValue] = useState("community");
+  const [updateFormOpen, setUpdateFormOpen] = useState({});
+  const [currentDate, setCurrentDate] = useState(new Date().toISOString().split("T")[0]); // YYYY-MM-DD
   const dispatch = useDispatch();
-  const { plan, stages, isLoading, isError, errorMessage } = useSelector(
+  const { plan, stages, progress, isLoading, isError, errorMessage } = useSelector(
     (state) => state.plan
   );
 
   console.log("Redux state:", {
     plan,
     stages,
+    progress,
     isLoading,
     isError,
     errorMessage,
+  });
+
+  // React Hook Form setup
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+    defaultValues: {
+      cigarettesSmoked: "",
+      healthStatus: "",
+      notes: "",
+    },
   });
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
+  const toggleUpdateForm = (stageId) => {
+    setUpdateFormOpen((prev) => ({
+      ...prev,
+      [stageId]: !prev[stageId],
+    }));
+    reset(); // Reset form khi mở/đóng
+  };
+
+  const onSubmit = (data, stageId) => {
+    const payload = {
+      stageId,
+      date: new Date().toISOString(),
+      cigarettesSmoked: parseInt(data.cigarettesSmoked) || 0,
+      healthStatus: data.healthStatus,
+      notes: data.notes || "",
+    };
+    dispatch(createQuitProgree(payload)).then(() => {
+      dispatch(fetchPlanCurrent()); 
+      reset();
+      setUpdateFormOpen((prev) => ({ ...prev, [stageId]: false }));
+    });
+  };
+
+  // Kiểm tra ngày mới để reset form và đóng form mở
   useEffect(() => {
-    console.log("Dispatching fetchPlanCurrent");
+    const interval = setInterval(() => {
+      const newDate = new Date().toISOString().split("T")[0];
+      if (newDate !== currentDate) {
+        setCurrentDate(newDate);
+        reset(); 
+        setUpdateFormOpen({});
+      }
+    }, 60000); 
+    return () => clearInterval(interval);
+  }, [currentDate, reset]);
+
+  useEffect(() => {
     dispatch(fetchPlanCurrent());
   }, [dispatch]);
 
@@ -98,12 +164,15 @@ const Roadmap = () => {
   // Calculate progress based on completed stages
   const totalStages = stages.length;
   const completedStages = stages.filter((stage) => stage.completed).length;
-  const progress = Math.round((completedStages / totalStages) * 100);
+  const overallProgress = Math.round((completedStages / totalStages) * 100);
 
   // Determine current stage
   const currentStage = stages.find((stage) => !stage.completed) || stages[0];
   const currentStageIndex =
     stages.findIndex((stage) => stage._id === currentStage._id) + 1;
+
+  // Check if stage 1 is completed
+  const isStage1Completed = stages[0]?.completed || false;
 
   // Format dates
   const formatDate = (dateString) => {
@@ -121,6 +190,14 @@ const Roadmap = () => {
     const today = new Date();
     const diffTime = end - today;
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Lọc progress chỉ hiển thị của ngày hiện tại
+  const filterTodayProgress = (progressItems) => {
+    return progressItems.filter((p) => {
+      const progressDate = new Date(p.date).toISOString().split("T")[0];
+      return progressDate === currentDate;
+    });
   };
 
   return (
@@ -190,11 +267,11 @@ const Roadmap = () => {
           <div className="roadMap-progress-section">
             <div className="roadMap-progress-header">
               <span>Tiến độ tổng thể</span>
-              <span>{progress}%</span>
+              <span>{overallProgress}%</span>
             </div>
             <LinearProgress
               variant="determinate"
-              value={progress}
+              value={overallProgress}
               className="roadMap-progress-bar"
             />
           </div>
@@ -207,8 +284,8 @@ const Roadmap = () => {
                       stage.completed
                         ? "roadMap-timeline-completed"
                         : stage._id === currentStage._id
-                          ? "roadMap-timeline-current"
-                          : "roadMap-timeline-pending"
+                        ? "roadMap-timeline-current"
+                        : "roadMap-timeline-pending"
                     }`}
                   >
                     {stage.completed ? (
@@ -223,7 +300,7 @@ const Roadmap = () => {
             <div className="roadMap-timeline-line"></div>
             <div
               className="roadMap-timeline-progress"
-              style={{ width: `${progress}%` }}
+              style={{ width: `${overallProgress}%` }}
             ></div>
             <div className="roadMap-timeline-labels">
               {stages.map((stage, index) => (
@@ -232,8 +309,8 @@ const Roadmap = () => {
                     to={`/member/my-roadmap/stage/${index + 1}`}
                     className={`roadMap-timeline-link ${
                       stage._id === currentStage._id
-                        ? "roadMap-timeline-current"
-                        : ""
+                      ? "roadMap-timeline-current"
+                      : ""
                     }`}
                   >
                     {stage.stage_name}
@@ -293,37 +370,179 @@ const Roadmap = () => {
         </CardActions>
       </Card>
 
-      <Box className="roadMap-card-container">
+      <Box className="roadMap-card-container" sx={{ mt: 4 }}>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 8 }} sx={{ lineHeight: "66px" }}>
-            <Card className="roadMap-card">
-              <CardHeader
-                title="Nhiệm vụ hôm nay"
-                subheader="Hoàn thành các nhiệm vụ để tiến gần hơn đến mục tiêu"
-              />
-              <CardContent>
-                {hardcodedData.todayTasks.map((task) => (
-                  <div key={task.id} className="roadMap-task-item">
-                    <Checkbox checked={task.completed} id={`task-${task.id}`} />
-                    <label
-                      htmlFor={`task-${task.id}`}
-                      className={`roadMap-task-label ${task.completed ? "roadMap-task-completed" : ""}`}
+            {stages.map((stage, index) => {
+              const isDisabled = index > 0 && !isStage1Completed;
+              // Lọc progress chỉ cho ngày hiện tại
+              const stageProgress = filterTodayProgress(
+                progress?.filter((p) => p.stageId === stage._id) || []
+              );
+              return (
+                <Card key={stage._id} className="roadMap-card" sx={{ mb: 2 }}>
+                  <CardHeader
+                    title={
+                      <Typography variant="h6">
+                        <span
+                          style={{
+                            fontWeight: "bold",
+                            textTransform: "uppercase",
+                            color: "#1c9f47",
+                          }}
+                        >
+                          {stage.stage_name}
+                        </span>
+                        : {stage.description}
+                      </Typography>
+                    }
+                    subheader="Hoàn thành các nhiệm vụ để tiến gần hơn đến mục tiêu"
+                  />
+                  <CardContent>
+                    {stageProgress.length > 0 && (
+                      <Box
+                        className="roadMap-history"
+                        sx={{
+                          mt: 3,
+                        }}
+                      >
+                        <Typography
+                          variant="h6"
+                          className="roadMap-progress-history-title"
+                          sx={{ mb: 2 }}
+                        >
+                          Lịch sử cập nhật hôm nay
+                        </Typography>
+                        {stageProgress.map((prog) => (
+                          <Card
+                            key={prog._id}
+                            className="roadMap-progress-card"
+                            sx={{ mb: 2 }}
+                          >
+                            <CardContent className="roadMap-progress-content">
+                              <Typography
+                                variant="subtitle1"
+                                className="roadMap-progress-date"
+                              >
+                                Ngày: {formatDate(prog.date)}
+                              </Typography>
+                              <Grid container spacing={2}>
+                                <Grid item xs={12} sm={4}>
+                                  <Typography
+                                    variant="body2"
+                                    className="roadMap-progress-item"
+                                  >
+                                    <strong>Số điếu thuốc:</strong>{" "}
+                                    {prog.cigarettesSmoked}
+                                  </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={4}>
+                                  <Typography
+                                    variant="body2"
+                                    className="roadMap-progress-item"
+                                  >
+                                    <strong>Sức khỏe:</strong>{" "}
+                                    {prog.healthStatus}
+                                  </Typography>
+                                </Grid>
+                                {prog.notes && (
+                                  <Grid item xs={12} sm={4}>
+                                    <Typography
+                                      variant="body2"
+                                      className="roadMap-progress-item roadMap-progress-notes"
+                                    >
+                                      <strong>Ghi chú:</strong> {prog.notes}
+                                    </Typography>
+                                  </Grid>
+                                )}
+                              </Grid>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </Box>
+                    )}
+                    <Collapse in={updateFormOpen[stage._id]}>
+                      <Box
+                        component="form"
+                        onSubmit={handleSubmit((data) => onSubmit(data, stage._id))}
+                        sx={{ mt: 2 }}
+                      >
+                        <Controller
+                          name="cigarettesSmoked"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label="Số điếu thuốc đã hút"
+                              type="number"
+                              fullWidth
+                              disabled={isDisabled}
+                              error={!!errors.cigarettesSmoked}
+                              helperText={errors.cigarettesSmoked?.message}
+                              sx={{ mb: 2 }}
+                            />
+                          )}
+                        />
+                        <Controller
+                          name="healthStatus"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label="Trạng thái sức khỏe"
+                              fullWidth
+                              disabled={isDisabled}
+                              error={!!errors.healthStatus}
+                              helperText={errors.healthStatus?.message}
+                              sx={{ mb: 2 }}
+                            />
+                          )}
+                        />
+                        <Controller
+                          name="notes"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label="Ghi chú"
+                              multiline
+                              rows={3}
+                              fullWidth
+                              disabled={isDisabled}
+                              error={!!errors.notes}
+                              helperText={errors.notes?.message}
+                              sx={{ mb: 2 }}
+                            />
+                          )}
+                        />
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          fullWidth
+                          sx={{ mt: 1, backgroundColor: "green" }}
+                          disabled={isDisabled}
+                        >
+                          Gửi cập nhật
+                        </Button>
+                      </Box>
+                    </Collapse>
+                  </CardContent>
+                  <CardActions>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      sx={{ backgroundColor: "black", color: "white" }}
+                      onClick={() => toggleUpdateForm(stage._id)}
+                      disabled={isDisabled}
                     >
-                      {task.title}
-                    </label>
-                  </div>
-                ))}
-              </CardContent>
-              <CardActions>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  sx={{ backgroundColor: "black", color: "white" }}
-                >
-                  Cập nhật tiến độ
-                </Button>
-              </CardActions>
-            </Card>
+                      {updateFormOpen[stage._id]
+                        ? "Ẩn biểu mẫu"
+                        : "Cập nhật tình trạng"}
+                    </Button>
+                  </CardActions>
+                </Card>
+              );
+            })}
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <Card className="roadMap-card">
@@ -420,10 +639,15 @@ const Roadmap = () => {
                           borderColor: stat.bg,
                         }}
                       >
-                        <Typography variant="h5" style={{ color: stat.color }}>
+                        <Typography
+                          variant="h5"
+                          style={{ color: stat.color }}
+                        >
                           {stat.value}
                         </Typography>
-                        <Typography variant="caption">{stat.label}</Typography>
+                        <Typography variant="caption">
+                          {stat.label}
+                        </Typography>
                       </div>
                     </Grid>
                   ))}
