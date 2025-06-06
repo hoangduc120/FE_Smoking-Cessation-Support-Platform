@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Modal,
   Alert,
+  LinearProgress,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMembership } from "../../../store/slices/membershipSlice";
@@ -41,22 +42,15 @@ const UpgradeMember = () => {
     (state) => state.membership
   );
 
-
-  const user = useSelector((state) => state.user) || {
-    name: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
-    phone: "0123456789",
-  };
-
-  console.log("user",user)
-
-const info = user.user
+  const user = useSelector((state) => state.user);
+  const info = user.user;
 
   const [value, setValue] = useState(0);
   const [selectedCard, setSelectedCard] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [showNoSelectionError, setShowNoSelectionError] = useState(false);
   const [selectedBank, setSelectedBank] = useState(null);
+  const [step, setStep] = useState(1);
 
   useEffect(() => {
     dispatch(fetchMembership());
@@ -90,6 +84,14 @@ const info = user.user
     setSelectedBank(bank);
   };
 
+  const handleNextStep = () => {
+    setStep((prev) => prev + 1);
+  };
+
+  const handleBackStep = () => {
+    setStep((prev) => prev - 1);
+  };
+
   const handleConfirm = () => {
     if (selectedCard !== null && plans[selectedCard] && selectedBank) {
       console.log("Xác nhận thanh toán:", {
@@ -101,6 +103,7 @@ const info = user.user
     }
     setOpenModal(false);
     setSelectedBank(null);
+    setStep(1);
   };
 
   const plans = Array.isArray(membershipData)
@@ -146,7 +149,10 @@ const info = user.user
           </Box>
         ) : isError ? (
           <Typography color="error" align="center" sx={{ mt: 4 }}>
-            Lỗi: {errorMessage?.message || errorMessage || "Không thể tải dữ liệu gói thành viên."}
+            Lỗi:{" "}
+            {errorMessage?.message ||
+              errorMessage ||
+              "Không thể tải dữ liệu gói thành viên."}
           </Typography>
         ) : (
           <>
@@ -177,13 +183,26 @@ const info = user.user
                             height: "100%",
                           }}
                         >
-                          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+                          <Typography
+                            variant="h6"
+                            gutterBottom
+                            sx={{ fontWeight: "bold" }}
+                          >
                             {plan.title}
                           </Typography>
-                          <Typography variant="h5" color="black" gutterBottom sx={{ fontWeight: "bold" }}>
+                          <Typography
+                            variant="h5"
+                            color="black"
+                            gutterBottom
+                            sx={{ fontWeight: "bold" }}
+                          >
                             {plan.price}
                           </Typography>
-                          <Typography variant="body2" color="textSecondary" gutterBottom>
+                          <Typography
+                            variant="body2"
+                            color="textSecondary"
+                            gutterBottom
+                          >
                             {plan.duration}
                           </Typography>
                         </Box>
@@ -199,7 +218,11 @@ const info = user.user
                               borderBottomRightRadius: "8px",
                             }}
                           >
-                            <Typography className="selected-text" variant="body2" color="white">
+                            <Typography
+                              className="selected-text"
+                              variant="body2"
+                              color="white"
+                            >
                               Đã chọn
                             </Typography>
                           </Box>
@@ -246,7 +269,11 @@ const info = user.user
                           <TableCell>{info.feature}</TableCell>
                           {plans.map((plan, idx) => (
                             <TableCell key={idx} align="center">
-                              {info[plan.title] ? <span className="check-mark">✓</span> : "-"}
+                              {info[plan.title] ? (
+                                <span className="check-mark">✓</span>
+                              ) : (
+                                "-"
+                              )}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -285,85 +312,177 @@ const info = user.user
             <Typography id="modal-title" className="modal-title">
               Xác Nhận Thanh Toán
             </Typography>
-            {selectedCard !== null && plans[selectedCard] ? (
-              <div className="modal-content-wrapper">
-                <div className="modal-info-column">
-                  <Box className="modal-info-section">
-                    <Typography className="modal-info-title">Thông tin người dùng</Typography>
-                    <Typography className="modal-info">Họ tên: {info.userName}</Typography>
-                    <Typography className="modal-info">Email: {info.email}</Typography>
-                    <Typography className="modal-info">
-                      Số điện thoại: {info.phone}
-                    </Typography>
-                  </Box>
+            <Typography className="modal-step">Bước {step} / 3</Typography>
+            <Box className="modal-progress">
+              <LinearProgress
+                variant="determinate"
+                value={(step / 3) * 100}
+                sx={{
+                  "& .MuiLinearProgress-bar": {
+                    backgroundColor: "#1c9f47",
+                  },
+                }}
+              />
+            </Box>
 
-                  <Box className="modal-info-section">
-                    <Typography className="modal-info-title">Thông tin gói</Typography>
-                    <Typography className="modal-info">
-                      Gói thành viên: {plans[selectedCard].title}
-                    </Typography>
-                    <Typography className="modal-info">
-                      Giá: {plans[selectedCard].price}
-                    </Typography>
-                    <Typography className="modal-info">
-                      Thời gian: {plans[selectedCard].duration}
-                    </Typography>
-                    <Typography className="modal-info">Các tính năng:</Typography>
-                    <ul className="modal-features">
-                      {plans[selectedCard].features.map((feature, idx) => (
-                        <li key={idx}>
-                          <span className="check-mark">✓</span> {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </Box>
-                </div>
-
-                <div className="modal-bank-column">
-                  <Box className="modal-info-section">
-                    <Typography className="modal-info-title">
-                      Chọn phương thức thanh toán
-                    </Typography>
-                    <div className="bank-grid">
-                      {bankOptions.map((bank) => (
-                        <div
-                          key={bank.value}
-                          className={`bank-option ${
-                            selectedBank?.value === bank.value ? "bank-option-selected" : ""
-                          }`}
-                          onClick={() => handleSelectBank(bank)}
-                        >
-                          <img
-                            src={bank.logo}
-                            alt={bank.name}
-                            className="bank-logo"
-                          />
-                          <Typography className="bank-name">{bank.name}</Typography>
-                        </div>
-                      ))}
-                    </div>
-                  </Box>
-                </div>
-              </div>
-            ) : (
-              <Typography>Không có thông tin để xác nhận.</Typography>
+            {step === 1 && (
+              <Box className="modal-info-section">
+                <Typography className="modal-info-title">
+                  Thông tin người dùng
+                </Typography>
+                <Typography className="modal-info">
+                  Họ tên: {info?.userName}
+                </Typography>
+                <Typography className="modal-info">
+                  Email: {info?.email}
+                </Typography>
+                <Typography className="modal-info">
+                  Số điện thoại: {info?.phone}
+                </Typography>
+              </Box>
             )}
+
+            {step === 2 && selectedCard !== null && plans[selectedCard] && (
+              <Box className="modal-info-section">
+                <Typography className="modal-info-title">
+                  Thông tin gói & Phương thức thanh toán
+                </Typography>
+                <Typography className="modal-info">
+                  Gói thành viên: {plans[selectedCard].title}
+                </Typography>
+                <Typography className="modal-info">
+                  Giá: {plans[selectedCard].price}
+                </Typography>
+                <Typography className="modal-info">
+                  Thời gian: {plans[selectedCard].duration}
+                </Typography>
+                <Typography className="modal-info">Các tính năng:</Typography>
+                <ul className="modal-features">
+                  {plans[selectedCard].features.map((feature, idx) => (
+                    <li key={idx}>
+                      <span className="check-mark">✓</span> {feature}
+                    </li>
+                  ))}
+                </ul>
+                <Typography className="modal-info-title" sx={{ mt: 2 }}>
+                  Chọn phương thức thanh toán
+                </Typography>
+                <div className="bank-grid">
+                  {bankOptions.map((bank) => (
+                    <div
+                      key={bank.value}
+                      className={`bank-option ${
+                        selectedBank?.value === bank.value
+                          ? "bank-option-selected"
+                          : ""
+                      }`}
+                      onClick={() => handleSelectBank(bank)}
+                    >
+                      <img
+                        src={bank.logo}
+                        alt={bank.name}
+                        className="bank-logo"
+                      />
+                      <Typography
+                        className={`bank-name ${selectedBank?.value === bank.value ? "bank-name-selected" : ""}`}
+                      >
+                        {bank.name}
+                      </Typography>
+                    </div>
+                  ))}
+                </div>
+              </Box>
+            )}
+
+            {step === 3 &&
+              selectedCard !== null &&
+              plans[selectedCard] &&
+              selectedBank && (
+                <Box className="step3-container">
+                  <Card className="step3-card">
+                    <CardContent>
+                      <Typography className="step3-card-title">
+                        Thông tin người dùng
+                      </Typography>
+                      <Typography className="step3-card-text">
+                        Họ tên: {info.userName || "Không có dữ liệu"}
+                      </Typography>
+                      <Typography className="step3-card-text">
+                        Email: {info.email || "Không có dữ liệu"}
+                      </Typography>
+                      <Typography className="step3-card-text">
+                        Số điện thoại: {info.phone || "Không có dữ liệu"}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                  <Card className="step3-card">
+                    <CardContent>
+                      <Typography className="step3-card-title">
+                        Thông tin gói thành viên
+                      </Typography>
+                      <Typography className="step3-card-text">
+                        Gói: {plans[selectedCard].title}
+                      </Typography>
+                      <Typography className="step3-card-text">
+                        Giá: {plans[selectedCard].price}
+                      </Typography>
+                      <Typography className="step3-card-text">
+                        Thời gian: {plans[selectedCard].duration}
+                      </Typography>
+                      <Typography className="step3-card-text">
+                        Tính năng:
+                      </Typography>
+                      <ul className="modal-features">
+                        {plans[selectedCard].features.map((feature, idx) => (
+                          <li key={idx}>
+                            <span className="check-mark">✓</span> {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                  <Card className="step3-card">
+                    <CardContent>
+                      <Typography className="step3-card-title">
+                        Phương thức thanh toán
+                      </Typography>
+                      <Typography className="step3-card-text">
+                        Phương thức: {selectedBank.name}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Box>
+              )}
+
             <Box className="modal-buttons">
+              {step > 1 && (
+                <Button className="modal-back-button" onClick={handleBackStep}>
+                  Quay lại
+                </Button>
+              )}
               <Button
-                variant="outlined"
                 className="modal-cancel-button"
                 onClick={handleCloseModal}
               >
                 Hủy
               </Button>
-              <Button
-                variant="contained"
-                className="modal-confirm-button"
-                onClick={handleConfirm}
-                disabled={!selectedBank}
-              >
-                Xác nhận
-              </Button>
+              {step < 3 ? (
+                <Button
+                  className="modal-next-button"
+                  onClick={handleNextStep}
+                  disabled={step === 2 && !selectedBank}
+                >
+                  Tiếp theo
+                </Button>
+              ) : (
+                <Button
+                  className="modal-confirm-button"
+                  onClick={handleConfirm}
+                  disabled={!selectedBank}
+                >
+                  Xác nhận
+                </Button>
+              )}
             </Box>
           </Box>
         </Modal>
