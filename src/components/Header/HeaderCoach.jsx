@@ -1,5 +1,5 @@
 import { Box, Typography, Avatar, Menu, MenuItem, Badge } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { Bell, MessageSquare } from "lucide-react";
@@ -48,7 +48,7 @@ const HeaderCoach = () => {
 
   const handleProfile = () => {
     handleClose();
-    navigate(PATH.PROFILE);
+    navigate(PATH.PROFILECOACH);
   };
 
   const handleChat = () => {
@@ -56,9 +56,9 @@ const HeaderCoach = () => {
     navigate(PATH.CHATPAGE);
   };
 
-  const handleRoadmap = () => {
+  const handleBlog = () => {
     handleClose();
-    navigate(PATH.ROADMAP);
+    navigate(PATH.BLOGPAGE);
   };
 
   // Fallback counts if not available in user object
@@ -96,11 +96,7 @@ const HeaderCoach = () => {
         >
           <MessageSquare size={24} color="#2e7d32" />
         </Badge>
-        <Avatar
-          src={user?.profilePicture || ""}
-          sx={{ bgcolor: "#2e7d32", cursor: "pointer" }}
-          onClick={handleAvatarClick}
-        >
+        <Avatar src={user?.profilePicture || ""} onClick={handleAvatarClick}>
           {user?.name?.charAt(0) || "C"}
         </Avatar>
         <Menu
@@ -118,7 +114,7 @@ const HeaderCoach = () => {
         >
           <MenuItem onClick={handleProfile}>Hồ sơ</MenuItem>
           <MenuItem onClick={handleChat}>Tin nhắn</MenuItem>
-          <MenuItem onClick={handleRoadmap}>Bài viết</MenuItem>
+          <MenuItem onClick={handleBlog}>Bài viết</MenuItem>
           <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
         </Menu>
       </Box>

@@ -19,7 +19,7 @@
   color: #333;
 }
 
-.badge-add-button {
+button.badge-add-button {
   background-color: #19a24b;
   color: white;
   text-transform: none;
@@ -46,7 +46,7 @@
 
 .badge-table-container {
   border: 1px solid #afafaf;
-  border-radius: 10px;
+  border-radius: 10px !important;
   background-color: #fff;
   overflow: hidden;
 }
@@ -93,7 +93,7 @@
 }
 
 .badge-modal {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -105,18 +105,8 @@
   padding: 20px;
   max-height: 80vh;
   overflow-y: auto;
-  animation: badge-modal-slide 0.3s ease;
-}
-
-@keyframes badge-modal-slide {
-  from {
-    transform: translate(-50%, -60%);
-    opacity: 0;
-  }
-  to {
-    transform: translate(-50%, -50%);
-    opacity: 1;
-  }
+  animation: badge-modal-slide 0.3s ease forwards;
+  z-index: 1300;
 }
 
 .badge-modal-header {
@@ -195,6 +185,8 @@
   margin-bottom: 16px;
   border-radius: 8px;
   border: 1px solid #afafaf;
+  display: block;
+  margin-left: 27%;
 }
 
 .badge-card-title {
