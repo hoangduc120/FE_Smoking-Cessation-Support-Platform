@@ -30,8 +30,7 @@ export const PATH = {
   COACH_MESSAGING: "/coach/messaging",
   COACH_PLAN_BADGE: "/coach/badge",
   COACH_SETTINGS: "/coach/settings",
-  
-
+  PROFILECOACH: "/coach/profileCoach",
 
   // ADMIN
   ADMIN: "/admin",

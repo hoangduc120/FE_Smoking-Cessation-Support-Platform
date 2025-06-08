@@ -1,10 +1,9 @@
-// SidebarCoach.jsx
 import { MessageSquare, Calendar, Settings, Menu, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import StairsIcon from "@mui/icons-material/Stairs";
-import "./SidebarCoach.css";
+import "../Sidebar-Coach/SidebarCoach.css";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "../../store/slices/userSlice";
 import { logoutApi } from "../../store/slices/authSlice";
@@ -13,32 +12,27 @@ import { PATH } from "../../routes/path";
 
 const SIDEBAR_ITEMS = [
   {
-    name: "Plan Management",
-    icon: Calendar,
-    color: "#6366f1",
-    href: "/coach/plan-management",
+    name: "Dashboard",
+    icon: StairsIcon,
+    color: "#6EE7B7",
+    href: "/admin",
   },
   {
     name: "Messaging",
     icon: MessageSquare,
     color: "#EC4899",
-    href: "/coach/messaging",
+    href: "/admin",
   },
-  {
-    name: "Badge",
-    icon: StairsIcon,
-    color: "#10B981",
-    href: "/coach/badge",
-  },
+
   {
     name: "Settings",
     icon: Settings,
     color: "#6EE7B7",
-    href: "/coach/settings",
+    href: "/admin",
   },
 ];
 
-const SidebarCoach = () => {
+const SidebarAdmin = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -157,4 +151,4 @@ const SidebarCoach = () => {
   );
 };
 
-export default SidebarCoach;
+export default SidebarAdmin;

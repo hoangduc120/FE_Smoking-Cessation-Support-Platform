@@ -42,9 +42,8 @@ export default function BadgeTable() {
   const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 3; // Số mục trên mỗi trang, giống PlanManagementPage
+  const pageSize = 3;
 
-  // Fetch danh sách plan khi component mount
   useEffect(() => {
     if (!auth?.currentUser) {
       navigate(PATH.LOGIN);
@@ -56,7 +55,6 @@ export default function BadgeTable() {
     }
   }, [auth, coachId, dispatch, navigate]);
 
-  // Fetch badges khi chọn plan và mở modal
   const handleViewBadges = (planId) => {
     setSelectedPlanId(planId);
     dispatch(fetchBadgesByPlan({ quitPlanId: planId, page: 1, limit: 10 }));
@@ -71,12 +69,6 @@ export default function BadgeTable() {
   const handleOpenDialog = () => {
     setOpenDialog(true);
   };
-
-  // Debug badges và plans state
-  useEffect(() => {
-    console.log("Badges state:", badges);
-    console.log("Plans state:", plans);
-  }, [badges, plans]);
 
   // Phân trang
   const filteredPlans = plans?.data || [];
@@ -193,7 +185,6 @@ export default function BadgeTable() {
                         src={badge.icon_url}
                         alt={badge.name}
                         className="badge-card-icon"
-                        onError={(e) => (e.target.src = "/fallback-badge.png")}
                       />
                     ) : (
                       <img
