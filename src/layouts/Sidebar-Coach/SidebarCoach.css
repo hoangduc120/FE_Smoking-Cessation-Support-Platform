@@ -1,19 +1,20 @@
-.sidebar-coach-container {
+/* SidebarCoach.css */
+.sidebar {
   position: relative;
   z-index: 10;
   transition: all 0.3s ease-in-out;
   flex-shrink: 0;
 }
 
-.sidebar-coach-container.open {
+.sidebar--open {
   width: 256px;
 }
 
-.sidebar-coach-container.closed {
+.sidebar--closed {
   width: 80px;
 }
 
-.sidebar-coach-content {
+.sidebar__content {
   height: 100%;
   background-color: transparent;
   backdrop-filter: blur(4px);
@@ -23,44 +24,84 @@
   border-right: 1px solid #0ed84b;
 }
 
-.toggle-button {
+.sidebar__toggle-button {
   padding: 0.5rem;
   border-radius: 9999px;
   transition: background-color 0.3s;
   max-width: fit-content;
 }
 
-.toggle-button:hover {
+.sidebar__toggle-button:hover {
   background-color: #29cc00;
 }
 
-.nav-menu {
-  margin-top: 2rem;
+.sidebar__greeting {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid black;
+}
+
+.sidebar__greeting-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1ba14b !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar__nav-menu {
   flex-grow: 1;
 }
 
-.nav-item {
+.sidebar__nav-item {
   display: flex;
   align-items: center;
   padding: 1rem;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   border-radius: 0.5rem;
   transition: background-color 0.3s;
   margin-bottom: 0.5rem;
 }
 
-.nav-item:hover {
-  background-color: #88f1b4;
+.sidebar__nav-item:hover {
+  background-color: #88ffaa;
 }
 
-.nav-icon {
+.sidebar__nav-icon {
   min-width: 20px;
 }
 
-.nav-text {
-  margin-left: 1rem;
+.sidebar__nav-text {
+  margin-left: 2rem;
   white-space: nowrap;
   color: black !important;
-  text-decoration: none;
+  text-decoration: none !important;
+  font-size: 1.25rem;
+}
+
+.sidebar__logout-button {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: background-color 0.3s;
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar__logout-button:hover {
+  background-color: #fecaca;
+}
+
+a {
+  text-decoration: none !important;
 }

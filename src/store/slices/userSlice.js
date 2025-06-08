@@ -7,10 +7,6 @@ export const fetchUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetcher.get("/users/profile/me");
-      console.log(
-        "User profile fetched successfully:",
-        response.data.data.user
-      );
       return response.data.data.user;
     } catch (error) {
       return rejectWithValue(

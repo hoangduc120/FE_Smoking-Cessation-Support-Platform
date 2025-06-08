@@ -1,14 +1,15 @@
-import { Box, Button, Typography, Avatar, Menu, MenuItem } from "@mui/material";
+import { Box, Typography, Avatar, Menu, MenuItem, Badge } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import "./Header.css";
+import { Bell, MessageSquare } from "lucide-react";
+import "./HeaderCoach.css";
 import { PATH } from "../../routes/path";
 import { logoutApi } from "../../store/slices/authSlice";
-import toast from "react-hot-toast";
 import { fetchUser } from "../../store/slices/userSlice";
+import toast from "react-hot-toast";
 
-const Header = () => {
+const HeaderCoach = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
@@ -49,18 +50,24 @@ const Header = () => {
     handleClose();
     navigate(PATH.PROFILE);
   };
+
   const handleChat = () => {
     handleClose();
     navigate(PATH.CHATPAGE);
   };
+
   const handleRoadmap = () => {
     handleClose();
     navigate(PATH.ROADMAP);
   };
 
+  // Fallback counts if not available in user object
+  const unreadNotifications = user?.unreadNotifications || 0;
+  const unreadMessages = user?.unreadMessages || 0;
+
   return (
-    <Box className="header">
-      <Box className="header-logo">
+    <Box className="header-coach">
+      <Box className="header-coach__logo">
         <Typography
           variant="h6"
           sx={{ fontWeight: 700, color: "#2e7d32", cursor: "pointer" }}
@@ -72,33 +79,29 @@ const Header = () => {
           QuitSmoke
         </Typography>
       </Box>
-      <Box className="header-nav">
-        <Link to="/" className="nav-link">
-          Trang chủ
-        </Link>
-        <Link to={PATH.BLOGPAGE} className="nav-link">
-          Bài viết
-        </Link>
-        <Link to={PATH.ABOUTUS} className="nav-link">
-          Về chúng tôi
-        </Link>
-        <Link to={PATH.BENEFIT} className="nav-link">
-          Lợi ích cai thuốc
-        </Link>
-        <Link to={PATH.RESOURCES} className="nav-link">
-          Tài nguyên
-        </Link>
-        <Link to={PATH.CONTACT} className="nav-link">
-          Liên hệ
-        </Link>
-      </Box>
-      <Box className="header-actions">
+      <Box className="header-coach__actions">
+        <Badge
+          badgeContent={unreadNotifications}
+          color="error"
+          sx={{ mr: 2, cursor: "pointer" }}
+          onClick={() => navigate(PATH.NOTIFICATIONS)}
+        >
+          <Bell size={24} color="#2e7d32" />
+        </Badge>
+        <Badge
+          badgeContent={unreadMessages}
+          color="error"
+          sx={{ mr: 2, cursor: "pointer" }}
+          onClick={handleChat}
+        >
+          <MessageSquare size={24} color="#2e7d32" />
+        </Badge>
         <Avatar
           src={user?.profilePicture || ""}
           sx={{ bgcolor: "#2e7d32", cursor: "pointer" }}
           onClick={handleAvatarClick}
         >
-          U
+          {user?.name?.charAt(0) || "C"}
         </Avatar>
         <Menu
           anchorEl={anchorEl}
@@ -115,7 +118,7 @@ const Header = () => {
         >
           <MenuItem onClick={handleProfile}>Hồ sơ</MenuItem>
           <MenuItem onClick={handleChat}>Tin nhắn</MenuItem>
-          <MenuItem onClick={handleRoadmap}>Lộ trình</MenuItem>
+          <MenuItem onClick={handleRoadmap}>Bài viết</MenuItem>
           <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
         </Menu>
       </Box>
@@ -123,4 +126,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default HeaderCoach;
