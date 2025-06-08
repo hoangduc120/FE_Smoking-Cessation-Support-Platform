@@ -33,6 +33,7 @@ import Resources from "../pages/Home/Resources/Resources";
 import Contact from "../pages/Home/Contact/Contact";
 import PlaneStage from "../pages/Coacher/PlaneStage/PlaneStage";
 import UserLayout from "../layouts/UserLayout/UserLayout";
+import BadgeTable from "../pages/Coacher/Badge/BadgeTable";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -195,7 +196,7 @@ export default function useRouterElement() {
       children: [
         { path: PATH.PLANMANAGEMEMTPAGE, element: <PlanManagementPage /> },
         { path: PATH.COACH_MESSAGING, element: <MessagingPage /> },
-        { path: PATH.COACH_PLAN_STAGES, element: <PlaneStage /> },
+        { path: PATH.COACH_PLAN_BADGE, element: <BadgeTable /> },
       ],
     },
     // ADMIN
