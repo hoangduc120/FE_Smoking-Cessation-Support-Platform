@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { googleLoginCallback } from "../store/slices/authSlice";
@@ -10,14 +10,21 @@ export const useGoogleCallback = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { isLoading, error } = useSelector((state) => state.auth);
+    const hasProcessed = useRef(false);
+    const isProcessing = useRef(false);
 
     useEffect(() => {
         const handleGoogleCallback = async () => {
             const urlParams = new URLSearchParams(location.search);
             const accessToken = urlParams.get("accessToken");
 
-            if (accessToken) {
+            if (accessToken && !hasProcessed.current && !isProcessing.current) {
+                hasProcessed.current = true;
+                isProcessing.current = true;
+
                 try {
+                    window.history.replaceState({}, document.title, "/");
+
                     // Dispatch Google login callback action
                     const result = await dispatch(googleLoginCallback(accessToken)).unwrap();
 
@@ -37,19 +44,21 @@ export const useGoogleCallback = () => {
                             navigate(PATH.HOME, { replace: true });
                         }
                     }
-
-                    // Xóa token khỏi URL
-                    window.history.replaceState({}, document.title, "/");
                 } catch (err) {
                     console.error("Error handling Google login callback:", err);
                     toast.error("Lỗi khi đăng nhập bằng Google. Vui lòng thử lại!");
                     navigate(PATH.LOGIN, { replace: true });
+                    hasProcessed.current = false;
+                } finally {
+                    isProcessing.current = false;
                 }
             }
         };
 
-        handleGoogleCallback();
-    }, [location.search, dispatch, navigate]);
+        const timeoutId = setTimeout(handleGoogleCallback, 100);
+
+        return () => clearTimeout(timeoutId);
+    }, [location.search]);
 
     return { isLoading, error };
 }; 
