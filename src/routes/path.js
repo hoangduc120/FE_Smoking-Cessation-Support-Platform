@@ -35,4 +35,7 @@ export const PATH = {
 
   // ADMIN
   ADMIN: "/admin",
+
+  // ERROR
+  ERROR: "*",
 };

@@ -94,12 +94,22 @@ fetcher.interceptors.response.use(
         return fetcher(originalRequest);
       } catch (refreshError) {
         toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+
+        localStorage.removeItem("currentUser");
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
         Cookies.remove("accessToken");
         Cookies.remove("refreshToken");
+
         isRefreshing = false;
         processQueue(refreshError);
-        window.location.href = "/auth/login";
+
+        setTimeout(() => {
+          if (!window.location.pathname.includes("/auth/login")) {
+            window.location.href = "/auth/login";
+          }
+        }, 100);
+
         return Promise.reject(refreshError);
       }
     }
