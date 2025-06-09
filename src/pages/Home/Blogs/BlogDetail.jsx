@@ -37,10 +37,10 @@ const BlogDetail = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { selectedBlog, isLoading } = useSelector((state) => state.blogs);
+  const { currentUser } = useSelector((state) => state.auth);
   const [comment, setComment] = useState("");
   const [isLikeProcessing, setIsLikeProcessing] = useState(false);
   const [visibleComments, setVisibleComments] = useState(5);
-  const { currentUser } = useSelector((state) => state.auth);
 
   const handleShowMoreComments = () => {
     setVisibleComments((prev) =>
@@ -52,7 +52,6 @@ const BlogDetail = () => {
     setVisibleComments((prev) => Math.max(prev - 10, 5));
   };
 
-  // Kiểm tra selectedBlog trước khi truy cập comments
   const displayedComments =
     selectedBlog?.comments?.slice(0, visibleComments) || [];
   const remainingComments = selectedBlog?.comments?.length
@@ -112,7 +111,6 @@ const BlogDetail = () => {
         })
       )
         .unwrap()
-
         .catch((error) => {
           dispatch({
             type: "blogs/addCommentApi/rejected",
@@ -127,6 +125,12 @@ const BlogDetail = () => {
 
   const handleTagClick = (tag) => {
     navigate(`/blog?tag=${tag}`);
+  };
+
+  const handleAuthorClick = () => {
+    if (selectedBlog?.authorId) {
+      navigate(`/author/${selectedBlog.authorId}`);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -251,7 +255,9 @@ const BlogDetail = () => {
                     height: 48,
                     mr: 2,
                     border: `2px solid ${alpha("#4CAF50", 0.3)}`,
+                    cursor: "pointer",
                   }}
+                  onClick={handleAuthorClick}
                 >
                   <PersonIcon />
                 </Avatar>
@@ -259,7 +265,8 @@ const BlogDetail = () => {
                   <Typography
                     variant="subtitle1"
                     fontWeight="600"
-                    sx={{ color: "#2E7D32" }}
+                    sx={{ color: "#2E7D32", cursor: "pointer" }}
+                    onClick={handleAuthorClick}
                   >
                     {selectedBlog.authorName}
                   </Typography>

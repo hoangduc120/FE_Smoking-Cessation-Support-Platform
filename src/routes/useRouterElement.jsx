@@ -35,6 +35,7 @@ import PlaneStage from "../pages/Coacher/PlaneStage/PlaneStage";
 import UserLayout from "../layouts/UserLayout/UserLayout";
 import BadgeTable from "../pages/Coacher/Badge/BadgeTable";
 import ProfileCoach from "../pages/Auth/ProFileCoach/ProfileCoach";
+import AuthorProfile from "../pages/Home/Blogs/AuthorProfile";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -143,6 +144,14 @@ export default function useRouterElement() {
           element: (
             <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
               <BlogDetail />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: PATH.AUTHORPROFILE,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
+              <AuthorProfile />
             </ProtectedRoute>
           ),
         },

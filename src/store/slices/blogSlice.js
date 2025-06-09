@@ -20,7 +20,10 @@ const normalizeBlog = (blog, currentUserId) => ({
     text: comment.text || "Không có nội dung",
     author: {
       id: comment.author?._id || "unknown",
-      name: comment.author?.name || comment.author?.email?.split("@")[0] || "Người dùng",
+      name:
+        comment.author?.name ||
+        comment.author?.email?.split("@")[0] ||
+        "Người dùng",
       avatar: comment.author?.avatar || "/placeholder.svg",
     },
     createdAt: comment.createdAt || new Date().toISOString(),
@@ -31,15 +34,23 @@ export const fetchBlogsApi = createAsyncThunk(
   "blogs/fetchAll",
   async (params = { page: 1, limit: 10 }, { getState, rejectWithValue }) => {
     try {
-      const { page = 1, limit = 10, tag, slug, search, sortBy, sortOrder } = params;
+      const {
+        page = 1,
+        limit = 10,
+        tag,
+        slug,
+        search,
+        sortBy,
+        sortOrder,
+      } = params;
       const queryParams = new URLSearchParams();
-      queryParams.append('page', page);
-      queryParams.append('limit', limit);
-      if (tag) queryParams.append('tag', tag);
-      if (slug) queryParams.append('slug', slug);
-      if (search) queryParams.append('search', search);
-      if (sortBy) queryParams.append('sortBy', sortBy);
-      if (sortOrder) queryParams.append('sortOrder', sortOrder);
+      queryParams.append("page", page);
+      queryParams.append("limit", limit);
+      if (tag) queryParams.append("tag", tag);
+      if (slug) queryParams.append("slug", slug);
+      if (search) queryParams.append("search", search);
+      if (sortBy) queryParams.append("sortBy", sortBy);
+      if (sortOrder) queryParams.append("sortOrder", sortOrder);
 
       const response = await fetcher.get(`/blogs?${queryParams.toString()}`);
       const currentUserId = getState().auth.currentUser?.userId;
@@ -55,12 +66,54 @@ export const fetchBlogsApi = createAsyncThunk(
           total,
           currentPage,
           totalPages,
-          limit
-        }
+          limit,
+        },
       };
     } catch (error) {
       return rejectWithValue(
-        error.response ? error.response.data : { message: error.message || "Không thể tải dữ liệu blog" }
+        error.response
+          ? error.response.data
+          : { message: error.message || "Không thể tải dữ liệu blog" }
+      );
+    }
+  }
+);
+
+// Fetch blogs by user ID
+export const fetchBlogsByUserApi = createAsyncThunk(
+  "blogs/fetchByUser",
+  async ({ userId, page = 1, limit = 10 }, { getState, rejectWithValue }) => {
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append("page", page);
+      queryParams.append("limit", limit);
+
+      const response = await fetcher.get(
+        `/blogs/user/${userId}?${queryParams.toString()}`
+      );
+      const currentUserId = getState().auth.currentUser?.userId;
+      const { blogs, total, currentPage, totalPages } = response.data.data;
+
+      const normalizedBlogs = blogs
+        .filter((blog) => !blog.isDeleted && !blog.isHidden)
+        .map((blog) => normalizeBlog(blog, currentUserId));
+
+      return {
+        blogs: normalizedBlogs,
+        pagination: {
+          total,
+          currentPage,
+          totalPages,
+          limit,
+        },
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error.response
+          ? error.response.data
+          : {
+              message: error.message || "Không thể tải bài viết của người dùng",
+            }
       );
     }
   }
@@ -128,12 +181,13 @@ export const toggleLikeBlogApi = createAsyncThunk(
     } catch (error) {
       console.error("Lỗi khi like blog:", error);
       return rejectWithValue(
-        error.response ? error.response.data : { message: error.message || "Không thể cập nhật lượt thích" }
+        error.response
+          ? error.response.data
+          : { message: error.message || "Không thể cập nhật lượt thích" }
       );
     }
   }
 );
-
 
 // Add a comment to a blog
 export const addCommentApi = createAsyncThunk(
@@ -155,7 +209,10 @@ export const addCommentApi = createAsyncThunk(
           text: comment.text,
           author: {
             id: comment.author?._id || currentUserId,
-            name: comment.author?.name || comment.author?.email?.split("@")[0] || "Người dùng",
+            name:
+              comment.author?.name ||
+              comment.author?.email?.split("@")[0] ||
+              "Người dùng",
             avatar: comment.author?.avatar || "/placeholder.svg",
           },
           createdAt: comment.createdAt,
@@ -168,6 +225,7 @@ export const addCommentApi = createAsyncThunk(
     }
   }
 );
+
 const blogSlice = createSlice({
   name: "blogs",
   initialState: {
@@ -177,7 +235,7 @@ const blogSlice = createSlice({
       currentPage: 1,
       totalPages: 1,
       total: 0,
-      limit: 10
+      limit: 10,
     },
     isLoading: false,
     error: null,
@@ -190,8 +248,8 @@ const blogSlice = createSlice({
       const { blogId, isLiked, likeCount } = payload;
 
       // Tìm blog trong blogs array
-      const blogInList = state.blogs.find((b) =>
-        b.id === blogId || b._id === blogId
+      const blogInList = state.blogs.find(
+        (b) => b.id === blogId || b._id === blogId
       );
 
       // Cập nhật blog trong danh sách nếu tìm thấy
@@ -201,8 +259,10 @@ const blogSlice = createSlice({
       }
 
       // Cập nhật selectedBlog nếu là blog đang xem
-      if (state.selectedBlog &&
-        (state.selectedBlog.id === blogId || state.selectedBlog._id === blogId)) {
+      if (
+        state.selectedBlog &&
+        (state.selectedBlog.id === blogId || state.selectedBlog._id === blogId)
+      ) {
         state.selectedBlog.isLiked = isLiked;
         state.selectedBlog.likeCount = likeCount;
       }
@@ -230,6 +290,22 @@ const blogSlice = createSlice({
       state.isLoading = false;
       state.error = payload;
       toast.error(payload?.message || "Không thể tải bài viết");
+    });
+
+    // New extra reducers for fetchBlogsByUserApi
+    builder.addCase(fetchBlogsByUserApi.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(fetchBlogsByUserApi.fulfilled, (state, { payload }) => {
+      state.isLoading = false;
+      state.blogs = payload.blogs;
+      state.pagination = payload.pagination;
+      state.error = null;
+    });
+    builder.addCase(fetchBlogsByUserApi.rejected, (state, { payload }) => {
+      state.isLoading = false;
+      state.error = payload;
+      toast.error(payload?.message || "Không thể tải bài viết của người dùng");
     });
 
     builder.addCase(fetchBlogBySlugApi.pending, (state) => {
@@ -261,11 +337,10 @@ const blogSlice = createSlice({
       toast.error(payload?.message || "Không thể tạo bài viết");
     });
 
-    builder.addCase(toggleLikeBlogApi.pending, (state) => {
-    });
+    builder.addCase(toggleLikeBlogApi.pending, (state) => {});
     builder.addCase(toggleLikeBlogApi.fulfilled, (state, { payload }) => {
-      const blog = state.blogs.find((b) =>
-        b.id === payload.id || b._id === payload.id
+      const blog = state.blogs.find(
+        (b) => b.id === payload.id || b._id === payload.id
       );
 
       if (blog) {
@@ -273,8 +348,11 @@ const blogSlice = createSlice({
         blog.likeCount = payload.likeCount;
       }
 
-      if (state.selectedBlog &&
-        (state.selectedBlog.id === payload.id || state.selectedBlog._id === payload.id)) {
+      if (
+        state.selectedBlog &&
+        (state.selectedBlog.id === payload.id ||
+          state.selectedBlog._id === payload.id)
+      ) {
         state.selectedBlog.isLiked = payload.isLiked;
         state.selectedBlog.likeCount = payload.likeCount;
       }
@@ -292,16 +370,16 @@ const blogSlice = createSlice({
     builder.addCase(addCommentApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
       if (state.selectedBlog && state.selectedBlog.id === payload.blogId) {
-        console.log('Current comments:', state.selectedBlog.comments);
+        console.log("Current comments:", state.selectedBlog.comments);
         state.selectedBlog.comments = [
           payload.comment,
           ...state.selectedBlog.comments.filter(
-            (c) => !c.id || !c.id.startsWith('temp-')
+            (c) => !c.id || !c.id.startsWith("temp-")
           ),
         ];
       }
       state.error = null;
-    })
+    });
     builder.addCase(addCommentApi.rejected, (state, { payload }) => {
       state.isLoading = false;
       state.error = payload;
@@ -311,7 +389,7 @@ const blogSlice = createSlice({
         );
       }
       toast.error(payload?.message || "Không thể thêm bình luận");
-    })
+    });
   },
 });
 
