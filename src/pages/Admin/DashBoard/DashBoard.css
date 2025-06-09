@@ -1,0 +1,120 @@
+.dashboard-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dasboard-titleLeft {
+  display: flex;
+  flex-direction: column;
+  line-height: 2rem;
+}
+
+.dashboard-title-text {
+  font-weight: bold !important;
+  font-size: 40px !important;
+}
+
+.dashboard-title-span {
+  color: #90979d;
+  font-size: 20px;
+}
+
+.dasboard-titleRight {
+  align-items: center;
+  padding: 5px;
+  border: 1px solid #baf8d1;
+  border-radius: 10px;
+  color: #52af75;
+  font-weight: bold !important;
+}
+
+.dasboard-titleRight-text {
+  display: flex;
+}
+
+/* card */
+
+.dashboard-card {
+  margin-top: 40px;
+}
+
+.dashboard-grid-plan {
+  padding: 30px;
+  justify-content: space-between;
+  display: flex !important;
+  align-items: center;
+  background-color: #e4f0fe;
+  border-radius: 10px;
+}
+
+.dashboard-card-icons {
+  padding: 10px;
+  display: flex;
+  background-color: #b8dcff;
+  border: 5px solid #beddf6;
+  border-radius: 50%;
+}
+
+.dashboard-grid-user {
+  padding: 30px;
+  justify-content: space-between;
+  display: flex !important;
+  align-items: center;
+  background-color: #e5fded;
+  border-radius: 10px;
+}
+.dashboard-card-icons-user {
+  padding: 10px;
+  display: flex;
+  background-color: #c0f5d1;
+  border: 5px solid #c0f5d1;
+  border-radius: 50%;
+}
+
+.dashboard-grid-plan-percent {
+  padding: 30px;
+  justify-content: space-between;
+  display: flex !important;
+  align-items: center;
+  background-color: #f7efff;
+  border-radius: 10px;
+}
+
+.dashboard-card-icons-percent {
+  padding: 10px;
+  display: flex;
+  background-color: #e6d7ff;
+  border: 5px solid #e6d7ff;
+  border-radius: 50%;
+}
+
+.dashboard-grid-plan-today {
+  padding: 30px;
+  justify-content: space-between;
+  display: flex !important;
+  align-items: center;
+  background-color: #fff4e6;
+  border-radius: 10px;
+}
+
+.dashboard-card-icons-today {
+  padding: 10px;
+  display: flex;
+  background-color: #fed8ab;
+  border: 5px solid #fed8ab;
+  border-radius: 50%;
+}
+
+.dashboard-chart {  
+  margin-top: 40px;
+}
+
+.chart-right {
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  align-items: start;
+  border-radius: 10px;
+}

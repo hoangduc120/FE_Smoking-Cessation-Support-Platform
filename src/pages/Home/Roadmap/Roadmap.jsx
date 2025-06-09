@@ -63,11 +63,12 @@ const validationSchema = Yup.object().shape({
 const Roadmap = () => {
   const [tabValue, setTabValue] = useState("community");
   const [updateFormOpen, setUpdateFormOpen] = useState({});
-  const [currentDate, setCurrentDate] = useState(new Date().toISOString().split("T")[0]); // YYYY-MM-DD
+  const [currentDate, setCurrentDate] = useState(
+    new Date().toISOString().split("T")[0]
+  ); // YYYY-MM-DD
   const dispatch = useDispatch();
-  const { plan, stages, progress, isLoading, isError, errorMessage } = useSelector(
-    (state) => state.plan
-  );
+  const { plan, stages, progress, isLoading, isError, errorMessage } =
+    useSelector((state) => state.plan);
 
   console.log("Redux state:", {
     plan,
@@ -114,7 +115,7 @@ const Roadmap = () => {
       notes: data.notes || "",
     };
     dispatch(createQuitProgree(payload)).then(() => {
-      dispatch(fetchPlanCurrent()); 
+      dispatch(fetchPlanCurrent());
       reset();
       setUpdateFormOpen((prev) => ({ ...prev, [stageId]: false }));
     });
@@ -126,10 +127,10 @@ const Roadmap = () => {
       const newDate = new Date().toISOString().split("T")[0];
       if (newDate !== currentDate) {
         setCurrentDate(newDate);
-        reset(); 
+        reset();
         setUpdateFormOpen({});
       }
-    }, 60000); 
+    }, 60000);
     return () => clearInterval(interval);
   }, [currentDate, reset]);
 
@@ -284,8 +285,8 @@ const Roadmap = () => {
                       stage.completed
                         ? "roadMap-timeline-completed"
                         : stage._id === currentStage._id
-                        ? "roadMap-timeline-current"
-                        : "roadMap-timeline-pending"
+                          ? "roadMap-timeline-current"
+                          : "roadMap-timeline-pending"
                     }`}
                   >
                     {stage.completed ? (
@@ -309,8 +310,8 @@ const Roadmap = () => {
                     to={`/member/my-roadmap/stage/${index + 1}`}
                     className={`roadMap-timeline-link ${
                       stage._id === currentStage._id
-                      ? "roadMap-timeline-current"
-                      : ""
+                        ? "roadMap-timeline-current"
+                        : ""
                     }`}
                   >
                     {stage.stage_name}
@@ -464,7 +465,9 @@ const Roadmap = () => {
                     <Collapse in={updateFormOpen[stage._id]}>
                       <Box
                         component="form"
-                        onSubmit={handleSubmit((data) => onSubmit(data, stage._id))}
+                        onSubmit={handleSubmit((data) =>
+                          onSubmit(data, stage._id)
+                        )}
                         sx={{ mt: 2 }}
                       >
                         <Controller
@@ -639,15 +642,10 @@ const Roadmap = () => {
                           borderColor: stat.bg,
                         }}
                       >
-                        <Typography
-                          variant="h5"
-                          style={{ color: stat.color }}
-                        >
+                        <Typography variant="h5" style={{ color: stat.color }}>
                           {stat.value}
                         </Typography>
-                        <Typography variant="caption">
-                          {stat.label}
-                        </Typography>
+                        <Typography variant="caption">{stat.label}</Typography>
                       </div>
                     </Grid>
                   ))}
