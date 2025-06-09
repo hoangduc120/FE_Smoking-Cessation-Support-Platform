@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -55,54 +55,70 @@ export default function AuthorProfile() {
   const [expandedPostId, setExpandedPostId] = useState(null);
   const [showAllComments, setShowAllComments] = useState({});
   const [commentTexts, setCommentTexts] = useState({});
+  const hasFetchedStats = useRef(false);
 
-  // Fetch author, blogs, user, stats, and following
+  const [localFollowState, setLocalFollowState] = useState(null);
+  useEffect(() => {
+    if (Array.isArray(following) && authorId) {
+      setLocalFollowState(following.includes(authorId));
+    }
+  }, [following, authorId]);
+
+  const isFollowing = localFollowState !== null ? localFollowState : (Array.isArray(following) && following.includes(authorId));
+
   useEffect(() => {
     if (authorId) {
       dispatch(fetchAuthorById(authorId));
       dispatch(fetchBlogsByUserApi({ userId: authorId }));
       dispatch(fetchUser());
-      dispatch(fetchUserStats(authorId));
-      if (user?._id) {
-        dispatch(fetchFollowing(user._id));
-      }
     } else {
       console.error("No authorId provided");
     }
-  }, [dispatch, authorId, user?._id]);
+  }, [dispatch, authorId]);
+
+  useEffect(() => {
+    if (authorId && !hasFetchedStats.current) {
+      dispatch(fetchUserStats(authorId));
+      hasFetchedStats.current = true;
+    }
+  }, [dispatch, authorId]);
+
+  useEffect(() => {
+    if (user?._id && following.length === 0) {
+      dispatch(fetchFollowing(user._id));
+    }
+  }, [dispatch, user?._id, following.length]);
 
   const authorPosts = blogs.filter((post) => post.authorId === authorId);
 
-  // Check if the current user is following the author
-  const isFollowing = Array.isArray(following) && following.includes(authorId);
-
   const handleFollowToggle = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
+      event.stopPropagation();
+
       if (isFollowProcessing || !authorId || !user?._id) return;
 
       setIsFollowProcessing(true);
-      const action = isFollowing ? unfollowUser : followUser;
 
-      dispatch(action(authorId))
-        .unwrap()
-        .then(() => {
+      try {
+        const action = isFollowing ? unfollowUser : followUser;
+        const result = await dispatch(action(authorId)).unwrap();
+
+        if (result.success) {
           toast.success(isFollowing ? "Đã bỏ theo dõi!" : "Đã theo dõi!");
-        })
-        .catch((error) => {
-          console.error("Follow action error:", error);
-          if (error === "Already following this user") {
-            toast.error("Bạn đã theo dõi người dùng này!");
-            dispatch(fetchFollowing(user._id));
-          } else {
-            toast.error(
-              error || `Lỗi khi ${isFollowing ? "bỏ theo dõi" : "theo dõi"}`
-            );
-          }
-        })
-        .finally(() => {
-          setIsFollowProcessing(false);
-        });
+        }
+      } catch (error) {
+        console.error("Follow action error:", error);
+        if (error === "Already following this user") {
+          toast.error("Bạn đã theo dõi người dùng này!");
+        } else {
+          toast.error(
+            error || `Lỗi khi ${isFollowing ? "bỏ theo dõi" : "theo dõi"}`
+          );
+        }
+      } finally {
+        setIsFollowProcessing(false);
+      }
     },
     [isFollowProcessing, authorId, user?._id, isFollowing, dispatch]
   );
@@ -141,8 +157,6 @@ export default function AuthorProfile() {
         .unwrap()
         .then(() => {
           toast.success("Bình luận đã được gửi!");
-          // Làm mới danh sách bài viết
-          dispatch(fetchBlogsByUserApi({ userId: authorId }));
         })
         .catch((error) => {
           // Xóa bình luận tạm thời nếu API thất bại
@@ -307,13 +321,14 @@ export default function AuthorProfile() {
                 textOverflow: "ellipsis",
               }}
             >
-              {stats.followersCount || 0} người theo dõi •{" "}
-              {stats[0]?.followingCount || 0} người đang theo dõi
+              {stats?.followersCount || 0} người theo dõi •{" "}
+              {stats?.followingCount || 0} người đang theo dõi
             </Typography>
           </Box>
           {user && user._id !== authorId && (
             <Box sx={{ display: "flex", gap: 1.5 }}>
               <Button
+                type="button"
                 variant={isFollowing ? "outlined" : "contained"}
                 startIcon={
                   isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />
