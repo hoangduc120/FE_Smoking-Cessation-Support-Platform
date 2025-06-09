@@ -128,9 +128,12 @@ export const fetchPlanCurrent = createAsyncThunk(
 export const planSlice = createSlice({
   name: "plan",
   initialState: {
-    plan: [],
+    plan: null,
+    stages: [],
+    progress: [],
     isLoading: false,
     isError: null,
+    errorMessage: "",
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -240,9 +243,9 @@ export const planSlice = createSlice({
       })
       .addCase(fetchPlanCurrent.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.plan = action.payload.plan; 
-        state.stages = action.payload.stages; 
-        state.progress = action.payload.progress; 
+        state.plan = action.payload?.plan || null;
+        state.stages = action.payload?.stages;
+        state.progress = action.payload?.progress;
       })
       .addCase(fetchPlanCurrent.rejected, (state, { payload }) => {
         state.isLoading = false;
