@@ -99,7 +99,7 @@ fetcher.interceptors.response.use(
         Cookies.remove("refreshToken");
         isRefreshing = false;
         processQueue(refreshError);
-        window.location.href = "/login";
+        window.location.href = "/auth/login";
         return Promise.reject(refreshError);
       }
     }
