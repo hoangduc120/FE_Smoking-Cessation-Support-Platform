@@ -18,10 +18,10 @@ const SIDEBAR_ITEMS = [
     href: "/admin",
   },
   {
-    name: "Messaging",
+    name: "Account",
     icon: MessageSquare,
     color: "#EC4899",
-    href: "/admin",
+    href: "/admin/account",
   },
 
   {

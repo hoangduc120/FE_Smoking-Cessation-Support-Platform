@@ -4,6 +4,10 @@ import AdjustIcon from "@mui/icons-material/Adjust";
 import PeopleIcon from "@mui/icons-material/People";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TimelineIcon from "@mui/icons-material/Timeline";
+import AddTaskIcon from "@mui/icons-material/AddTask";
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
+import ErrorIcon from "@mui/icons-material/Error";
+import WarningIcon from "@mui/icons-material/Warning";
 import { Doughnut, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -15,8 +19,10 @@ import {
   LinearScale,
   CategoryScale,
 } from "chart.js";
-
 import "./DashBoard.css";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { fetchDashboard } from "../../../store/slices/dashboard";
 
 ChartJS.register(
   ArcElement,
@@ -111,6 +117,18 @@ const configLine = {
 };
 
 export default function DashBoardAdmin() {
+  const dispatch = useDispatch();
+  const { dashboard, isLoading, isError } = useSelector(
+    (state) => state.dashboard
+  );
+
+  const warningData = dashboard?.data?.plansAtRisk;
+
+  useEffect(() => {
+    dispatch(fetchDashboard());
+  }, []);
+
+  
   return (
     <Box className="dashboard">
       <Box className="dashboard-title">
@@ -143,7 +161,7 @@ export default function DashBoardAdmin() {
                   fontWeight: "bold",
                 }}
               >
-                150
+                {dashboard?.data?.totalOngoingPlans}
               </span>
             </Box>
             <Box className="dashboard-card-icons">
@@ -185,7 +203,7 @@ export default function DashBoardAdmin() {
                   fontWeight: "bold",
                 }}
               >
-                150
+                {dashboard?.data?.successRate}
               </span>
             </Box>
             <Box className="dashboard-card-icons-percent">
@@ -218,7 +236,7 @@ export default function DashBoardAdmin() {
       <Box className="dashboard-chart">
         <Grid container spacing={2}>
           <Grid item size={6} className="chart-right">
-            <Box className="chart-title">
+            <Box className="dashboard-card-content">
               <Typography sx={{ fontSize: "30px" }}>
                 Trạng thái kế hoạch
               </Typography>
@@ -230,7 +248,7 @@ export default function DashBoardAdmin() {
               sx={{
                 width: "300px",
                 height: "300px",
-                marginLeft: "25%",
+                marginLeft: "17%",
                 marginTop: "30px",
               }}
             >
@@ -246,9 +264,9 @@ export default function DashBoardAdmin() {
             </Box>
             <Box
               sx={{
-                width: "500px",
+                width: "400px",
                 height: "300px",
-                marginLeft: "10%",
+                marginLeft: "5%",
                 marginTop: "30px",
               }}
             >
@@ -257,10 +275,107 @@ export default function DashBoardAdmin() {
           </Grid>
         </Grid>
       </Box>
-      <Box className="dashboard-progress">
+      <Box className="dashboard-progress" sx={{ width: "100%" }}>
         <Grid container spacing={2}>
-          <Grid size={6}> Về nhà làm </Grid>
-          <Grid size={6}> Về nhà làm</Grid>
+          <Grid item size={6} className="chart-right">
+            <Box className="dashboard-card-content">
+              <Typography sx={{ fontSize: "30px" }}>
+                Tiến độ hệ thống
+              </Typography>
+              <Typography sx={{ color: "#9c9797", fontSize: "20px" }}>
+                Các chỉ số quan trọng
+              </Typography>
+              <div className="progress-item">
+                <Typography className="progress-label">
+                  Kế hoạch hoàn thành{" "}
+                  <span className="progress-value">
+                    {dashboard?.data?.completedPlans}/
+                    {dashboard?.data?.totalOngoingPlans}
+                  </span>
+                </Typography>
+                <div className="progress-bar-wrapper">
+                  <div className="progress-bar">
+                    <div
+                      className="progress-fill"
+                      style={{ width: "53.33%" }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <div className="progress-item">
+                <Typography className="progress-label">
+                  Người dùng hoạt động{" "}
+                  <span className="progress-value">120/300</span>
+                </Typography>
+                <div className="progress-bar-wrapper">
+                  <div className="progress-bar">
+                    <div
+                      className="progress-fill"
+                      style={{ width: "40%" }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <div className="progress-item">
+                <Typography className="progress-label">
+                  Tỷ thành công <span className="progress-value">76.2%</span>
+                </Typography>
+                <div className="progress-bar-wrapper">
+                  <div className="progress-bar">
+                    <div
+                      className="progress-fill"
+                      style={{ width: "76.2%" }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </Box>
+          </Grid>
+          <Grid item size={6} className="chart-right">
+            <Box className="dashboard-card-content" sx={{ padding: 2 }}>
+              <Typography sx={{ fontSize: "30px" }}>Cảnh báo rủi ro</Typography>
+              <Typography sx={{ color: "#9c9797", fontSize: "20px" }}>
+                Kế hoạch cần theo dõi
+              </Typography>
+
+              <Box className="grid-warning">
+                <Box className="grid-warning-content-low">
+                  <Typography className="grid-warning-text-low">
+                    <AddTaskIcon
+                      sx={{ marginRight: "15px", color: "#3e8f5c" }}
+                    />{" "}
+                    Rủi ro thấp{" "}
+                  </Typography>
+                  <span className="grid-warning-text-low-sup "> 10</span>
+                </Box>
+                <Box className="grid-warning-content-medium">
+                  <Typography className="grid-warning-text-medium">
+                    <ErrorIcon sx={{ marginRight: "15px", color: "#b39438" }} />{" "}
+                    Rủi ro trung bình{" "}
+                  </Typography>
+                  <span className="grid-warning-text-medium-sup "> 10</span>
+                </Box>
+                <Box className="grid-warning-content-high">
+                  <Typography className="grid-warning-text-high">
+                    <PriorityHighIcon
+                      sx={{ marginRight: "15px", color: "#d46926" }}
+                    />{" "}
+                    Rủi ro trung cao{" "}
+                  </Typography>
+                  <span className="grid-warning-text-high-sup "> 10</span>
+                </Box>
+                <Box className="grid-warning-content-danger">
+                  <Typography className="grid-warning-text-danger">
+                    <WarningIcon
+                      sx={{ marginRight: "15px", color: "#d65861" }}
+                    />{" "}
+                    Nguy Cấp{" "}
+                  </Typography>
+                  <span className="grid-warning-text-danger-sup "> 10</span>
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
         </Grid>
       </Box>
     </Box>
