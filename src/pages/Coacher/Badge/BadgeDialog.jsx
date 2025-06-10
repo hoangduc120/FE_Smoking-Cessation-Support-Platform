@@ -90,10 +90,6 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
         description: data.description,
         userId,
       };
-
-      console.log("Submitting payload:", payload);
-      console.log("Submitting quitPlanId:", data.quitPlanId);
-
       await dispatch(
         createBadge({ payload, quitPlanId: data.quitPlanId })
       ).unwrap();
@@ -107,7 +103,6 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
     }
   };
 
-  console.log("Plans in BadgeDialog:", plans);
 
   return (
     <>

@@ -289,10 +289,8 @@ const BlogPage = () => {
       if (debouncedSearchTerm) params.search = debouncedSearchTerm;
 
       try {
-        console.log("Fetching blogs with params:", params);
         const result = await dispatch(fetchBlogsApi(params)).unwrap();
         if (!isMounted.current) return;
-        console.log("API Response:", result);
       } catch (error) {
         console.error("Error fetching blogs:", error);
       } finally {
@@ -351,238 +349,240 @@ const BlogPage = () => {
   );
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        background: `linear-gradient(135deg, ${alpha("#E8F5E8", 0.3)} 0%, ${alpha("#F1F8E9", 0.3)} 100%)`,
-      }}
-    >
-      <Container maxWidth="xl" sx={{ py: 6 }}>
-        {/* Header Section */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 3, md: 4 },
-            mb: 4,
-            borderRadius: 3,
-            background: `linear-gradient(135deg, ${alpha("#4CAF50", 0.1)} 0%, ${alpha("#81C784", 0.1)} 100%)`,
-            border: `1px solid ${alpha("#4CAF50", 0.2)}`,
-          }}
-        >
-          <Stack
-            direction={{ xs: "column", md: "row" }}
-            justifyContent="space-between"
-            alignItems={{ xs: "flex-start", md: "center" }}
-            spacing={3}
-          >
-            <Box>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <ArticleIcon sx={{ fontSize: 40, color: "#4CAF50", mr: 2 }} />
-                <Typography
-                  variant="h3"
-                  component="h1"
-                  sx={{
-                    fontWeight: 700,
-                    color: "#2E7D32",
-                    fontSize: { xs: "2rem", md: "2.5rem" },
-                  }}
-                >
-                  Blog QuitSmoke
-                </Typography>
-              </Box>
-              <Typography
-                variant="h6"
-                color="text.secondary"
-                sx={{
-                  maxWidth: 600,
-                  lineHeight: 1.6,
-                  color: "#424242",
-                }}
-              >
-                Khám phá những kiến thức, thông tin và chia sẻ hữu ích về cai
-                thuốc lá và lối sống khỏe mạnh
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<AddIcon />}
-              onClick={() => navigate(PATH.CREATEBLOG)}
-              sx={{
-                bgcolor: "#4CAF50",
-                "&:hover": { bgcolor: "#45a049" },
-                borderRadius: 2,
-                px: 4,
-                py: 1.5,
-                fontSize: "1rem",
-                fontWeight: 600,
-                boxShadow: `0 4px 12px ${alpha("#4CAF50", 0.3)}`,
-                minWidth: { xs: "100%", md: "auto" },
-              }}
-            >
-              Tạo bài viết
-            </Button>
-          </Stack>
-        </Paper>
-        {/* Search Section */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            mb: 4,
-            borderRadius: 3,
-            border: `1px solid ${alpha("#4CAF50", 0.2)}`,
-            background: "white",
-          }}
-        >
-          <form onSubmit={handleSearch}>
-            <TextField
-              fullWidth
-              placeholder="Tìm kiếm bài viết về cai thuốc lá..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      type="submit"
-                      sx={{
-                        color: "#4CAF50",
-                        "&:hover": { bgcolor: alpha("#4CAF50", 0.1) },
-                      }}
-                    >
-                      <SearchIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  "&:hover fieldset": {
-                    borderColor: "#4CAF50",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#4CAF50",
-                  },
-                },
-              }}
-            />
-          </form>
-        </Paper>
-        {selectedTag && (
-          <Box sx={{ mb: 4 }}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                bgcolor: alpha("#4CAF50", 0.1),
-                border: `1px solid ${alpha("#4CAF50", 0.3)}`,
-                display: "inline-block",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <LocalOfferIcon
-                  sx={{ color: "#4CAF50", mr: 1, fontSize: 20 }}
-                />
-                <Chip
-                  label={`Tag: ${selectedTag}`}
-                  onDelete={() => handleTagClick(null)}
-                  sx={{
-                    bgcolor: "#4CAF50",
-                    color: "#FFFFFF",
-                    "& .MuiChip-deleteIcon": {
-                      color: "#FFFFFF",
-                      "&:hover": {
-                        color: alpha("#FFFFFF", 0.8),
-                      },
-                    },
-                  }}
-                />
-              </Box>
-            </Paper>
-          </Box>
-        )}
-        <Divider sx={{ mb: 4, borderColor: alpha("#4CAF50", 0.2) }} />
-        {/* Blog List */}
-        {isLoading || isFetching ? (
-          <Grid container spacing={2}>
-            {[...Array(5)].map((_, index) => (
-              <BlogSkeleton key={index} />
-            ))}
-          </Grid>
-        ) : blogs.length === 0 ? (
+    <>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          background: `linear-gradient(135deg, ${alpha("#E8F5E8", 0.3)} 0%, ${alpha("#F1F8E9", 0.3)} 100%)`,
+        }}
+      >
+        <Container maxWidth="xl" sx={{ py: 6 }}>
+          {/* Header Section */}
           <Paper
             elevation={0}
             sx={{
-              textAlign: "center",
-              py: 8,
+              p: { xs: 3, md: 4 },
+              mb: 4,
               borderRadius: 3,
-              bgcolor: alpha("#F1F8E9", 0.5),
+              background: `linear-gradient(135deg, ${alpha("#4CAF50", 0.1)} 0%, ${alpha("#81C784", 0.1)} 100%)`,
               border: `1px solid ${alpha("#4CAF50", 0.2)}`,
             }}
           >
-            <ArticleIcon
-              sx={{ fontSize: 64, color: alpha("#4CAF50", 0.5), mb: 2 }}
-            />
-            <Typography variant="h6" sx={{ color: "#2E7D32", mb: 1 }}>
-              Không tìm thấy bài viết nào
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Hãy thử tìm kiếm với từ khóa khác hoặc tạo bài viết mới
-            </Typography>
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              justifyContent="space-between"
+              alignItems={{ xs: "flex-start", md: "center" }}
+              spacing={3}
+            >
+              <Box>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <ArticleIcon sx={{ fontSize: 40, color: "#4CAF50", mr: 2 }} />
+                  <Typography
+                    variant="h3"
+                    component="h1"
+                    sx={{
+                      fontWeight: 700,
+                      color: "#2E7D32",
+                      fontSize: { xs: "2rem", md: "2.5rem" },
+                    }}
+                  >
+                    Blog QuitSmoke
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="h6"
+                  color="text.secondary"
+                  sx={{
+                    maxWidth: 600,
+                    lineHeight: 1.6,
+                    color: "#424242",
+                  }}
+                >
+                  Khám phá những kiến thức, thông tin và chia sẻ hữu ích về cai
+                  thuốc lá và lối sống khỏe mạnh
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<AddIcon />}
+                onClick={() => navigate(PATH.CREATEBLOG)}
+                sx={{
+                  bgcolor: "#4CAF50",
+                  "&:hover": { bgcolor: "#45a049" },
+                  borderRadius: 2,
+                  px: 4,
+                  py: 1.5,
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  boxShadow: `0 4px 12px ${alpha("#4CAF50", 0.3)}`,
+                  minWidth: { xs: "100%", md: "auto" },
+                }}
+              >
+                Tạo bài viết
+              </Button>
+            </Stack>
           </Paper>
-        ) : (
-          <Grid
-            container
-            spacing={2}
+          {/* Search Section */}
+          <Paper
+            elevation={0}
             sx={{
-              width: "100%",
-              margin: 0,
-              display: "flex",
-              flexWrap: "wrap",
+              p: 3,
+              mb: 4,
+              borderRadius: 3,
+              border: `1px solid ${alpha("#4CAF50", 0.2)}`,
+              background: "white",
             }}
           >
-            {blogs.map((blog, index) => (
-              <BlogItem
-                key={blog.id + "-" + index}
-                blog={blog}
-                onTagClick={handleTagClick}
-                onLike={handleLike}
-                onNavigate={navigateToBlog}
-              />
-            ))}
-          </Grid>
-        )}
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-            <Pagination
-              count={pagination.totalPages || 1}
-              page={page}
-              onChange={handlePageChange}
-              color="primary"
-              sx={{
-                "& .MuiPaginationItem-root": {
-                  color: "#2E7D32",
-                  "&:hover": {
-                    bgcolor: alpha("#4CAF50", 0.1),
-                  },
-                  "&.Mui-selected": {
-                    bgcolor: "#4CAF50",
-                    color: "#FFFFFF",
-                    "&:hover": {
-                      bgcolor: "#45a049",
+            <form onSubmit={handleSearch}>
+              <TextField
+                fullWidth
+                placeholder="Tìm kiếm bài viết về cai thuốc lá..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        type="submit"
+                        sx={{
+                          color: "#4CAF50",
+                          "&:hover": { bgcolor: alpha("#4CAF50", 0.1) },
+                        }}
+                      >
+                        <SearchIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    "&:hover fieldset": {
+                      borderColor: "#4CAF50",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#4CAF50",
                     },
                   },
-                },
+                }}
+              />
+            </form>
+          </Paper>
+          {selectedTag && (
+            <Box sx={{ mb: 4 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: alpha("#4CAF50", 0.1),
+                  border: `1px solid ${alpha("#4CAF50", 0.3)}`,
+                  display: "inline-block",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <LocalOfferIcon
+                    sx={{ color: "#4CAF50", mr: 1, fontSize: 20 }}
+                  />
+                  <Chip
+                    label={`Tag: ${selectedTag}`}
+                    onDelete={() => handleTagClick(null)}
+                    sx={{
+                      bgcolor: "#4CAF50",
+                      color: "#FFFFFF",
+                      "& .MuiChip-deleteIcon": {
+                        color: "#FFFFFF",
+                        "&:hover": {
+                          color: alpha("#FFFFFF", 0.8),
+                        },
+                      },
+                    }}
+                  />
+                </Box>
+              </Paper>
+            </Box>
+          )}
+          <Divider sx={{ mb: 4, borderColor: alpha("#4CAF50", 0.2) }} />
+          {/* Blog List */}
+          {isLoading || isFetching ? (
+            <Grid container spacing={2}>
+              {[...Array(5)].map((_, index) => (
+                <BlogSkeleton key={index} />
+              ))}
+            </Grid>
+          ) : blogs.length === 0 ? (
+            <Paper
+              elevation={0}
+              sx={{
+                textAlign: "center",
+                py: 8,
+                borderRadius: 3,
+                bgcolor: alpha("#F1F8E9", 0.5),
+                border: `1px solid ${alpha("#4CAF50", 0.2)}`,
               }}
-            />
-          </Box>
-        )}
-      </Container>
-    </Box>
+            >
+              <ArticleIcon
+                sx={{ fontSize: 64, color: alpha("#4CAF50", 0.5), mb: 2 }}
+              />
+              <Typography variant="h6" sx={{ color: "#2E7D32", mb: 1 }}>
+                Không tìm thấy bài viết nào
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Hãy thử tìm kiếm với từ khóa khác hoặc tạo bài viết mới
+              </Typography>
+            </Paper>
+          ) : (
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                width: "100%",
+                margin: 0,
+                display: "flex",
+                flexWrap: "wrap",
+              }}
+            >
+              {blogs.map((blog, index) => (
+                <BlogItem
+                  key={blog.id + "-" + index}
+                  blog={blog}
+                  onTagClick={handleTagClick}
+                  onLike={handleLike}
+                  onNavigate={navigateToBlog}
+                />
+              ))}
+            </Grid>
+          )}
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+              <Pagination
+                count={pagination.totalPages || 1}
+                page={page}
+                onChange={handlePageChange}
+                color="primary"
+                sx={{
+                  "& .MuiPaginationItem-root": {
+                    color: "#2E7D32",
+                    "&:hover": {
+                      bgcolor: alpha("#4CAF50", 0.1),
+                    },
+                    "&.Mui-selected": {
+                      bgcolor: "#4CAF50",
+                      color: "#FFFFFF",
+                      "&:hover": {
+                        bgcolor: "#45a049",
+                      },
+                    },
+                  },
+                }}
+              />
+            </Box>
+          )}
+        </Container>
+      </Box>
+    </>
   );
 };
 

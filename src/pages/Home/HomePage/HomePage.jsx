@@ -31,9 +31,7 @@ const navigate = useNavigate();
     JSON.parse(localStorage.getItem("currentUser"))
   );
 
-  // Kiểm tra đăng nhập và reset state khi tài khoản thay đổi
   useEffect(() => {
-    console.log("currentUser:", currentUser);
     if (!currentUser || !currentUser.token) {
       navigate(PATH.LOGIN);
       return
@@ -43,7 +41,6 @@ const navigate = useNavigate();
     dispatch(fetchAssessment(currentUser?.user?.id || "1"));
   }, [currentUser, dispatch, navigate]);
 
-  // Xử lý khi nhấn nút "Bắt đầu ngay"
   const handleStart = () => {
     if (!currentUser || !currentUser.token) {
       toast.error("Vui lòng đăng nhập để tiếp tục!");
@@ -61,11 +58,9 @@ const navigate = useNavigate();
       return;
     }
 
-    // Kiểm tra dữ liệu khảo sát
     const hasSurvey = assessmentData?.data?.length > 0;
     navigate(hasSurvey ? "/upgradeMember" : PATH.ASSESSMENTPAGE);
   };
-  // Sample data for carousel cards with avatars
   const testimonials = [
     {
       quote:

@@ -6,7 +6,6 @@ export const fetchUsers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetcher.get("/chat/users");
-      console.log("fetchUsers response:", response.data);
       return response.data.data || [];
     } catch (error) {
       console.error("fetchUsers error:", error);
@@ -22,7 +21,6 @@ export const fetchConversations = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetcher.get("/chat/conversations");
-      console.log("fetchConversations response:", response.data);
       return response.data.data || [];
     } catch (error) {
       console.error("fetchConversations error:", error);
@@ -38,7 +36,6 @@ export const fetchUnreadCount = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetcher.get("/chat/unread-count");
-      console.log("fetchUnreadCount response:", response.data);
       return response.data.data?.unreadCount || 0;
     } catch (error) {
       console.error("fetchUnreadCount error:", error);
@@ -51,15 +48,28 @@ export const fetchUnreadCount = createAsyncThunk(
 
 export const fetchMessages = createAsyncThunk(
   "chat/fetchMessages",
-  async (receiverId, { rejectWithValue }) => {
+  async (receiverId, { rejectWithValue, getState }) => {
     try {
+      if (!receiverId) {
+        throw new Error("Không có ID người nhận");
+      }
       const response = await fetcher.get(`/chat/messages/${receiverId}`);
-      console.log("fetchMessages response:", response.data);
-      return { receiverId, messages: response.data.data || [] };
+      const rawMessages = response.data.data || [];
+
+      const processedMessages = rawMessages.map(msg => ({
+        ...msg,
+        _id: msg._id || msg.id,
+        senderId: msg.senderId && typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId,
+        receiverId: msg.receiverId && typeof msg.receiverId === 'object' ? msg.receiverId._id : msg.receiverId,
+        text: msg.text || msg.content || "",
+        createdAt: msg.createdAt || new Date().toISOString()
+      }));
+
+      return { receiverId, messages: processedMessages };
     } catch (error) {
       console.error("fetchMessages error:", error);
       return rejectWithValue(
-        error.response ? error.response.data : error.message
+        error.response ? error.response.data : { message: error.message }
       );
     }
   }
@@ -67,40 +77,44 @@ export const fetchMessages = createAsyncThunk(
 
 export const sendMessage = createAsyncThunk(
   "chat/sendMessage",
-  async ({ receiverId, text, image }, { rejectWithValue, dispatch }) => {
+  async ({ receiverId, text, image }, { rejectWithValue }) => {
     try {
-      if (!text?.trim() && !image) {
-        throw new Error("Message must have either text or image");
+      if (!receiverId) {
+        throw new Error("Không có ID người nhận");
       }
 
-      // Gửi JSON nếu không có image
+      if (!text?.trim() && !image) {
+        throw new Error("Tin nhắn phải có văn bản hoặc hình ảnh");
+      }
+
       if (!image) {
         const payload = { text: text?.trim() };
-        console.log("sendMessage JSON payload:", payload);
         const response = await fetcher.post(
           `/chat/messages/${receiverId}`,
           payload
         );
-        console.log("sendMessage response:", response.data);
-        // Gọi fetchMessages để đồng bộ nếu cần
-        dispatch(fetchMessages(receiverId));
-        return response.data.data || response.data;
+        return { ...response.data.data || response.data, receiverId };
       }
 
-      // Gửi FormData nếu có image
       const formData = new FormData();
       if (text?.trim()) formData.append("text", text.trim());
-      if (image) formData.append("image", image);
-      console.log("sendMessage FormData:", Object.fromEntries(formData));
+
+      if (typeof image === 'string' && image.startsWith('data:')) {
+        const response = await fetch(image);
+        const blob = await response.blob();
+        formData.append("image", blob, "image.jpg");
+      } else if (image instanceof File) {
+        formData.append("image", image);
+      } else {
+        throw new Error("Định dạng hình ảnh không hợp lệ");
+      }
 
       const response = await fetcher.postForm(
         `/chat/messages/${receiverId}`,
         formData
       );
-      console.log("sendMessage response:", response.data);
-      // Gọi fetchMessages để đồng bộ nếu cần
-      dispatch(fetchMessages(receiverId));
-      return response.data.data || response.data;
+
+      return { ...response.data.data || response.data, receiverId };
     } catch (error) {
       console.error(
         "sendMessage error:",
@@ -118,7 +132,6 @@ export const markMessageRead = createAsyncThunk(
   async (senderId, { rejectWithValue }) => {
     try {
       const response = await fetcher.put(`/chat/mark-read/${senderId}`);
-      console.log("markMessageRead response:", response.data);
       return { senderId, data: response.data.data || response.data };
     } catch (error) {
       console.error("markMessageRead error:", error);
@@ -134,7 +147,6 @@ export const deleteMessage = createAsyncThunk(
   async (messageId, { rejectWithValue }) => {
     try {
       const response = await fetcher.delete(`/chat/messages/${messageId}`);
-      console.log("deleteMessage response:", response.data);
       return { messageId, data: response.data.data || response.data };
     } catch (error) {
       console.error("deleteMessage error:", error);
@@ -161,6 +173,44 @@ const chatSlice = createSlice({
     selectUser: (state, action) => {
       state.selectedUserId = action.payload;
     },
+    addNewMessage: (state, action) => {
+
+      const { message, conversationId } = action.payload;
+      const senderId = typeof message.senderId === 'object' ? message.senderId._id : message.senderId;
+      const receiverId = typeof message.receiverId === 'object' ? message.receiverId._id : message.receiverId;
+
+
+      const targetConversationId = conversationId;
+
+      if (!state.messages[targetConversationId]) {
+        state.messages[targetConversationId] = [];
+      }
+
+
+      const existingMessage = state.messages[targetConversationId].find(
+        msg => msg._id === message._id || msg.id === message._id
+      );
+
+      if (!existingMessage) {
+
+        const newMessage = {
+          ...message,
+          _id: message._id || message.id,
+          id: message._id || message.id,
+          senderId: senderId,
+          receiverId: receiverId,
+          text: message.text || message.content || "",
+          content: message.text || message.content || "",
+          image: message.image || null,
+          createdAt: message.createdAt || new Date().toISOString(),
+          isRead: message.isRead || false,
+        };
+
+        state.messages[targetConversationId].push(newMessage);
+      } else {
+        console.log("Message already exists, skipping");
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -180,7 +230,7 @@ const chatSlice = createSlice({
         state.users = [];
       })
       .addCase(fetchConversations.pending, (state) => {
-        state.isLoading = true;
+        // Không set loading = true để tránh UI reload khi update conversations
         state.isError = false;
       })
       .addCase(fetchConversations.fulfilled, (state, action) => {
@@ -219,57 +269,67 @@ const chatSlice = createSlice({
       .addCase(fetchMessages.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = false;
-        state.messages[action.payload.receiverId] = Array.isArray(
-          action.payload.messages
-        )
-          ? action.payload.messages.map((msg) => ({
+        const { receiverId, messages } = action.payload;
+
+
+        if (Array.isArray(messages)) {
+          state.messages[receiverId] = messages.map((msg) => {
+            return {
               ...msg,
-              id: msg._id,
-              senderId:
-                typeof msg.senderId === "object"
-                  ? msg.senderId._id
-                  : msg.senderId,
-              receiverId:
-                typeof msg.receiverId === "object"
-                  ? msg.receiverId._id
-                  : msg.receiverId,
-            }))
-          : [];
+              _id: msg._id || msg.id, // Ensure _id exists
+              id: msg._id || msg.id,
+              senderId: typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId,
+              receiverId: typeof msg.receiverId === "object" ? msg.receiverId._id : msg.receiverId,
+              text: msg.text || msg.content || "", 
+              createdAt: msg.createdAt || new Date().toISOString(),
+            };
+          });
+
+        } else {
+          console.error("Received non-array messages:", messages);
+          state.messages[receiverId] = [];
+        }
       })
       .addCase(fetchMessages.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
-        state.errorMessage =
-          action.payload?.message || "Failed to fetch messages";
+        state.errorMessage = action.payload?.message || "Failed to fetch messages";
+        console.error("Failed to fetch messages:", action.payload);
       })
       .addCase(sendMessage.pending, (state) => {
-        state.isLoading = true;
         state.isError = false;
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = false;
         const payload = action.payload;
-        const receiverId =
-          typeof payload.receiverId === "object"
-            ? payload.receiverId._id
-            : payload.receiverId;
+
+        const receiverId = payload.receiverId;
+
         const senderId =
           typeof payload.senderId === "object"
             ? payload.senderId._id
             : payload.senderId;
-        if (!state.messages[receiverId]) state.messages[receiverId] = [];
-        state.messages[receiverId].push({
+
+        if (!state.messages[receiverId]) {
+          state.messages[receiverId] = [];
+        }
+
+        const newMessage = {
           ...payload,
-          id: payload._id,
-          senderId: senderId || "unknown",
-          receiverId: receiverId || "unknown",
-          content: payload.text || "",
+          _id: payload._id || payload.id,
+          id: payload._id || payload.id,
+          senderId: senderId,
+          receiverId: receiverId,
+          text: payload.text || payload.content || "",
+          content: payload.text || payload.content || "",
           image: payload.image || null,
           createdAt: payload.createdAt || new Date().toISOString(),
           isRead: payload.isRead || false,
-        });
-        state.unreadCount += 1;
+        };
+
+        state.messages[receiverId].push(newMessage);
+
       })
       .addCase(sendMessage.rejected, (state, action) => {
         state.isLoading = false;
@@ -320,5 +380,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { selectUser } = chatSlice.actions;
+export const { selectUser, addNewMessage } = chatSlice.actions;
 export default chatSlice.reducer;

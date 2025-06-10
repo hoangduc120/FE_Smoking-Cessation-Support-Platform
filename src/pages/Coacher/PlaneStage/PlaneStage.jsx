@@ -191,13 +191,11 @@ export default function StagesManagementPage() {
     .sort((a, b) => a.order_index - b.order_index);
 
   const handleCreateStage = async (data) => {
-    console.log("Dữ liệu gửi đi khi tạo giai đoạn:", data);
     setIsLoading(true);
     try {
       const response = await dispatch(
         createStageApi({ data, id: data.quitPlanId })
       ).unwrap();
-      console.log("Response từ BE khi tạo:", response);
       setStages([...stages, { ...response, tasks_count: 0 }]);
       setIsCreateDialogOpen(false);
       reset();
@@ -214,13 +212,11 @@ export default function StagesManagementPage() {
 
   const handleEditStage = async (data) => {
     if (!editingStage) return;
-    console.log("Dữ liệu gửi đi khi chỉnh sửa giai đoạn:", data);
     setIsLoading(true);
     try {
       const response = await dispatch(
         updateStageApi({ data, id: editingStage._id })
       ).unwrap();
-      console.log("Response từ BE khi cập nhật:", response);
       setStages(
         stages.map((stage) =>
           stage._id === editingStage._id ? { ...stage, ...response } : stage

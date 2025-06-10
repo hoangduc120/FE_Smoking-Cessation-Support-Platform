@@ -8,7 +8,6 @@ export const fetchPlan = createAsyncThunk(
       const response = await fetcher.get(
         `/plans/quitplans?page=${page}&limit=${limit}`
       );
-      console.log("API /plans/quitplans response:", response.data);
 
       return response.data;
     } catch (error) {
@@ -26,7 +25,6 @@ export const fetchAllPlan = createAsyncThunk(
       const response = await fetcher.get(
         `/plans/quitplans?coachId=${coachId}&page=${page}&limit=${limit}`
       );
-      console.log("lnas", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -41,7 +39,6 @@ export const fetchPlanById = createAsyncThunk(
   async ({ id }, rejectWithValue) => {
     try {
       const response = await fetcher.get(`/plans/quitplans/${id}`);
-      console.log(response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -100,10 +97,8 @@ export const selectPlan = createAsyncThunk(
       const response = await fetcher.post("/plans/quitplans/select", {
         quitPlanId,
       });
-      console.log("Response:", response.data);
       return response.data;
     } catch (error) {
-      console.log("Error:", error.response?.data || error.message);
       return rejectWithValue(
         error.response ? error.response.data : error.message
       );

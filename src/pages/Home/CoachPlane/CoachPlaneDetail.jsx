@@ -99,7 +99,6 @@ export default function CoachPlaneDetail() {
 
   const handleRegisterPlan = () => {
     if (plan?.quitPlan?._id) {
-      console.log("Sending quitPlanId:", plan.quitPlan._id);
       dispatch(selectPlan({ quitPlanId: plan.quitPlan._id }))
         .unwrap()
         .then(() => {
@@ -110,10 +109,8 @@ export default function CoachPlaneDetail() {
         })
         .catch((error) => {
           const errorMsg = error?.message || "Đã có lỗi xảy ra!";
-          console.log("Setting error message to:", errorMsg);
           setErrorMessageModal(errorMsg);
           setOpenErrorModal(true);
-          console.log("Modal state set to:", true);
         });
     } else {
       console.log("plan.quitPlan._id is undefined or null");

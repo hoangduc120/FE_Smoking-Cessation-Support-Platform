@@ -6,7 +6,6 @@ export const fetchAssessment = createAsyncThunk(
   "quitSmoking/fetchAssessment",
   async (userId = "1", { rejectWithValue }) => {
     try {
-      console.log("Calling fetchAssessment with userId:", userId);
       const response = await fetcher.get("/surveys/me/surveys");
       return response.data;
     } catch (error) {
@@ -61,7 +60,6 @@ export const quitSmokingSlice = createSlice({
         state.isLoading = false;
         state.isError = false;
         state.assessmentData = action.payload;
-        console.log("Updated assessmentData:", state.assessmentData);
       })
       .addCase(fetchAssessment.rejected, (state, action) => {
         state.isLoading = false;

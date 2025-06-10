@@ -164,14 +164,6 @@ export default function useRouterElement() {
             </ProtectedRoute>
           ),
         },
-        // {
-        //   path: PATH.CHATPAGE,
-        //   element: (
-        //     <ProtectedRoute allowedRoles={["user", "coach"]}>
-        //       <ChatApp />
-        //     </ProtectedRoute>
-        //   ),
-        // },
         {
           path: PATH.ROADMAP,
           element: (

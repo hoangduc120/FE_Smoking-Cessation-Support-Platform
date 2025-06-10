@@ -108,23 +108,23 @@ const UpgradeMember = () => {
 
   const plans = Array.isArray(membershipData)
     ? membershipData.map((plan) => ({
-        title: plan.name,
-        price: `${plan.price.toLocaleString()}₫`,
-        duration: `${plan.duration} ngày`,
-        features: plan.features || [],
-      }))
+      title: plan.name,
+      price: `${plan.price.toLocaleString()}₫`,
+      duration: `${plan.duration} ngày`,
+      features: plan.features || [],
+    }))
     : [];
 
   const comparisonData = Array.isArray(membershipData)
     ? Array.from(
-        new Set(membershipData.flatMap((plan) => plan.features || []))
-      ).map((feature) => {
-        const row = { feature };
-        membershipData.forEach((plan) => {
-          row[plan.name] = (plan.features || []).includes(feature);
-        });
-        return row;
-      })
+      new Set(membershipData.flatMap((plan) => plan.features || []))
+    ).map((feature) => {
+      const row = { feature };
+      membershipData.forEach((plan) => {
+        row[plan.name] = (plan.features || []).includes(feature);
+      });
+      return row;
+    })
     : [];
 
   return (
@@ -371,11 +371,10 @@ const UpgradeMember = () => {
                   {bankOptions.map((bank) => (
                     <div
                       key={bank.value}
-                      className={`bank-option ${
-                        selectedBank?.value === bank.value
+                      className={`bank-option ${selectedBank?.value === bank.value
                           ? "bank-option-selected"
                           : ""
-                      }`}
+                        }`}
                       onClick={() => handleSelectBank(bank)}
                     >
                       <img

@@ -6,7 +6,6 @@ export const fetchMembership = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetcher.get("/packages");
-      console.log("fetchMembership response:", response);
       return response.data.data;
     } catch (error) {
       console.error("fetchMembership error:", error);
@@ -22,7 +21,6 @@ export const fetchMembershipById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await fetcher.get(`/packages/${id}`);
-      console.log("fetchMembershipById response:", response);
       return response.data.data;
     } catch (error) {
       console.error("fetchMembershipById error:", error);
