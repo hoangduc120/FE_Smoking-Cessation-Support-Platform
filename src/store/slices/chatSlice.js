@@ -6,7 +6,6 @@ export const fetchUsers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetcher.get("/chat/users");
-      console.log("fetchUsers response:", response.data);
       return response.data.data || [];
     } catch (error) {
       console.error("fetchUsers error:", error);
@@ -22,7 +21,6 @@ export const fetchConversations = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetcher.get("/chat/conversations");
-      console.log("fetchConversations response:", response.data);
       return response.data.data || [];
     } catch (error) {
       console.error("fetchConversations error:", error);
@@ -38,7 +36,6 @@ export const fetchUnreadCount = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetcher.get("/chat/unread-count");
-      console.log("fetchUnreadCount response:", response.data);
       return response.data.data?.unreadCount || 0;
     } catch (error) {
       console.error("fetchUnreadCount error:", error);
@@ -51,15 +48,32 @@ export const fetchUnreadCount = createAsyncThunk(
 
 export const fetchMessages = createAsyncThunk(
   "chat/fetchMessages",
-  async (receiverId, { rejectWithValue }) => {
+  async (receiverId, { rejectWithValue, getState }) => {
     try {
+      if (!receiverId) {
+        throw new Error("Không có ID người nhận");
+      }
+      console.log("Fetching messages for receiver:", receiverId);
       const response = await fetcher.get(`/chat/messages/${receiverId}`);
-      console.log("fetchMessages response:", response.data);
-      return { receiverId, messages: response.data.data || [] };
+      const rawMessages = response.data.data || [];
+      console.log("Raw messages from API:", rawMessages);
+
+      // Pre-process messages để đảm bảo cấu trúc đúng
+      const processedMessages = rawMessages.map(msg => ({
+        ...msg,
+        _id: msg._id || msg.id,
+        senderId: msg.senderId && typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId,
+        receiverId: msg.receiverId && typeof msg.receiverId === 'object' ? msg.receiverId._id : msg.receiverId,
+        text: msg.text || msg.content || "",
+        createdAt: msg.createdAt || new Date().toISOString()
+      }));
+
+      console.log("Processed messages:", processedMessages);
+      return { receiverId, messages: processedMessages };
     } catch (error) {
       console.error("fetchMessages error:", error);
       return rejectWithValue(
-        error.response ? error.response.data : error.message
+        error.response ? error.response.data : { message: error.message }
       );
     }
   }
@@ -67,39 +81,45 @@ export const fetchMessages = createAsyncThunk(
 
 export const sendMessage = createAsyncThunk(
   "chat/sendMessage",
-  async ({ receiverId, text, image }, { rejectWithValue, dispatch }) => {
+  async ({ receiverId, text, image }, { rejectWithValue, dispatch, getState }) => {
     try {
-      if (!text?.trim() && !image) {
-        throw new Error("Message must have either text or image");
+      if (!receiverId) {
+        throw new Error("Không có ID người nhận");
       }
 
-      // Gửi JSON nếu không có image
+      if (!text?.trim() && !image) {
+        throw new Error("Tin nhắn phải có văn bản hoặc hình ảnh");
+      }
+
       if (!image) {
         const payload = { text: text?.trim() };
-        console.log("sendMessage JSON payload:", payload);
         const response = await fetcher.post(
           `/chat/messages/${receiverId}`,
           payload
         );
-        console.log("sendMessage response:", response.data);
-        // Gọi fetchMessages để đồng bộ nếu cần
-        dispatch(fetchMessages(receiverId));
+        await dispatch(fetchMessages(receiverId));
         return response.data.data || response.data;
       }
 
-      // Gửi FormData nếu có image
       const formData = new FormData();
       if (text?.trim()) formData.append("text", text.trim());
-      if (image) formData.append("image", image);
-      console.log("sendMessage FormData:", Object.fromEntries(formData));
+
+      if (typeof image === 'string' && image.startsWith('data:')) {
+        const response = await fetch(image);
+        const blob = await response.blob();
+        formData.append("image", blob, "image.jpg");
+      } else if (image instanceof File) {
+        formData.append("image", image);
+      } else {
+        throw new Error("Định dạng hình ảnh không hợp lệ");
+      }
 
       const response = await fetcher.postForm(
         `/chat/messages/${receiverId}`,
         formData
       );
-      console.log("sendMessage response:", response.data);
-      // Gọi fetchMessages để đồng bộ nếu cần
-      dispatch(fetchMessages(receiverId));
+
+      await dispatch(fetchMessages(receiverId));
       return response.data.data || response.data;
     } catch (error) {
       console.error(
@@ -118,7 +138,6 @@ export const markMessageRead = createAsyncThunk(
   async (senderId, { rejectWithValue }) => {
     try {
       const response = await fetcher.put(`/chat/mark-read/${senderId}`);
-      console.log("markMessageRead response:", response.data);
       return { senderId, data: response.data.data || response.data };
     } catch (error) {
       console.error("markMessageRead error:", error);
@@ -134,7 +153,6 @@ export const deleteMessage = createAsyncThunk(
   async (messageId, { rejectWithValue }) => {
     try {
       const response = await fetcher.delete(`/chat/messages/${messageId}`);
-      console.log("deleteMessage response:", response.data);
       return { messageId, data: response.data.data || response.data };
     } catch (error) {
       console.error("deleteMessage error:", error);
@@ -219,28 +237,36 @@ const chatSlice = createSlice({
       .addCase(fetchMessages.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = false;
-        state.messages[action.payload.receiverId] = Array.isArray(
-          action.payload.messages
-        )
-          ? action.payload.messages.map((msg) => ({
+        const { receiverId, messages } = action.payload;
+
+        console.log("Before processing, messages:", messages);
+
+        // Ensure messages is always an array before setting in state
+        if (Array.isArray(messages)) {
+          state.messages[receiverId] = messages.map((msg) => {
+            console.log("Processing message:", msg);
+            return {
               ...msg,
-              id: msg._id,
-              senderId:
-                typeof msg.senderId === "object"
-                  ? msg.senderId._id
-                  : msg.senderId,
-              receiverId:
-                typeof msg.receiverId === "object"
-                  ? msg.receiverId._id
-                  : msg.receiverId,
-            }))
-          : [];
+              _id: msg._id || msg.id, // Ensure _id exists
+              id: msg._id || msg.id,
+              senderId: typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId,
+              receiverId: typeof msg.receiverId === "object" ? msg.receiverId._id : msg.receiverId,
+              text: msg.text || msg.content || "", // Support both text and content fields
+              createdAt: msg.createdAt || new Date().toISOString(),
+            };
+          });
+
+          console.log("After processing, state.messages[receiverId]:", state.messages[receiverId]);
+        } else {
+          console.error("Received non-array messages:", messages);
+          state.messages[receiverId] = [];
+        }
       })
       .addCase(fetchMessages.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
-        state.errorMessage =
-          action.payload?.message || "Failed to fetch messages";
+        state.errorMessage = action.payload?.message || "Failed to fetch messages";
+        console.error("Failed to fetch messages:", action.payload);
       })
       .addCase(sendMessage.pending, (state) => {
         state.isLoading = true;

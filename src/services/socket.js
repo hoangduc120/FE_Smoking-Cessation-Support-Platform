@@ -1,4 +1,12 @@
 import { io } from 'socket.io-client';
+import {
+    setConnectionStatus,
+    setSocketId,
+    updateOnlineUsers,
+    addNotification,
+    setTypingUsers,
+    updateLastActivity
+} from '../store/slices/socketSlice';
 
 class SocketService {
     constructor() {
@@ -12,23 +20,50 @@ class SocketService {
     }
 
     connect(userId, token) {
+        if (!userId) {
+            console.error('Cannot connect socket: Missing userId');
+            return null;
+        }
+
+        if (!token) {
+            console.warn('Attempting to connect socket without token');
+        }
+
         if (this.socket && this.socket.connected) {
             return this.socket;
         }
 
         const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-        this.socket = io(serverUrl, {
-            query: { userId },
-            auth: { token },
-            withCredentials: true,
-            transports: ['websocket', 'polling']
-        });
+        try {
+            const sanitizedUserId = typeof userId === 'string' ? userId : String(userId);
+            const sanitizedToken = token || '';
 
-        this.userId = userId;
-        this.setupEventHandlers();
+            this.socket = io(serverUrl, {
+                query: {
+                    userId: sanitizedUserId,
+                    debug: window.location.search.includes('debug=true') ? 'true' : 'false'
+                },
+                auth: { token: sanitizedToken },
+                withCredentials: true,
+                transports: ['websocket', 'polling']
+            });
 
-        return this.socket;
+            this.socket.on('connect_error', (err) => {
+                console.error('Socket connect_error:', err.message);
+            });
+            this.socket.on('error', (err) => {
+                console.error('Socket error:', err);
+            });
+
+            this.userId = userId;
+            this.setupEventHandlers();
+
+            return this.socket;
+        } catch (error) {
+            console.error('Error creating socket connection:', error);
+            return null;
+        }
     }
 
     disconnect() {
@@ -43,24 +78,14 @@ class SocketService {
         if (!this.socket || !this.store) return;
 
         const { dispatch } = this.store;
-        const {
-            setConnectionStatus,
-            setSocketId,
-            updateOnlineUsers,
-            addNotification,
-            setTypingUsers,
-            updateLastActivity
-        } = require('../store/slices/socketSlice');
 
         this.socket.on('connect', () => {
-            console.log('Connected to server:', this.socket.id);
             dispatch(setConnectionStatus(true));
             dispatch(setSocketId(this.socket.id));
             dispatch(updateLastActivity());
         });
 
         this.socket.on('disconnect', (reason) => {
-            console.log('Disconnected from server:', reason);
             dispatch(setConnectionStatus(false));
         });
 
@@ -106,7 +131,6 @@ class SocketService {
             this.socket.emit(event, data);
 
             if (this.store) {
-                const { updateLastActivity } = require('../store/slices/socketSlice');
                 this.store.dispatch(updateLastActivity());
             }
         }

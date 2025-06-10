@@ -70,16 +70,6 @@ const Roadmap = () => {
   const { plan, stages, progress, isLoading, isError, errorMessage } =
     useSelector((state) => state.plan);
 
-  console.log("Redux state:", {
-    plan,
-    stages,
-    progress,
-    isLoading,
-    isError,
-    errorMessage,
-  });
-
-  // React Hook Form setup
   const {
     control,
     handleSubmit,

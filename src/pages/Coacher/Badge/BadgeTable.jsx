@@ -48,7 +48,6 @@ export default function BadgeTable() {
     if (!auth?.currentUser) {
       navigate(PATH.LOGIN);
     } else if (coachId) {
-      console.log("Fetching plans with coachId:", coachId);
       dispatch(fetchAllPlan({ coachId, page: 1, limit: 1000 }));
     } else {
       console.warn("coachId is undefined, cannot fetch plans.");

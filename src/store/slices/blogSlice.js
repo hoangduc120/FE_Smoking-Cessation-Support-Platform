@@ -112,8 +112,8 @@ export const fetchBlogsByUserApi = createAsyncThunk(
         error.response
           ? error.response.data
           : {
-              message: error.message || "Không thể tải bài viết của người dùng",
-            }
+            message: error.message || "Không thể tải bài viết của người dùng",
+          }
       );
     }
   }
@@ -164,14 +164,9 @@ export const toggleLikeBlogApi = createAsyncThunk(
   "blogs/toggleLike",
   async (blogId, { getState, rejectWithValue }) => {
     try {
-      console.log("Đang thực hiện like blog với ID:", blogId);
-
-      // Đảm bảo tương thích với cả _id và id
       const response = await fetcher.post(`/blogs/${blogId}/like`);
       const currentUserId = getState().auth.currentUser?.userId;
       const blog = response.data.data;
-
-      console.log("Kết quả like:", blog);
 
       return {
         id: blog._id,
@@ -337,7 +332,7 @@ const blogSlice = createSlice({
       toast.error(payload?.message || "Không thể tạo bài viết");
     });
 
-    builder.addCase(toggleLikeBlogApi.pending, (state) => {});
+    builder.addCase(toggleLikeBlogApi.pending, (state) => { });
     builder.addCase(toggleLikeBlogApi.fulfilled, (state, { payload }) => {
       const blog = state.blogs.find(
         (b) => b.id === payload.id || b._id === payload.id
@@ -370,7 +365,6 @@ const blogSlice = createSlice({
     builder.addCase(addCommentApi.fulfilled, (state, { payload }) => {
       state.isLoading = false;
       if (state.selectedBlog && state.selectedBlog.id === payload.blogId) {
-        console.log("Current comments:", state.selectedBlog.comments);
         state.selectedBlog.comments = [
           payload.comment,
           ...state.selectedBlog.comments.filter(

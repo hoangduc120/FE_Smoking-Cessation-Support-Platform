@@ -9,9 +9,6 @@ export const createBadge = createAsyncThunk(
         throw new Error("Invalid quitPlanId");
       }
 
-      console.log("Request URL:", `/plans/quitplans/${quitPlanId}/badges`);
-      console.log("Request payload:", payload);
-
       const response = await fetcher.post(
         `/plans/quitplans/${quitPlanId}/badges`,
         payload,
@@ -21,7 +18,6 @@ export const createBadge = createAsyncThunk(
           },
         }
       );
-      console.log("Create badge response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Create badge error:", error);
@@ -39,7 +35,6 @@ export const fetchBadgesByPlan = createAsyncThunk(
       const response = await fetcher.get(
         `/plans/quitplans/${quitPlanId}/badges?page=${page}&limit=${limit}`
       );
-      console.log("Fetch badges response:", response.data);
       return response.data.data || [];
     } catch (error) {
       console.error("Fetch badges error:", error);

@@ -31,7 +31,6 @@ function PlanCustomizationPage() {
     (state) => state.quitSmoking
   );
 
-  console.log("Assessment Data: hahshaohsihih", assessmentData);
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [planSaved, setPlanSaved] = useState(false);

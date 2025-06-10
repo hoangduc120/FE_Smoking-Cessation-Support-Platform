@@ -28,7 +28,6 @@ export const fetchAuthorById = createAsyncThunk(
       const response = await fetcher.get(`/users/${userId}`);
       const user = response.data.data?.user;
       if (!user || Object.keys(user).length === 0) {
-        console.log("No user data, using fallback for userId:", userId);
         return { _id: userId, name: "Người dùng" };
       }
       const normalizedUser = {
@@ -39,7 +38,6 @@ export const fetchAuthorById = createAsyncThunk(
           "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
         joinDate: user.createdAt || new Date().toISOString(),
       };
-      console.log("Fetched author:", normalizedUser.name);
       return normalizedUser;
     } catch (error) {
       console.error("Error fetching author:", error.response?.data || error);
@@ -56,7 +54,6 @@ export const fetchUserStats = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await fetcher.get(`/users/${userId}/stats`);
-      console.log("User stats fetched successfully:", response.data.data.stats);
       return response.data.data.stats;
     } catch (error) {
       console.error(
@@ -77,7 +74,6 @@ export const fetchFollowers = createAsyncThunk(
     try {
       const response = await fetcher.get(`/users/followers/${userId}`);
       const followers = response.data.data.followers.map((user) => user._id);
-      console.log("Fetched followers IDs:", followers);
       return followers;
     } catch (error) {
       console.error("Error fetching followers:", error.response?.data || error);
@@ -95,7 +91,6 @@ export const fetchFollowing = createAsyncThunk(
     try {
       const response = await fetcher.get(`/users/following/${userId}`);
       const following = response.data.data.following.map((user) => user._id);
-      console.log("Fetched following IDs:", following);
       return following;
     } catch (error) {
       console.error("Error fetching following:", error.response?.data || error);
@@ -159,7 +154,6 @@ export const followUser = createAsyncThunk(
       dispatch({ type: 'user/updateStats', payload: updatedStats });
 
       const response = await fetcher.put(`/users/follow/${id}`);
-      console.log("Follow user response:", response.data);
 
       return { success: true, data: response.data };
     } catch (error) {
@@ -206,7 +200,6 @@ export const unfollowUser = createAsyncThunk(
       dispatch({ type: 'user/updateStats', payload: updatedStats });
 
       const response = await fetcher.put(`/users/unfollow/${id}`);
-      console.log("Unfollow user response:", response.data);
 
       return { success: true, data: response.data };
     } catch (error) {

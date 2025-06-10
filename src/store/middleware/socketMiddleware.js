@@ -4,7 +4,7 @@ import {
     disconnectSocket,
     resetSocketState
 } from '../slices/socketSlice';
-import { logout } from '../slices/authSlice';
+
 
 export const socketMiddleware = (store) => (next) => (action) => {
     const result = next(action);
@@ -26,6 +26,8 @@ export const socketMiddleware = (store) => (next) => (action) => {
                         token: user.token || localStorage.getItem('token')
                     }));
                 }, 100);
+            } else {
+                console.warn('Login completed but no user data found', action.payload);
             }
             break;
         }
@@ -38,6 +40,11 @@ export const socketMiddleware = (store) => (next) => (action) => {
         }
 
         case connectSocket.fulfilled.type: {
+            break;
+        }
+
+        case connectSocket.rejected.type: {
+            console.error('Socket connection rejected', action.error);
             break;
         }
 

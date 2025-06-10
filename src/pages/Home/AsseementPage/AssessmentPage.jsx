@@ -52,11 +52,9 @@ export default function AssessmentPage() {
   const totalSteps = 3; // Cập nhật thành 3 bước
 
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  console.log("Current User:", currentUser);
 
   useEffect(() => {
     if (!currentUser || !currentUser.token) {
-      console.log("Chưa đăng nhập, chuyển hướng đến login");
       toast.error("Vui lòng đăng nhập để tiếp tục!");
       navigate(PATH.LOGIN);
       return;
@@ -123,7 +121,6 @@ export default function AssessmentPage() {
                     ? "Hỗ trợ qua ứng dụng"
                     : "Khác",
       };
-      console.log("Dữ liệu gửi đi:", assessmentData);
 
       try {
         await dispatch(saveAssessment(assessmentData)).unwrap();

@@ -25,9 +25,7 @@ const processQueue = (error, token = null) => {
 
 fetcher.interceptors.request.use(
   (config) => {
-    // Chỉ log trong development
     if (process.env.NODE_ENV === "development") {
-      console.log("Request:", config); // Debug
     }
 
     const token = Cookies.get("accessToken");
@@ -35,7 +33,6 @@ fetcher.interceptors.request.use(
       config.headers["Authorization"] = `Bearer ${token}`;
     }
 
-    // Chỉ áp dụng Content-Type: application/json nếu không phải FormData
     if (!(config.data instanceof FormData)) {
       config.headers["Content-Type"] = "application/json";
     }
@@ -49,28 +46,23 @@ fetcher.interceptors.request.use(
 
 fetcher.interceptors.response.use(
   (response) => {
-    // Chỉ log trong development
     if (process.env.NODE_ENV === "development") {
-      console.log("Response:", response); // Debug
     }
     return response;
   },
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle timeout errors
     if (error.code === "ECONNABORTED") {
       toast.error("Kết nối chậm. Vui lòng thử lại!");
       return Promise.reject(error);
     }
 
-    // Handle network errors
     if (error.message === "Network Error") {
       toast.error("Lỗi kết nối. Vui lòng kiểm tra mạng!");
       return Promise.reject(error);
     }
 
-    // Handle 401 errors (authentication)
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
@@ -114,7 +106,6 @@ fetcher.interceptors.response.use(
       }
     }
 
-    // Handle other errors
     if (error.response) {
       const status = error.response.status;
       const errorMessage = error.response.data?.message || "Lỗi API";

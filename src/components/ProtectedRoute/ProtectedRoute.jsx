@@ -10,7 +10,6 @@ const ProtectedRoute = memo(({ children, allowedRoles, allowAnonymous }) => {
   if (allowAnonymous) {
     if (isAuthenticated()) {
       const userRole = getUserRole();
-      console.log("Chuyển hướng theo vai trò: Người dùng đã đăng nhập");
       const redirectPath = getRedirectPath(userRole);
       return <Navigate to={redirectPath} replace />;
     }
@@ -19,13 +18,11 @@ const ProtectedRoute = memo(({ children, allowedRoles, allowAnonymous }) => {
   }
 
   if (!isAuthenticated()) {
-    console.log("Chuyển hướng đến LOGIN: Không có người dùng hoặc token");
     return <Navigate to={PATH.LOGIN} replace />;
   }
 
   const userRole = getUserRole();
   if (allowedRoles && !allowedRoles.includes(userRole)) {
-    console.log("Chuyển hướng đến trang phù hợp: Vai trò không được phép");
     const redirectPath = getRedirectPath(userRole);
     return <Navigate to={redirectPath} replace />;
   }
