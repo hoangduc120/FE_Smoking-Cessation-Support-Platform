@@ -1,5 +1,7 @@
 import React from 'react';
 import SocketStatus from '../SocketStatus';
+import SearchIcon from '@mui/icons-material/Search';
+import SmsIcon from '@mui/icons-material/Sms';
 
 const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUserOnline, handleSelectUser }) => {
     const filteredUsers = users?.filter(user =>
@@ -12,7 +14,7 @@ const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
             {/* Header */}
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl text-indigo-500">💬</span>
+                    <SmsIcon className="text-2xl text-indigo-500" />
                     <h2 className="text-xl font-bold text-indigo-500 m-0">
                         Tin nhắn
                     </h2>
@@ -26,7 +28,7 @@ const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
                         className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
                     />
                     <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500">
-                        🔍
+                        <SearchIcon />
                     </span>
                 </div>
             </div>
@@ -95,23 +97,9 @@ const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
                 )}
             </div>
 
-            {/* Socket Status */}
             <div className="p-2 border-t border-gray-200 flex justify-center bg-gray-50">
                 <SocketStatus showDetails={false} />
             </div>
-
-            <style jsx>{`
-                @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-            `}</style>
         </div>
     );
 };

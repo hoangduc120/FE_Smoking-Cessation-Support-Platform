@@ -3,6 +3,21 @@ import React, { useRef } from 'react';
 const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMessage, selectedImage, setSelectedImage, isConnected, handleImageSelect }) => {
     const fileInputRef = useRef(null);
 
+    // Handle form submission để tránh page reload
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        // Chỉ gọi handleSendMessage nếu có nội dung
+        if (messageText.trim() || selectedImage) {
+            handleSendMessage(e);
+        }
+
+        // Đảm bảo form không submit
+        return false;
+    };
+
     return (
         <div className="p-4 border-t border-gray-200 bg-white z-10 shadow-lg">
             {selectedImage && (
@@ -12,6 +27,7 @@ const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMess
                         Đã chọn: {selectedImage.name}
                     </span>
                     <button
+                        type="button"
                         onClick={() => {
                             setSelectedImage(null);
                             if (fileInputRef.current) fileInputRef.current.value = "";
@@ -23,7 +39,7 @@ const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMess
                 </div>
             )}
 
-            <div className="flex gap-3 items-end">
+            <form onSubmit={handleFormSubmit} className="flex gap-3 items-end">
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -33,6 +49,7 @@ const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMess
                 />
 
                 <button
+                    type="button"
                     onClick={() => fileInputRef.current?.click()}
                     className="bg-none border-none text-indigo-500 cursor-pointer text-2xl transition-all duration-200 hover:scale-110 hover:text-indigo-600 p-2 rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                     title="Chọn ảnh"
@@ -66,8 +83,7 @@ const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMess
                 </div>
 
                 <button
-                    type="button"
-                    onClick={handleSendMessage}
+                    type="submit"
                     disabled={!isConnected || (!messageText.trim() && !selectedImage)}
                     className={`
                         border-none rounded-lg px-4 py-3 cursor-pointer transition-all duration-200 font-medium text-sm
@@ -81,7 +97,7 @@ const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMess
                 >
                     <span className="text-lg">➤</span>
                 </button>
-            </div>
+            </form>
 
             {/* Status indicator */}
             <div className="mt-2 flex items-center justify-between text-xs text-gray-500">

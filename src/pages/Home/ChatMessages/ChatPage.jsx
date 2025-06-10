@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
     fetchUsers,
@@ -6,7 +6,8 @@ import {
     fetchMessages,
     sendMessage,
     markMessageRead,
-    selectUser
+    selectUser,
+    addNewMessage
 } from "../../../store/slices/chatSlice";
 import { connectSocket } from "../../../store/slices/socketSlice";
 import { useSocket, useSocketEvent, useOnlineUsers } from "../../../hooks/useSocket";
@@ -27,7 +28,6 @@ export default function ChatPage() {
     } = useSelector((state) => state.chat);
 
     const currentUser = useSelector((state) => {
-        console.log("Auth state:", state.auth);
         const authUser = state.auth.user || state.auth.userData || state.auth.currentUser;
 
         if (!authUser) {
@@ -44,7 +44,6 @@ export default function ChatPage() {
         return authUser;
     });
 
-    console.log("Current user from selector:", currentUser);
 
     const { onlineUsers, isUserOnline } = useOnlineUsers();
     const { emit, isConnected } = useSocket();
@@ -89,16 +88,15 @@ export default function ChatPage() {
 
     useEffect(() => {
         if (selectedUserId) {
-            console.log("Fetching messages for user:", selectedUserId);
-            dispatch(fetchMessages(selectedUserId))
-                .unwrap()
-                .then(result => {
-                    console.log("Messages fetched successfully:", result);
-                })
-                .catch(error => {
-                    console.error("Error fetching messages:", error);
-                    toast.error("Không thể tải tin nhắn: " + (error.message || "Lỗi không xác định"));
-                });
+            if (!messages[selectedUserId] || messages[selectedUserId].length === 0) {
+                dispatch(fetchMessages(selectedUserId))
+                    .unwrap()
+                    .catch(error => {
+                        toast.error("Không thể tải tin nhắn: " + (error.message || "Lỗi không xác định"));
+                    });
+            } else {
+                console.log(" Skipping fetchMessages because messages already exist");
+            }
             dispatch(markMessageRead(selectedUserId));
         }
     }, [selectedUserId, dispatch]);
@@ -108,10 +106,22 @@ export default function ChatPage() {
     }, [messages[selectedUserId]]);
 
     useSocketEvent('newMessage', (message) => {
-        if (message.senderId?._id === selectedUserId || message.receiverId?._id === selectedUserId) {
-            dispatch(fetchMessages(selectedUserId));
+        const messageSenderId = message.senderId?._id || message.senderId;
+        const messageReceiverId = message.receiverId?._id || message.receiverId;
+
+        if (messageSenderId === selectedUserId || messageReceiverId === selectedUserId) {
+
+            dispatch(addNewMessage({
+                message,
+                conversationId: selectedUserId
+            }));
+
+            setTimeout(() => {
+                scrollToBottom();
+            }, 100);
+        } else {
+            console.log(" Message not relevant to current conversation - ignoring");
         }
-        dispatch(fetchConversations());
     });
 
     useSocketEvent('userTyping', ({ senderId, isTyping }) => {
@@ -140,12 +150,14 @@ export default function ChatPage() {
     };
 
     const handleSelectUser = (userId) => {
-        console.log("Selecting user:", userId);
         dispatch(selectUser(userId));
     };
 
     const handleSendMessage = async (e) => {
-        if (e) e.preventDefault();
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
 
         if (!selectedUserId || (!messageText.trim() && !selectedImage)) {
             toast.error("Vui lòng chọn người nhận và nhập nội dung tin nhắn");
@@ -153,13 +165,8 @@ export default function ChatPage() {
         }
 
         try {
-            const result = await dispatch(sendMessage({
-                receiverId: selectedUserId,
-                text: messageText.trim(),
-                image: selectedImage
-            })).unwrap();
-
-            console.log("Message sent successfully:", result);
+            const textToSend = messageText.trim();
+            const imageToSend = selectedImage;
 
             setMessageText("");
             setSelectedImage(null);
@@ -167,19 +174,25 @@ export default function ChatPage() {
                 fileInputRef.current.value = "";
             }
 
-            // Tải lại tin nhắn sau khi gửi
-            dispatch(fetchMessages(selectedUserId));
-
+            const result = await dispatch(sendMessage({
+                receiverId: selectedUserId,
+                text: textToSend,
+                image: imageToSend
+            })).unwrap();
             setTimeout(scrollToBottom, 100);
         } catch (error) {
             console.error("Lỗi gửi tin nhắn:", error);
             toast.error("Gửi tin nhắn thất bại: " + (error.message || "Đã xảy ra lỗi"));
+
+            setMessageText(messageText);
+            setSelectedImage(selectedImage);
         }
     };
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
+            e.stopPropagation();
             handleSendMessage();
         }
     };
@@ -207,7 +220,6 @@ export default function ChatPage() {
     const handleImageSelect = (e) => {
         const file = e.target.files[0];
         if (file) {
-            console.log("Selected image:", file.name);
             setSelectedImage(file);
         }
     };
@@ -219,14 +231,15 @@ export default function ChatPage() {
         });
     };
 
-    const selectedUser = users?.find(user => user._id === selectedUserId);
-    const currentMessages = messages[selectedUserId] || [];
+    const selectedUser = useMemo(() =>
+        users?.find(user => user._id === selectedUserId),
+        [users, selectedUserId]
+    );
 
-    console.log("In ChatPage render - selectedUserId:", selectedUserId);
-    console.log("In ChatPage render - messages object:", messages);
-    console.log("In ChatPage render - currentMessages for this user:", currentMessages);
-    console.log("In ChatPage render - currentUser:", currentUser);
-    console.log("In ChatPage render - selectedUser:", selectedUser);
+    const currentMessages = useMemo(() =>
+        messages[selectedUserId] || [],
+        [messages, selectedUserId]
+    );
 
     return (
         <div className="w-full h-[calc(100vh-64px)] flex bg-gradient-to-br from-gray-50 to-gray-100">

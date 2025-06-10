@@ -53,12 +53,9 @@ export const fetchMessages = createAsyncThunk(
       if (!receiverId) {
         throw new Error("Không có ID người nhận");
       }
-      console.log("Fetching messages for receiver:", receiverId);
       const response = await fetcher.get(`/chat/messages/${receiverId}`);
       const rawMessages = response.data.data || [];
-      console.log("Raw messages from API:", rawMessages);
 
-      // Pre-process messages để đảm bảo cấu trúc đúng
       const processedMessages = rawMessages.map(msg => ({
         ...msg,
         _id: msg._id || msg.id,
@@ -68,7 +65,6 @@ export const fetchMessages = createAsyncThunk(
         createdAt: msg.createdAt || new Date().toISOString()
       }));
 
-      console.log("Processed messages:", processedMessages);
       return { receiverId, messages: processedMessages };
     } catch (error) {
       console.error("fetchMessages error:", error);
@@ -81,7 +77,7 @@ export const fetchMessages = createAsyncThunk(
 
 export const sendMessage = createAsyncThunk(
   "chat/sendMessage",
-  async ({ receiverId, text, image }, { rejectWithValue, dispatch, getState }) => {
+  async ({ receiverId, text, image }, { rejectWithValue }) => {
     try {
       if (!receiverId) {
         throw new Error("Không có ID người nhận");
@@ -97,8 +93,7 @@ export const sendMessage = createAsyncThunk(
           `/chat/messages/${receiverId}`,
           payload
         );
-        await dispatch(fetchMessages(receiverId));
-        return response.data.data || response.data;
+        return { ...response.data.data || response.data, receiverId };
       }
 
       const formData = new FormData();
@@ -119,8 +114,7 @@ export const sendMessage = createAsyncThunk(
         formData
       );
 
-      await dispatch(fetchMessages(receiverId));
-      return response.data.data || response.data;
+      return { ...response.data.data || response.data, receiverId };
     } catch (error) {
       console.error(
         "sendMessage error:",
@@ -179,6 +173,44 @@ const chatSlice = createSlice({
     selectUser: (state, action) => {
       state.selectedUserId = action.payload;
     },
+    addNewMessage: (state, action) => {
+
+      const { message, conversationId } = action.payload;
+      const senderId = typeof message.senderId === 'object' ? message.senderId._id : message.senderId;
+      const receiverId = typeof message.receiverId === 'object' ? message.receiverId._id : message.receiverId;
+
+
+      const targetConversationId = conversationId;
+
+      if (!state.messages[targetConversationId]) {
+        state.messages[targetConversationId] = [];
+      }
+
+
+      const existingMessage = state.messages[targetConversationId].find(
+        msg => msg._id === message._id || msg.id === message._id
+      );
+
+      if (!existingMessage) {
+
+        const newMessage = {
+          ...message,
+          _id: message._id || message.id,
+          id: message._id || message.id,
+          senderId: senderId,
+          receiverId: receiverId,
+          text: message.text || message.content || "",
+          content: message.text || message.content || "",
+          image: message.image || null,
+          createdAt: message.createdAt || new Date().toISOString(),
+          isRead: message.isRead || false,
+        };
+
+        state.messages[targetConversationId].push(newMessage);
+      } else {
+        console.log("Message already exists, skipping");
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -198,7 +230,7 @@ const chatSlice = createSlice({
         state.users = [];
       })
       .addCase(fetchConversations.pending, (state) => {
-        state.isLoading = true;
+        // Không set loading = true để tránh UI reload khi update conversations
         state.isError = false;
       })
       .addCase(fetchConversations.fulfilled, (state, action) => {
@@ -239,24 +271,20 @@ const chatSlice = createSlice({
         state.isError = false;
         const { receiverId, messages } = action.payload;
 
-        console.log("Before processing, messages:", messages);
 
-        // Ensure messages is always an array before setting in state
         if (Array.isArray(messages)) {
           state.messages[receiverId] = messages.map((msg) => {
-            console.log("Processing message:", msg);
             return {
               ...msg,
               _id: msg._id || msg.id, // Ensure _id exists
               id: msg._id || msg.id,
               senderId: typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId,
               receiverId: typeof msg.receiverId === "object" ? msg.receiverId._id : msg.receiverId,
-              text: msg.text || msg.content || "", // Support both text and content fields
+              text: msg.text || msg.content || "", 
               createdAt: msg.createdAt || new Date().toISOString(),
             };
           });
 
-          console.log("After processing, state.messages[receiverId]:", state.messages[receiverId]);
         } else {
           console.error("Received non-array messages:", messages);
           state.messages[receiverId] = [];
@@ -269,33 +297,39 @@ const chatSlice = createSlice({
         console.error("Failed to fetch messages:", action.payload);
       })
       .addCase(sendMessage.pending, (state) => {
-        state.isLoading = true;
         state.isError = false;
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isError = false;
         const payload = action.payload;
-        const receiverId =
-          typeof payload.receiverId === "object"
-            ? payload.receiverId._id
-            : payload.receiverId;
+
+        const receiverId = payload.receiverId;
+
         const senderId =
           typeof payload.senderId === "object"
             ? payload.senderId._id
             : payload.senderId;
-        if (!state.messages[receiverId]) state.messages[receiverId] = [];
-        state.messages[receiverId].push({
+
+        if (!state.messages[receiverId]) {
+          state.messages[receiverId] = [];
+        }
+
+        const newMessage = {
           ...payload,
-          id: payload._id,
-          senderId: senderId || "unknown",
-          receiverId: receiverId || "unknown",
-          content: payload.text || "",
+          _id: payload._id || payload.id,
+          id: payload._id || payload.id,
+          senderId: senderId,
+          receiverId: receiverId,
+          text: payload.text || payload.content || "",
+          content: payload.text || payload.content || "",
           image: payload.image || null,
           createdAt: payload.createdAt || new Date().toISOString(),
           isRead: payload.isRead || false,
-        });
-        state.unreadCount += 1;
+        };
+
+        state.messages[receiverId].push(newMessage);
+
       })
       .addCase(sendMessage.rejected, (state, action) => {
         state.isLoading = false;
@@ -346,5 +380,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { selectUser } = chatSlice.actions;
+export const { selectUser, addNewMessage } = chatSlice.actions;
 export default chatSlice.reducer;
