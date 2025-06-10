@@ -11,6 +11,7 @@ import stagesSlice from "./slices/stagesSlice";
 import chatReducer from "./slices/chatSlice";
 import progressSlice from "./slices/progressSlice";
 import badgeSlice from "./slices/badgeSlice";
+import dashboardSlice from "./slices/dashboard";
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
     chat: chatReducer,
     progress: progressSlice,
     badge: badgeSlice,
+    dashboard: dashboardSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

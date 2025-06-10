@@ -36,6 +36,7 @@ import UserLayout from "../layouts/UserLayout/UserLayout";
 import BadgeTable from "../pages/Coacher/Badge/BadgeTable";
 import ProfileCoach from "../pages/Auth/ProFileCoach/ProfileCoach";
 import AuthorProfile from "../pages/Home/Blogs/AuthorProfile";
+import Account from "../pages/Admin/Account/Account";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -218,7 +219,10 @@ export default function useRouterElement() {
           <AdminLayout />
         </ProtectedRoute>
       ),
-      children: [{ index: true, element: <DashBoardAdmin /> }],
+      children: [
+        { index: true, element: <DashBoardAdmin /> },
+        { path: PATH.ACCOUNT, element: <Account /> },
+      ],
     },
     // ROUTE NOT FOUND
     {

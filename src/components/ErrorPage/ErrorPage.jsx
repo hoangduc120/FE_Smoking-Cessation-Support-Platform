@@ -1,4 +1,3 @@
-import React from "react";
 import loiErrr from "../../assets/electrocuted-caveman-animation-404-error-page.gif";
 import "./ErrorPage.css";
 export default function ErrorPage() {
