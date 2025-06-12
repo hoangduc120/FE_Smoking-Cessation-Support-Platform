@@ -41,8 +41,8 @@ const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
                         onClick={() => handleSelectUser(user._id)}
                         className={`
                             flex items-center p-3 border-b border-gray-200 cursor-pointer transition-all duration-200 hover:bg-gray-50
-                            ${selectedUserId === user._id 
-                                ? 'bg-indigo-500 text-white border-l-4 border-l-indigo-600 shadow-lg' 
+                            ${selectedUserId === user._id
+                                ? 'bg-indigo-500 text-white border-l-4 border-l-indigo-600 shadow-lg'
                                 : 'bg-white text-gray-800 hover:shadow-md'
                             }
                         `}
@@ -68,8 +68,8 @@ const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
                                 {isUserOnline(user._id) && (
                                     <span className={`
                                         text-xs font-bold px-2 py-1 rounded-full border text-center
-                                        ${selectedUserId === user._id 
-                                            ? 'text-white border-white bg-white/20' 
+                                        ${selectedUserId === user._id
+                                            ? 'text-white border-white bg-white/20'
                                             : 'text-green-600 border-green-500 bg-green-50'
                                         }
                                     `}>
@@ -77,12 +77,6 @@ const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
                                     </span>
                                 )}
                             </div>
-                            <span className={`
-                                text-sm truncate block
-                                ${selectedUserId === user._id ? 'text-gray-200' : 'text-gray-600'}
-                            `}>
-                                {user.email}
-                            </span>
                         </div>
                     </div>
                 ))}
