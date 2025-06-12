@@ -13,7 +13,7 @@ import { connectSocket } from "../../../store/slices/socketSlice";
 import { useSocket, useSocketEvent, useOnlineUsers } from "../../../hooks/useSocket";
 import toast from "react-hot-toast";
 
-import SidebarChat from "../../../components/Chat/SidebarChat";
+import SidebarChat from "../../../components/Chat/SideBarChat";
 import ChatHeader from "../../../components/Chat/ChatHeader";
 import ChatContainer from "../../../components/Chat/ChatContainer";
 import MessageInput from "../../../components/Chat/MessageInput";
