@@ -1,41 +1,104 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
 
 const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMessage, selectedImage, setSelectedImage, isConnected, handleImageSelect }) => {
     const fileInputRef = useRef(null);
+    const [imagePreview, setImagePreview] = useState(null);
 
-    // Handle form submission để tránh page reload
     const handleFormSubmit = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation();
 
-        // Chỉ gọi handleSendMessage nếu có nội dung
-        if (messageText.trim() || selectedImage) {
+        if ((messageText && messageText.trim()) || selectedImage) {
             handleSendMessage(e);
         }
-
-        // Đảm bảo form không submit
-        return false;
     };
+
+    const handleSendClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if ((messageText && messageText.trim()) || selectedImage) {
+            handleSendMessage(e);
+        }
+    };
+
+    const isSendDisabled = !isConnected || ((!messageText || !messageText.trim()) && !selectedImage);
+
+    const handleImageSelectWithPreview = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const previewUrl = URL.createObjectURL(file);
+            setImagePreview(previewUrl);
+
+            handleImageSelect(e);
+        }
+    };
+
+    const clearImage = () => {
+        setSelectedImage(null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (imagePreview) {
+                URL.revokeObjectURL(imagePreview);
+            }
+        };
+    }, [imagePreview]);
+
+    useEffect(() => {
+        if (!selectedImage && imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+            setImagePreview(null);
+        }
+    }, [selectedImage, imagePreview]);
 
     return (
         <div className="p-4 border-t border-gray-200 bg-white z-10 shadow-lg">
             {selectedImage && (
-                <div className="mb-4 p-3 rounded-lg flex items-center justify-between bg-blue-50 border border-blue-200 animate-fade-in">
-                    <span className="flex items-center text-blue-700 text-sm font-medium">
-                        <span className="mr-2 text-lg">📷</span>
-                        Đã chọn: {selectedImage.name}
-                    </span>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setSelectedImage(null);
-                            if (fileInputRef.current) fileInputRef.current.value = "";
-                        }}
-                        className="bg-none border-none text-red-500 cursor-pointer hover:text-red-700 hover:bg-red-50 rounded-full p-1 transition-all duration-200"
-                    >
-                        <span className="text-lg">✕</span>
-                    </button>
+                <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200 animate-fade-in">
+                    <div className="flex items-start gap-3">
+                        {/* Image Preview */}
+                        {imagePreview && (
+                            <div className="flex-shrink-0">
+                                <img
+                                    src={imagePreview}
+                                    alt="Preview"
+                                    className="w-20 h-20 object-cover rounded-lg border border-gray-300 shadow-sm"
+                                />
+                            </div>
+                        )}
+
+                        {/* Image Info */}
+                        <div className="flex-grow">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <span className="flex items-center text-blue-700 text-sm font-medium">
+                                        <span className="mr-2 text-lg">📷</span>
+                                        {selectedImage.name}
+                                    </span>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={clearImage}
+                                    className="bg-none border-none text-red-500 cursor-pointer hover:text-red-700 hover:bg-red-50 rounded-full p-2 transition-all duration-200 ml-2"
+                                    title="Xóa hình ảnh"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -44,7 +107,7 @@ const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMess
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    onChange={handleImageSelect}
+                    onChange={handleImageSelectWithPreview}
                     className="hidden"
                 />
 
@@ -54,7 +117,7 @@ const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMess
                     className="bg-none border-none text-indigo-500 cursor-pointer text-2xl transition-all duration-200 hover:scale-110 hover:text-indigo-600 p-2 rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                     title="Chọn ảnh"
                 >
-                    📷
+                    <InsertPhotoIcon />
                 </button>
 
                 <div className="flex-1 relative">
@@ -83,12 +146,13 @@ const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMess
                 </div>
 
                 <button
-                    type="submit"
-                    disabled={!isConnected || (!messageText.trim() && !selectedImage)}
+                    type="button"
+                    onClick={handleSendClick}
+                    disabled={isSendDisabled}
                     className={`
                         border-none rounded-lg px-4 py-3 cursor-pointer transition-all duration-200 font-medium text-sm
                         focus:outline-none focus:ring-2 focus:ring-offset-2
-                        ${(!isConnected || (!messageText.trim() && !selectedImage))
+                        ${isSendDisabled
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : 'bg-indigo-500 text-white hover:bg-indigo-600 hover:scale-105 focus:ring-indigo-500 shadow-lg hover:shadow-xl'
                         }
@@ -105,7 +169,7 @@ const MessageInput = ({ messageText, handleTyping, handleKeyDown, handleSendMess
                     <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
                     <span>{isConnected ? 'Đã kết nối' : 'Mất kết nối'}</span>
                 </div>
-                {messageText.length > 0 && (
+                {messageText && messageText.length > 0 && (
                     <span className="text-gray-400">
                         {messageText.length} ký tự
                     </span>

@@ -1,81 +1,37 @@
 import React from 'react';
 import TypingIndicator from '../TypingIndicator';
-import { useSelector } from 'react-redux';
 
-const ChatHeader = ({ isUserOnline }) => {
-    const selectedUser = useSelector((state) => state.chat.selectedUser);
-    const typingUsers = useSelector((state) => state.chat.typingUsers);
-    
+const ChatHeader = ({ selectedUser, isUserOnline, typingUsers }) => {
     if (!selectedUser) return null;
 
     return (
-        <div style={{
-            padding: '16px',
-            borderBottom: '1px solid #e0e0e0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            minHeight: '70px',
-            backgroundColor: '#ffffff',
-            zIndex: 10
-        }}>
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px'
-            }}>
-                <div style={{ position: 'relative' }}>
+        <div className="p-4 border-b border-gray-200 bg-white shadow-sm min-h-[70px] z-10">
+            <div className="flex items-center gap-4">
+                <div className="relative">
                     <img
                         src={selectedUser.profilePicture || "/default-avatar.png"}
                         alt={selectedUser.userName}
-                        style={{
-                            width: '45px',
-                            height: '45px',
-                            borderRadius: '50%'
-                        }}
+                        className="w-11 h-11 rounded-full object-cover ring-2 ring-gray-200"
                     />
                     {isUserOnline(selectedUser._id) && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            right: 0,
-                            width: '10px',
-                            height: '10px',
-                            backgroundColor: '#4caf50',
-                            borderRadius: '50%',
-                            border: '2px solid #ffffff'
-                        }}></div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                     )}
                 </div>
-                <div style={{ flexGrow: 1 }}>
-                    <h2 style={{
-                        fontSize: '1.25rem',
-                        fontWeight: 500,
-                        margin: 0
-                    }}>
+                <div className="flex-grow">
+                    <h2 className="text-lg font-semibold text-gray-800 m-0">
                         {selectedUser.userName}
                     </h2>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}>
+                    <div className="flex items-center gap-2 mt-1">
                         {isUserOnline(selectedUser._id) ? (
-                            <span style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                color: '#4caf50',
-                                fontSize: '0.875rem'
-                            }}>
-                                • Đang hoạt động
+                            <span className="flex items-center text-green-600 text-sm font-medium">
+                                Đang hoạt động
                             </span>
                         ) : (
-                            <span style={{
-                                color: '#666',
-                                fontSize: '0.875rem'
-                            }}>
+                            <span className="text-gray-500 text-sm">
                                 Không hoạt động
                             </span>
                         )}
-                        {typingUsers.has(selectedUser._id) && (
+                        {typingUsers && typingUsers.has && typingUsers.has(selectedUser._id) && (
                             <TypingIndicator />
                         )}
                     </div>

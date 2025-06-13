@@ -3,7 +3,7 @@ import SocketStatus from '../SocketStatus';
 import SearchIcon from '@mui/icons-material/Search';
 import SmsIcon from '@mui/icons-material/Sms';
 
-const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUserOnline, handleSelectUser }) => {
+const SideBarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUserOnline, handleSelectUser, unreadMessages }) => {
     const filteredUsers = users?.filter(user =>
         user.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -35,51 +35,71 @@ const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
 
             {/* User List */}
             <div className="flex-grow overflow-y-auto">
-                {filteredUsers.filter(user => user.role !== 'admin').map((user, index) => (
-                    <div
-                        key={user._id}
-                        onClick={() => handleSelectUser(user._id)}
-                        className={`
-                            flex items-center p-3 border-b border-gray-200 cursor-pointer transition-all duration-200 hover:bg-gray-50
-                            ${selectedUserId === user._id
-                                ? 'bg-indigo-500 text-white border-l-4 border-l-indigo-600 shadow-lg'
-                                : 'bg-white text-gray-800 hover:shadow-md'
-                            }
-                        `}
-                        style={{
-                            animation: `fadeIn 0.3s ease-out ${0.1 + index * 0.05}s both`
-                        }}
-                    >
-                        <div className="relative mr-3">
-                            <img
-                                src={user.profilePicture || "/default-avatar.png"}
-                                alt={user.userName}
-                                className="w-11 h-11 rounded-full object-cover ring-2 ring-gray-200"
-                            />
-                            {isUserOnline(user._id) && (
-                                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
-                            )}
-                        </div>
-                        <div className="flex-grow min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium text-base truncate pr-2">
-                                    {user.userName}
-                                </span>
+                {filteredUsers.filter(user => user.role !== 'admin').map((user, index) => {
+                    const unreadCount = unreadMessages?.[user._id] || 0;
+
+                    return (
+                        <div
+                            key={user._id}
+                            onClick={() => handleSelectUser(user._id)}
+                            className={`
+                                flex items-center p-3 border-b border-gray-200 cursor-pointer transition-all duration-200 hover:bg-gray-50
+                                ${selectedUserId === user._id
+                                    ? 'bg-indigo-500 text-white border-l-4 border-l-indigo-600 shadow-lg'
+                                    : 'bg-white text-gray-800 hover:shadow-md'
+                                }
+                            `}
+                            style={{
+                                animation: `fadeIn 0.3s ease-out ${0.1 + index * 0.05}s both`
+                            }}
+                        >
+                            <div className="relative mr-3">
+                                <img
+                                    src={user.profilePicture || "/default-avatar.png"}
+                                    alt={user.userName}
+                                    className="w-11 h-11 rounded-full object-cover ring-2 ring-gray-200"
+                                />
                                 {isUserOnline(user._id) && (
-                                    <span className={`
-                                        text-xs font-bold px-2 py-1 rounded-full border text-center
-                                        ${selectedUserId === user._id
-                                            ? 'text-white border-white bg-white/20'
-                                            : 'text-green-600 border-green-500 bg-green-50'
-                                        }
-                                    `}>
-                                        Online
-                                    </span>
+                                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
                                 )}
                             </div>
+                            <div className="flex-grow min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="font-medium text-base truncate pr-2">
+                                        {user.userName}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        {isUserOnline(user._id) && (
+                                            <span className={`
+                                                text-xs font-bold px-2 py-1 rounded-full border text-center
+                                                ${selectedUserId === user._id
+                                                    ? 'text-white border-white bg-white/20'
+                                                    : 'text-green-600 border-green-500 bg-green-50'
+                                                }
+                                            `}>
+                                                Online
+                                            </span>
+                                        )}
+
+                                        {/* Unread messages badge */}
+                                        {unreadCount > 0 && (
+                                            <div className={`
+                                                min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-bold
+                                                ${selectedUserId === user._id
+                                                    ? 'bg-white text-indigo-600'
+                                                    : 'bg-red-500 text-white'
+                                                }
+                                                animate-pulse shadow-sm
+                                            `}>
+                                                {unreadCount > 99 ? '99+' : unreadCount}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 {filteredUsers.length === 0 && (
                     <div className="p-8 text-center text-gray-500 text-sm">
@@ -98,4 +118,4 @@ const SidebarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
     );
 };
 
-export default SidebarChat;
+export default SideBarChat;
