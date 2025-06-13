@@ -16,6 +16,24 @@ export const fetchUsers = createAsyncThunk(
   }
 );
 
+export const searchUsers = createAsyncThunk(
+  "chat/searchUsers",
+  async (searchQuery, { rejectWithValue }) => {
+    try {
+      if (!searchQuery || searchQuery.trim().length < 2) {
+        return [];
+      }
+      const response = await fetcher.get(`/chat/search-users?q=${encodeURIComponent(searchQuery)}`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error("searchUsers error:", error);
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+);
+
 export const fetchConversations = createAsyncThunk(
   "chat/fetchConversations",
   async (_, { rejectWithValue }) => {
@@ -93,6 +111,7 @@ export const sendMessage = createAsyncThunk(
           `/chat/messages/${receiverId}`,
           payload
         );
+
         return { ...response.data.data || response.data, receiverId };
       }
 
@@ -168,10 +187,16 @@ const chatSlice = createSlice({
     isLoading: false,
     isError: false,
     errorMessage: null,
+    userSidebarOrder: {},
+    unreadMessages: {}, // Track unread messages per user
   },
   reducers: {
     selectUser: (state, action) => {
       state.selectedUserId = action.payload;
+      // Clear unread count for selected user
+      if (state.unreadMessages[action.payload]) {
+        state.unreadMessages[action.payload] = 0;
+      }
     },
     addNewMessage: (state, action) => {
 
@@ -207,9 +232,85 @@ const chatSlice = createSlice({
         };
 
         state.messages[targetConversationId].push(newMessage);
+
+        // Update unread count if message is not read and not from current conversation
+        if (!newMessage.isRead && targetConversationId !== state.selectedUserId) {
+          if (!state.unreadMessages[senderId]) {
+            state.unreadMessages[senderId] = 0;
+          }
+          state.unreadMessages[senderId] += 1;
+        }
       } else {
         console.log("Message already exists, skipping");
       }
+    },
+    setUnreadMessages: (state, action) => {
+      // Set unread messages from conversations API
+      const conversations = action.payload;
+      const unreadMessages = {};
+
+      conversations.forEach(conv => {
+        if (conv.user && conv.unreadCount > 0) {
+          unreadMessages[conv.user._id] = conv.unreadCount;
+        }
+      });
+
+      state.unreadMessages = unreadMessages;
+    },
+    markMessagesAsRead: (state, action) => {
+      const userId = action.payload;
+      if (state.unreadMessages[userId]) {
+        state.unreadMessages[userId] = 0;
+      }
+    },
+    initializeSidebarOrder: (state, action) => {
+      const { currentUserId, users } = action.payload;
+
+      const savedOrder = localStorage.getItem(`sidebarOrder_${currentUserId}`);
+      if (savedOrder) {
+        try {
+          state.userSidebarOrder[currentUserId] = JSON.parse(savedOrder);
+        } catch (error) {
+          console.error('Error parsing saved sidebar order:', error);
+          state.userSidebarOrder[currentUserId] = [];
+        }
+      } else {
+        state.userSidebarOrder[currentUserId] = users.map(user => user._id);
+      }
+    },
+    moveUserToTopForCurrentUser: (state, action) => {
+      const { currentUserId, userToMoveId } = action.payload;
+
+      if (!state.userSidebarOrder[currentUserId]) {
+        state.userSidebarOrder[currentUserId] = [];
+      }
+
+      const currentOrder = state.userSidebarOrder[currentUserId];
+      const userIndex = currentOrder.indexOf(userToMoveId);
+
+      if (userIndex > 0) {
+        currentOrder.splice(userIndex, 1);
+        currentOrder.unshift(userToMoveId);
+
+        localStorage.setItem(`sidebarOrder_${currentUserId}`, JSON.stringify(currentOrder));
+      } else if (userIndex === -1) {
+        currentOrder.unshift(userToMoveId);
+        localStorage.setItem(`sidebarOrder_${currentUserId}`, JSON.stringify(currentOrder));
+      }
+    },
+    moveUserToTop: (state, action) => {
+      const userId = action.payload;
+      if (!state.users || state.users.length === 0) return;
+
+      const userIndex = state.users.findIndex(user => user._id === userId);
+      if (userIndex > 0) {
+        const user = state.users[userIndex];
+        state.users.splice(userIndex, 1);
+        state.users.unshift(user);
+      }
+    },
+    clearSearchUsers: (state) => {
+      state.searchResults = [];
     },
   },
   extraReducers: (builder) => {
@@ -227,6 +328,21 @@ const chatSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload?.message || "Failed to fetch users";
+        state.users = [];
+      })
+      .addCase(searchUsers.pending, (state) => {
+        state.isLoadingSearch = true;
+        state.isError = false;
+      })
+      .addCase(searchUsers.fulfilled, (state, action) => {
+        state.isLoadingSearch = false;
+        state.isError = false;
+        state.users = Array.isArray(action.payload) ? action.payload : [];
+      })
+      .addCase(searchUsers.rejected, (state, action) => {
+        state.isLoadingSearch = false;
+        state.isError = true;
+        state.errorMessage = action.payload?.message || "Failed to search users";
         state.users = [];
       })
       .addCase(fetchConversations.pending, (state) => {
@@ -280,7 +396,7 @@ const chatSlice = createSlice({
               id: msg._id || msg.id,
               senderId: typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId,
               receiverId: typeof msg.receiverId === "object" ? msg.receiverId._id : msg.receiverId,
-              text: msg.text || msg.content || "", 
+              text: msg.text || msg.content || "",
               createdAt: msg.createdAt || new Date().toISOString(),
             };
           });
@@ -380,5 +496,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { selectUser, addNewMessage } = chatSlice.actions;
+export const { selectUser, addNewMessage, setUnreadMessages, markMessagesAsRead, initializeSidebarOrder, moveUserToTopForCurrentUser, moveUserToTop, clearSearchUsers } = chatSlice.actions;
 export default chatSlice.reducer;

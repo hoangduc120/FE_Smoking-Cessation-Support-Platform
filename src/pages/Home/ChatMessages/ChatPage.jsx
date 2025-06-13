@@ -7,13 +7,17 @@ import {
     sendMessage,
     markMessageRead,
     selectUser,
-    addNewMessage
+    addNewMessage,
+    setUnreadMessages,
+    markMessagesAsRead,
+    initializeSidebarOrder,
+    moveUserToTopForCurrentUser
 } from "../../../store/slices/chatSlice";
 import { connectSocket } from "../../../store/slices/socketSlice";
 import { useSocket, useSocketEvent, useOnlineUsers } from "../../../hooks/useSocket";
 import toast from "react-hot-toast";
 
-import SidebarChat from "../../../components/Chat/SideBarChat";
+import SideBarChat from "../../../components/Chat/SideBarChat";
 import ChatHeader from "../../../components/Chat/ChatHeader";
 import ChatContainer from "../../../components/Chat/ChatContainer";
 import MessageInput from "../../../components/Chat/MessageInput";
@@ -22,9 +26,12 @@ export default function ChatPage() {
     const dispatch = useDispatch();
     const {
         users,
+        conversations,
         messages,
         selectedUserId,
-        isLoading
+        isLoading,
+        userSidebarOrder,
+        unreadMessages
     } = useSelector((state) => state.chat);
 
     const currentUser = useSelector((state) => {
@@ -44,6 +51,7 @@ export default function ChatPage() {
         return authUser;
     });
 
+    const currentUserId = currentUser?.id || currentUser?._id;
 
     const { onlineUsers, isUserOnline } = useOnlineUsers();
     const { emit, isConnected } = useSocket();
@@ -59,9 +67,21 @@ export default function ChatPage() {
     const typingTimeoutRef = useRef(null);
 
     useEffect(() => {
-        dispatch(fetchUsers());
-        dispatch(fetchConversations());
-    }, [dispatch]);
+        dispatch(fetchUsers()).then((result) => {
+            if (result.type === 'chat/fetchUsers/fulfilled' && currentUserId) {
+                dispatch(initializeSidebarOrder({
+                    currentUserId,
+                    users: result.payload
+                }));
+            }
+        });
+
+        dispatch(fetchConversations()).then((result) => {
+            if (result.type === 'chat/fetchConversations/fulfilled') {
+                dispatch(setUnreadMessages(result.payload));
+            }
+        });
+    }, [dispatch, currentUserId]);
 
     useEffect(() => {
         const connectManually = () => {
@@ -98,6 +118,7 @@ export default function ChatPage() {
                 console.log(" Skipping fetchMessages because messages already exist");
             }
             dispatch(markMessageRead(selectedUserId));
+            dispatch(markMessagesAsRead(selectedUserId));
         }
     }, [selectedUserId, dispatch]);
 
@@ -110,7 +131,6 @@ export default function ChatPage() {
         const messageReceiverId = message.receiverId?._id || message.receiverId;
 
         if (messageSenderId === selectedUserId || messageReceiverId === selectedUserId) {
-
             dispatch(addNewMessage({
                 message,
                 conversationId: selectedUserId
@@ -119,8 +139,13 @@ export default function ChatPage() {
             setTimeout(() => {
                 scrollToBottom();
             }, 100);
-        } else {
-            console.log(" Message not relevant to current conversation - ignoring");
+        }
+
+        if (messageReceiverId === currentUserId && messageSenderId !== currentUserId) {
+            dispatch(moveUserToTopForCurrentUser({
+                currentUserId: currentUserId,
+                userToMoveId: messageSenderId
+            }));
         }
     });
 
@@ -179,7 +204,15 @@ export default function ChatPage() {
                 text: textToSend,
                 image: imageToSend
             })).unwrap();
+
             setTimeout(scrollToBottom, 100);
+
+            if (currentUserId && selectedUserId) {
+                dispatch(moveUserToTopForCurrentUser({
+                    currentUserId: currentUserId,
+                    userToMoveId: selectedUserId
+                }));
+            }
         } catch (error) {
             console.error("Lỗi gửi tin nhắn:", error);
             toast.error("Gửi tin nhắn thất bại: " + (error.message || "Đã xảy ra lỗi"));
@@ -231,6 +264,30 @@ export default function ChatPage() {
         });
     };
 
+    const sortedUsers = useMemo(() => {
+        if (!users || !currentUserId || !userSidebarOrder[currentUserId]) {
+            return users || [];
+        }
+
+        const sidebarOrder = userSidebarOrder[currentUserId];
+        const userMap = new Map(users.map(user => [user._id, user]));
+
+        const orderedUsers = [];
+
+        sidebarOrder.forEach(userId => {
+            if (userMap.has(userId)) {
+                orderedUsers.push(userMap.get(userId));
+                userMap.delete(userId);
+            }
+        });
+
+        userMap.forEach(user => {
+            orderedUsers.push(user);
+        });
+
+        return orderedUsers;
+    }, [users, currentUserId, userSidebarOrder]);
+
     const selectedUser = useMemo(() =>
         users?.find(user => user._id === selectedUserId),
         [users, selectedUserId]
@@ -246,13 +303,14 @@ export default function ChatPage() {
             <div className="flex w-full h-full m-0 shadow-2xl rounded-lg overflow-hidden bg-white">
                 {/* Sidebar - User List */}
                 <div className="w-full max-w-xs h-full border-r border-gray-200 bg-white shadow-lg">
-                    <SidebarChat
-                        users={users}
+                    <SideBarChat
+                        users={sortedUsers}
                         selectedUserId={selectedUserId}
                         searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery}
                         isUserOnline={isUserOnline}
                         handleSelectUser={handleSelectUser}
+                        unreadMessages={unreadMessages}
                     />
                 </div>
 
