@@ -184,9 +184,6 @@ const loadFromLocalStorage = (key, defaultValue = {}) => {
 
     const result = JSON.parse(item);
 
-    // Không convert thành Date objects - giữ nguyên ISO strings
-    // Date objects sẽ được tạo khi cần thiết trong UI components
-
     return result;
   } catch (error) {
     console.error(`Error loading ${key} from localStorage:`, error);
@@ -622,5 +619,17 @@ const chatSlice = createSlice({
   },
 });
 
-export const { selectUser, addNewMessage, setUnreadMessages, markMessagesAsRead, initializeSidebarOrder, moveUserToTopForCurrentUser, moveUserToTop, clearSearchUsers, setCurrentUserId, restoreFromLocalStorage, clearLocalStorageData } = chatSlice.actions;
+export const {
+  selectUser,
+  addNewMessage,
+  setUnreadMessages,
+  markMessagesAsRead,
+  initializeSidebarOrder,
+  moveUserToTopForCurrentUser,
+  moveUserToTop,
+  clearSearchUsers,
+  setCurrentUserId,
+  restoreFromLocalStorage,
+  clearLocalStorageData,
+} = chatSlice.actions;
 export default chatSlice.reducer;

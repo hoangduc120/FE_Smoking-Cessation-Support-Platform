@@ -101,12 +101,10 @@ export default function ChatPage() {
 
     useEffect(() => {
         if (finalCurrentUserId) {
-            // Check if localStorage has old format with Date objects and clear it
             try {
                 const storedConversationsData = localStorage.getItem('chatConversationsData');
                 if (storedConversationsData) {
                     const parsed = JSON.parse(storedConversationsData);
-                    // Check if any lastMessageAt is a Date object string format
                     const hasDateObjects = Object.values(parsed).some(conv =>
                         conv.lastMessageAt && typeof conv.lastMessageAt === 'string' &&
                         conv.lastMessageAt.includes('GMT')
@@ -117,7 +115,6 @@ export default function ChatPage() {
                     }
                 }
             } catch (error) {
-                // If parsing fails, clear localStorage
                 dispatch(clearLocalStorageData());
             }
 

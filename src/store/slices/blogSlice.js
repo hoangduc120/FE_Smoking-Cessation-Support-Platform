@@ -78,8 +78,7 @@ export const fetchBlogsApi = createAsyncThunk(
     }
   }
 );
-
-// Fetch blogs by user ID
+  
 export const fetchBlogsByUserApi = createAsyncThunk(
   "blogs/fetchByUser",
   async ({ userId, page = 1, limit = 10 }, { getState, rejectWithValue }) => {
@@ -119,7 +118,6 @@ export const fetchBlogsByUserApi = createAsyncThunk(
   }
 );
 
-// Fetch a single blog by slug
 export const fetchBlogBySlugApi = createAsyncThunk(
   "blogs/fetchBySlug",
   async (slug, { getState, rejectWithValue }) => {
@@ -136,7 +134,6 @@ export const fetchBlogBySlugApi = createAsyncThunk(
   }
 );
 
-// Create a new blog
 export const createBlogApi = createAsyncThunk(
   "blogs/create",
   async (blogData, { getState, rejectWithValue }) => {
@@ -159,7 +156,6 @@ export const createBlogApi = createAsyncThunk(
   }
 );
 
-// Like or unlike a blog
 export const toggleLikeBlogApi = createAsyncThunk(
   "blogs/toggleLike",
   async (blogId, { getState, rejectWithValue }) => {
@@ -184,7 +180,6 @@ export const toggleLikeBlogApi = createAsyncThunk(
   }
 );
 
-// Add a comment to a blog
 export const addCommentApi = createAsyncThunk(
   "blogs/addComment",
   async (payload, { getState, rejectWithValue }) => {
@@ -242,18 +237,15 @@ const blogSlice = createSlice({
     updateLike: (state, { payload }) => {
       const { blogId, isLiked, likeCount } = payload;
 
-      // Tìm blog trong blogs array
       const blogInList = state.blogs.find(
         (b) => b.id === blogId || b._id === blogId
       );
 
-      // Cập nhật blog trong danh sách nếu tìm thấy
       if (blogInList) {
         blogInList.isLiked = isLiked;
         blogInList.likeCount = likeCount;
       }
 
-      // Cập nhật selectedBlog nếu là blog đang xem
       if (
         state.selectedBlog &&
         (state.selectedBlog.id === blogId || state.selectedBlog._id === blogId)
@@ -287,7 +279,6 @@ const blogSlice = createSlice({
       toast.error(payload?.message || "Không thể tải bài viết");
     });
 
-    // New extra reducers for fetchBlogsByUserApi
     builder.addCase(fetchBlogsByUserApi.pending, (state) => {
       state.isLoading = true;
     });
