@@ -1,21 +1,18 @@
-
-.plan-container {
-  padding: 24px 8px; 
+.PlanCustomization-container {
+  padding: 24px 8px;
   max-width: 100%;
   margin: 0 auto;
   background-color: #f9fafb;
   min-height: 100vh;
 }
 
-
-.plan-content {
+.PlanCustomization-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 8px; 
+  padding: 0 8px;
 }
 
-
-.plan-header {
+.PlanCustomization-header {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -24,36 +21,33 @@
 }
 
 @media (min-width: 768px) {
-  .plan-header {
+  .PlanCustomization-header {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
   }
 }
 
-
-.plan-title {
+.PlanCustomization-title {
   font-weight: 700;
   font-size: 1.75rem;
   color: #1a202c;
 }
 
-
-.plan-header-buttons {
+.PlanCustomization-header-buttons {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 @media (min-width: 640px) {
-  .plan-header-buttons {
+  .PlanCustomization-header-buttons {
     flex-direction: row;
     gap: 12px;
   }
 }
 
-
-.plan-alert {
+.PlanCustomization-alert {
   margin-bottom: 20px;
   background-color: #e3f2fd;
   border: none;
@@ -62,80 +56,73 @@
   padding: 16px;
 }
 
-.plan-alert.success {
+.PlanCustomization-alert-success {
   background-color: #e8f5e9;
 }
 
-
-.plan-tabs {
+.PlanCustomization-tabs {
   margin-bottom: 20px;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.plan-tabs .MuiTab-root {
+.PlanCustomization-tabs .MuiTab-root {
   text-transform: none;
   font-weight: 500;
   font-size: 1rem;
 }
 
-
-.plan-card {
+.PlanCustomization-card {
   margin-bottom: 20px;
   border: none;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   background-color: #ffffff;
-  width: 100%; 
+  width: 100%;
 }
 
-
-.plan-grid {
+.PlanCustomization-grid {
   display: grid;
   gap: 20px;
-  width: 100%; 
+  width: 100%;
 }
 
 @media (min-width: 768px) {
-  .plan-grid {
-    grid-template-columns: 3fr 1fr; 
+  .PlanCustomization-grid {
+    grid-template-columns: 3fr 1fr;
   }
 }
 
-
-.plan-grid-item {
+.PlanCustomization-grid-item {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: 100%; 
+  width: 100%;
 }
 
-
-.plan-section {
+.PlanCustomization-section {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
   background-color: #fafafa;
 }
 
-
-.plan-info-row {
+.PlanCustomization-info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid #f1f3f5;
-  width: 100%; 
+  width: 100%;
 }
 
-.plan-info-row:last-child {
+.PlanCustomization-info-row:last-child {
   border-bottom: none;
 }
 
-
-.plan-goal-row,
-.plan-milestone-row {
+.PlanCustomization-goal-row,
+.PlanCustomization-milestone-row {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -144,21 +131,19 @@
   width: 100%;
 }
 
-
-.plan-grid.plan-section {
+.PlanCustomization-grid.PlanCustomization-section {
   display: grid;
   grid-template-columns: 1fr;
   gap: 8px;
 }
 
 @media (min-width: 640px) {
-  .plan-grid.plan-section {
+  .PlanCustomization-grid.PlanCustomization-section {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 
-
-.plan-footer {
+.PlanCustomization-footer {
   display: flex;
   justify-content: center;
   margin-top: 24px;
@@ -171,17 +156,36 @@
   font-weight: 500;
 }
 
-
 @media (max-width: 640px) {
-  .plan-container {
+  .PlanCustomization-container {
     padding: 16px 4px;
   }
 
-  .plan-content {
+  .PlanCustomization-content {
     padding: 0 4px;
   }
 
-  .plan-grid {
+  .PlanCustomization-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.PlanCustomization-flex {
+  display: flex;
+}
+
+.PlanCustomization-justify-center {
+  justify-content: center;
+}
+
+.PlanCustomization-items-center {
+  align-items: center;
+}
+
+.PlanCustomization-h-screen {
+  height: 100vh;
+}
+
+.PlanCustomization-mt-4 {
+  margin-top: 16px;
 }

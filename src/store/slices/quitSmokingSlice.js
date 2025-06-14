@@ -33,6 +33,24 @@ export const saveAssessment = createAsyncThunk(
   }
 );
 
+// Cập nhật thông tin đánh giá
+export const updateAssment = createAsyncThunk(
+  "quitSmoking/updateAssessment",
+  async ({ surveyId, data }, { rejectWithValue }) => {
+    try {
+      const response = await fetcher.put(`/surveys/${surveyId}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("updateAssment error:", error);
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "Lỗi không xác định khi cập nhật kế hoạch."
+      );
+    }
+  }
+);
+
 export const quitSmokingSlice = createSlice({
   name: "quitSmoking",
   initialState: {
@@ -77,6 +95,19 @@ export const quitSmokingSlice = createSlice({
         state.assessmentData = action.payload;
       })
       .addCase(saveAssessment.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = action.payload;
+      })
+      .addCase(updateAssment.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateAssment.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isError = false;
+        state.assessmentData = action.payload;
+      })
+      .addCase(updateAssment.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload;
