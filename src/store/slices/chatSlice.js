@@ -39,7 +39,8 @@ export const fetchConversations = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetcher.get("/chat/conversations");
-      return response.data.data || [];
+      const result = response.data.data || [];
+      return result;
     } catch (error) {
       console.error("fetchConversations error:", error);
       return rejectWithValue(
@@ -176,6 +177,23 @@ export const deleteMessage = createAsyncThunk(
   }
 );
 
+const loadFromLocalStorage = (key, defaultValue = {}) => {
+  try {
+    const item = localStorage.getItem(key);
+    if (!item) return defaultValue;
+
+    const result = JSON.parse(item);
+
+    // Không convert thành Date objects - giữ nguyên ISO strings
+    // Date objects sẽ được tạo khi cần thiết trong UI components
+
+    return result;
+  } catch (error) {
+    console.error(`Error loading ${key} from localStorage:`, error);
+    return defaultValue;
+  }
+};
+
 const chatSlice = createSlice({
   name: "chat",
   initialState: {
@@ -184,19 +202,17 @@ const chatSlice = createSlice({
     messages: {},
     unreadCount: 0,
     selectedUserId: null,
+    currentUserId: null,
     isLoading: false,
     isError: false,
     errorMessage: null,
     userSidebarOrder: {},
-    unreadMessages: {}, // Track unread messages per user
+    unreadMessages: loadFromLocalStorage('chatUnreadMessages', {}),
+    conversationsData: loadFromLocalStorage('chatConversationsData', {}),
   },
   reducers: {
     selectUser: (state, action) => {
       state.selectedUserId = action.payload;
-      // Clear unread count for selected user
-      if (state.unreadMessages[action.payload]) {
-        state.unreadMessages[action.payload] = 0;
-      }
     },
     addNewMessage: (state, action) => {
 
@@ -233,34 +249,99 @@ const chatSlice = createSlice({
 
         state.messages[targetConversationId].push(newMessage);
 
-        // Update unread count if message is not read and not from current conversation
-        if (!newMessage.isRead && targetConversationId !== state.selectedUserId) {
+        const conversationUserId = senderId;
+        if (!state.conversationsData[conversationUserId]) {
+          state.conversationsData[conversationUserId] = {
+            lastMessageText: "",
+            lastMessageAt: null,
+            unreadCount: 0
+          };
+        }
+
+        if (targetConversationId !== state.selectedUserId) {
           if (!state.unreadMessages[senderId]) {
             state.unreadMessages[senderId] = 0;
           }
           state.unreadMessages[senderId] += 1;
+
+          state.conversationsData[conversationUserId].unreadCount = state.unreadMessages[senderId];
+        }
+
+        state.conversationsData[conversationUserId] = {
+          ...state.conversationsData[conversationUserId],
+          lastMessageText: newMessage.text || (newMessage.image ? "Đã gửi một hình ảnh" : ""),
+          lastMessageAt: newMessage.createdAt
+        };
+
+        try {
+          localStorage.setItem('chatUnreadMessages', JSON.stringify(state.unreadMessages));
+          localStorage.setItem('chatConversationsData', JSON.stringify(state.conversationsData));
+        } catch (error) {
+          console.error('Error saving to localStorage after new message:', error);
         }
       } else {
-        console.log("Message already exists, skipping");
       }
     },
     setUnreadMessages: (state, action) => {
-      // Set unread messages from conversations API
       const conversations = action.payload;
-      const unreadMessages = {};
 
       conversations.forEach(conv => {
-        if (conv.user && conv.unreadCount > 0) {
-          unreadMessages[conv.user._id] = conv.unreadCount;
+        if (conv.user) {
+          const userId = conv.user._id;
+
+          const existingData = state.conversationsData[userId] || {};
+          const existingUnreadCount = state.unreadMessages[userId] || 0;
+
+          const serverUnreadCount = conv.unreadCount || 0;
+          const finalUnreadCount = Math.max(existingUnreadCount, serverUnreadCount);
+
+          const serverLastMessage = conv.lastMessageText && conv.lastMessageText !== "Chưa có tin nhắn" ? conv.lastMessageText : null;
+          const finalLastMessage = serverLastMessage || existingData.lastMessageText || "Chưa có tin nhắn";
+
+          const serverLastMessageAt = conv.lastMessageAt ? conv.lastMessageAt : null;
+          const finalLastMessageAt = serverLastMessageAt || existingData.lastMessageAt || null;
+
+          if (finalUnreadCount > 0) {
+            state.unreadMessages[userId] = finalUnreadCount;
+          } else if (state.unreadMessages[userId]) {
+            if (serverUnreadCount === 0 && existingUnreadCount > 0) {
+              state.unreadMessages[userId] = existingUnreadCount;
+            }
+          }
+
+          state.conversationsData[userId] = {
+            lastMessageText: finalLastMessage,
+            lastMessageAt: finalLastMessageAt,
+            unreadCount: finalUnreadCount
+          };
+
         }
       });
 
-      state.unreadMessages = unreadMessages;
+      try {
+        localStorage.setItem('chatUnreadMessages', JSON.stringify(state.unreadMessages));
+        localStorage.setItem('chatConversationsData', JSON.stringify(state.conversationsData));
+      } catch (error) {
+        console.error('Error saving to localStorage:', error);
+      }
     },
     markMessagesAsRead: (state, action) => {
       const userId = action.payload;
       if (state.unreadMessages[userId]) {
         state.unreadMessages[userId] = 0;
+      }
+      if (state.conversationsData[userId]) {
+        state.conversationsData[userId] = {
+          ...state.conversationsData[userId],
+          unreadCount: 0
+        };
+      }
+
+      try {
+        localStorage.setItem('chatUnreadMessages', JSON.stringify(state.unreadMessages));
+        localStorage.setItem('chatConversationsData', JSON.stringify(state.conversationsData));
+      } catch (error) {
+        console.error('Error saving to localStorage after markAsRead:', error);
       }
     },
     initializeSidebarOrder: (state, action) => {
@@ -312,6 +393,32 @@ const chatSlice = createSlice({
     clearSearchUsers: (state) => {
       state.searchResults = [];
     },
+    setCurrentUserId: (state, action) => {
+      state.currentUserId = action.payload;
+    },
+    restoreFromLocalStorage: (state) => {
+      try {
+        const savedUnreadMessages = loadFromLocalStorage('chatUnreadMessages', {});
+        const savedConversationsData = loadFromLocalStorage('chatConversationsData', {});
+
+        state.unreadMessages = { ...state.unreadMessages, ...savedUnreadMessages };
+        state.conversationsData = { ...state.conversationsData, ...savedConversationsData };
+
+      } catch (error) {
+        console.error('Error restoring from localStorage:', error);
+      }
+    },
+    clearLocalStorageData: (state) => {
+      try {
+        localStorage.removeItem('chatUnreadMessages');
+        localStorage.removeItem('chatConversationsData');
+        state.unreadMessages = {};
+        state.conversationsData = {};
+        console.log('Cleared localStorage chat data');
+      } catch (error) {
+        console.error('Error clearing localStorage:', error);
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -346,7 +453,6 @@ const chatSlice = createSlice({
         state.users = [];
       })
       .addCase(fetchConversations.pending, (state) => {
-        // Không set loading = true để tránh UI reload khi update conversations
         state.isError = false;
       })
       .addCase(fetchConversations.fulfilled, (state, action) => {
@@ -392,7 +498,7 @@ const chatSlice = createSlice({
           state.messages[receiverId] = messages.map((msg) => {
             return {
               ...msg,
-              _id: msg._id || msg.id, // Ensure _id exists
+              _id: msg._id || msg.id,
               id: msg._id || msg.id,
               senderId: typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId,
               receiverId: typeof msg.receiverId === "object" ? msg.receiverId._id : msg.receiverId,
@@ -446,6 +552,26 @@ const chatSlice = createSlice({
 
         state.messages[receiverId].push(newMessage);
 
+        if (!state.conversationsData[receiverId]) {
+          state.conversationsData[receiverId] = {
+            lastMessageText: "",
+            lastMessageAt: null,
+            unreadCount: 0
+          };
+        }
+        state.conversationsData[receiverId] = {
+          ...state.conversationsData[receiverId],
+          lastMessageText: newMessage.text || (newMessage.image ? "Đã gửi một hình ảnh" : ""),
+          lastMessageAt: newMessage.createdAt
+        };
+
+        try {
+          localStorage.setItem('chatUnreadMessages', JSON.stringify(state.unreadMessages));
+          localStorage.setItem('chatConversationsData', JSON.stringify(state.conversationsData));
+        } catch (error) {
+          console.error('Error saving to localStorage after sendMessage:', error);
+        }
+
       })
       .addCase(sendMessage.rejected, (state, action) => {
         state.isLoading = false;
@@ -496,5 +622,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { selectUser, addNewMessage, setUnreadMessages, markMessagesAsRead, initializeSidebarOrder, moveUserToTopForCurrentUser, moveUserToTop, clearSearchUsers } = chatSlice.actions;
+export const { selectUser, addNewMessage, setUnreadMessages, markMessagesAsRead, initializeSidebarOrder, moveUserToTopForCurrentUser, moveUserToTop, clearSearchUsers, setCurrentUserId, restoreFromLocalStorage, clearLocalStorageData } = chatSlice.actions;
 export default chatSlice.reducer;

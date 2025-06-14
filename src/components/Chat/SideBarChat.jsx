@@ -2,8 +2,9 @@ import React from 'react';
 import SocketStatus from '../SocketStatus';
 import SearchIcon from '@mui/icons-material/Search';
 import SmsIcon from '@mui/icons-material/Sms';
+import { formatSidebarTime } from '../../utils/fomatTime';
 
-const SideBarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUserOnline, handleSelectUser, unreadMessages }) => {
+const SideBarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUserOnline, handleSelectUser, unreadMessages, conversationsData }) => {
     const filteredUsers = users?.filter(user =>
         user.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -37,6 +38,9 @@ const SideBarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
             <div className="flex-grow overflow-y-auto">
                 {filteredUsers.filter(user => user.role !== 'admin').map((user, index) => {
                     const unreadCount = unreadMessages?.[user._id] || 0;
+                    const conversationData = conversationsData?.[user._id] || {};
+                    const lastMessage = conversationData.lastMessageText || '';
+                    const lastMessageTime = conversationData.lastMessageAt;
 
                     return (
                         <div
@@ -69,7 +73,15 @@ const SideBarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
                                         {user.userName}
                                     </span>
                                     <div className="flex items-center gap-2">
-                                        {isUserOnline(user._id) && (
+                                        {/* Time */}
+                                        {lastMessageTime && (
+                                            <span className={`text-xs ${selectedUserId === user._id ? 'text-white/80' : 'text-gray-500'}`}>
+                                                {formatSidebarTime(lastMessageTime)}
+                                            </span>
+                                        )}
+
+                                        {/* Online status */}
+                                        {isUserOnline(user._id) && !lastMessageTime && (
                                             <span className={`
                                                 text-xs font-bold px-2 py-1 rounded-full border text-center
                                                 ${selectedUserId === user._id
@@ -95,6 +107,16 @@ const SideBarChat = ({ users, selectedUserId, searchQuery, setSearchQuery, isUse
                                             </div>
                                         )}
                                     </div>
+                                </div>
+
+                                {/* Last message - Always show */}
+                                <div className="text-sm truncate pr-2">
+                                    <span className={`${selectedUserId === user._id ? 'text-white/90' : 'text-gray-600'}`}>
+                                        {lastMessage ?
+                                            (lastMessage.length > 35 ? `${lastMessage.substring(0, 35)}...` : lastMessage) :
+                                            "Chưa có tin nhắn"
+                                        }
+                                    </span>
                                 </div>
                             </div>
                         </div>

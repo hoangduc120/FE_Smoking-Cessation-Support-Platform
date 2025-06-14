@@ -22,7 +22,6 @@ const DebugTools = () => {
         addLog(`Auth state: ${currentUser ? 'Logged in' : 'Not logged in'}`);
         addLog(`Socket state: ${isConnected ? 'Connected' : 'Disconnected'}`);
 
-        // Override console.log temporarily
         const originalLog = console.log;
         const originalError = console.error;
         const originalWarn = console.warn;
@@ -43,7 +42,6 @@ const DebugTools = () => {
         };
 
         return () => {
-            // Restore original console methods
             console.log = originalLog;
             console.error = originalError;
             console.warn = originalWarn;

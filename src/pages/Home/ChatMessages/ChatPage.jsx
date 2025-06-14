@@ -11,7 +11,10 @@ import {
     setUnreadMessages,
     markMessagesAsRead,
     initializeSidebarOrder,
-    moveUserToTopForCurrentUser
+    moveUserToTopForCurrentUser,
+    setCurrentUserId,
+    restoreFromLocalStorage,
+    clearLocalStorageData
 } from "../../../store/slices/chatSlice";
 import { connectSocket } from "../../../store/slices/socketSlice";
 import { useSocket, useSocketEvent, useOnlineUsers } from "../../../hooks/useSocket";
@@ -29,19 +32,22 @@ export default function ChatPage() {
         conversations,
         messages,
         selectedUserId,
+        currentUserId: reduxCurrentUserId,
         isLoading,
         userSidebarOrder,
-        unreadMessages
+        unreadMessages,
+        conversationsData
     } = useSelector((state) => state.chat);
 
     const currentUser = useSelector((state) => {
-        const authUser = state.auth.user || state.auth.userData || state.auth.currentUser;
+        const authUser = state.auth.currentUser;
 
         if (!authUser) {
             try {
                 const storedData = JSON.parse(localStorage.getItem('currentUser'));
                 if (storedData) {
-                    return storedData.user || storedData;
+                    const user = storedData.user || storedData;
+                    return user;
                 }
             } catch (error) {
                 console.error("Error reading user from localStorage:", error);
@@ -51,7 +57,34 @@ export default function ChatPage() {
         return authUser;
     });
 
-    const currentUserId = currentUser?.id || currentUser?._id;
+    const getCurrentUserId = useMemo(() => {
+        if (reduxCurrentUserId) return reduxCurrentUserId;
+
+        if (currentUser) {
+            if (currentUser.id) return currentUser.id;
+            if (currentUser._id) return currentUser._id;
+
+            if (currentUser.user?.id) return currentUser.user.id;
+            if (currentUser.user?._id) return currentUser.user._id;
+
+            if (currentUser.data?.user?.id) return currentUser.data.user.id;
+            if (currentUser.data?.user?._id) return currentUser.data.user._id;
+        }
+
+        return null;
+    }, [reduxCurrentUserId, currentUser]);
+
+    const currentUserId = getCurrentUserId;
+
+    const finalCurrentUserId = currentUserId || "temp_user_id_for_testing";
+
+    useEffect(() => {
+        if (currentUserId && currentUserId !== reduxCurrentUserId) {
+            dispatch(setCurrentUserId(currentUserId));
+        }
+    }, [currentUserId, reduxCurrentUserId, dispatch]);
+
+
 
     const { onlineUsers, isUserOnline } = useOnlineUsers();
     const { emit, isConnected } = useSocket();
@@ -67,21 +100,46 @@ export default function ChatPage() {
     const typingTimeoutRef = useRef(null);
 
     useEffect(() => {
-        dispatch(fetchUsers()).then((result) => {
-            if (result.type === 'chat/fetchUsers/fulfilled' && currentUserId) {
-                dispatch(initializeSidebarOrder({
-                    currentUserId,
-                    users: result.payload
-                }));
+        if (finalCurrentUserId) {
+            // Check if localStorage has old format with Date objects and clear it
+            try {
+                const storedConversationsData = localStorage.getItem('chatConversationsData');
+                if (storedConversationsData) {
+                    const parsed = JSON.parse(storedConversationsData);
+                    // Check if any lastMessageAt is a Date object string format
+                    const hasDateObjects = Object.values(parsed).some(conv =>
+                        conv.lastMessageAt && typeof conv.lastMessageAt === 'string' &&
+                        conv.lastMessageAt.includes('GMT')
+                    );
+                    if (hasDateObjects) {
+                        console.log('Clearing old localStorage format with Date objects');
+                        dispatch(clearLocalStorageData());
+                    }
+                }
+            } catch (error) {
+                // If parsing fails, clear localStorage
+                dispatch(clearLocalStorageData());
             }
-        });
 
-        dispatch(fetchConversations()).then((result) => {
-            if (result.type === 'chat/fetchConversations/fulfilled') {
-                dispatch(setUnreadMessages(result.payload));
-            }
-        });
-    }, [dispatch, currentUserId]);
+            dispatch(restoreFromLocalStorage());
+
+            dispatch(fetchUsers()).then((result) => {
+                if (result.type === 'chat/fetchUsers/fulfilled') {
+                    dispatch(initializeSidebarOrder({
+                        currentUserId: finalCurrentUserId,
+                        users: result.payload
+                    }));
+                }
+            });
+
+            dispatch(fetchConversations()).then((result) => {
+                if (result.type === 'chat/fetchConversations/fulfilled') {
+                    dispatch(setUnreadMessages(result.payload));
+                }
+            });
+
+        }
+    }, [dispatch, finalCurrentUserId]);
 
     useEffect(() => {
         const connectManually = () => {
@@ -114,11 +172,7 @@ export default function ChatPage() {
                     .catch(error => {
                         toast.error("Không thể tải tin nhắn: " + (error.message || "Lỗi không xác định"));
                     });
-            } else {
-                console.log(" Skipping fetchMessages because messages already exist");
             }
-            dispatch(markMessageRead(selectedUserId));
-            dispatch(markMessagesAsRead(selectedUserId));
         }
     }, [selectedUserId, dispatch]);
 
@@ -130,20 +184,29 @@ export default function ChatPage() {
         const messageSenderId = message.senderId?._id || message.senderId;
         const messageReceiverId = message.receiverId?._id || message.receiverId;
 
-        if (messageSenderId === selectedUserId || messageReceiverId === selectedUserId) {
-            dispatch(addNewMessage({
-                message,
-                conversationId: selectedUserId
-            }));
-
-            setTimeout(() => {
-                scrollToBottom();
-            }, 100);
+        let conversationId = null;
+        if (messageReceiverId === finalCurrentUserId) {
+            conversationId = messageSenderId;
+        } else if (messageSenderId === finalCurrentUserId) {
+            conversationId = messageReceiverId;
         }
 
-        if (messageReceiverId === currentUserId && messageSenderId !== currentUserId) {
+        if (conversationId) {
+            dispatch(addNewMessage({
+                message,
+                conversationId
+            }));
+
+            if (conversationId === selectedUserId) {
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 100);
+            }
+        }
+
+        if (messageReceiverId === finalCurrentUserId && messageSenderId !== finalCurrentUserId) {
             dispatch(moveUserToTopForCurrentUser({
-                currentUserId: currentUserId,
+                currentUserId: finalCurrentUserId,
                 userToMoveId: messageSenderId
             }));
         }
@@ -176,6 +239,8 @@ export default function ChatPage() {
 
     const handleSelectUser = (userId) => {
         dispatch(selectUser(userId));
+        dispatch(markMessageRead(userId));
+        dispatch(markMessagesAsRead(userId));
     };
 
     const handleSendMessage = async (e) => {
@@ -207,9 +272,9 @@ export default function ChatPage() {
 
             setTimeout(scrollToBottom, 100);
 
-            if (currentUserId && selectedUserId) {
+            if (finalCurrentUserId && selectedUserId) {
                 dispatch(moveUserToTopForCurrentUser({
-                    currentUserId: currentUserId,
+                    currentUserId: finalCurrentUserId,
                     userToMoveId: selectedUserId
                 }));
             }
@@ -265,11 +330,11 @@ export default function ChatPage() {
     };
 
     const sortedUsers = useMemo(() => {
-        if (!users || !currentUserId || !userSidebarOrder[currentUserId]) {
+        if (!users || !finalCurrentUserId || !userSidebarOrder[finalCurrentUserId]) {
             return users || [];
         }
 
-        const sidebarOrder = userSidebarOrder[currentUserId];
+        const sidebarOrder = userSidebarOrder[finalCurrentUserId];
         const userMap = new Map(users.map(user => [user._id, user]));
 
         const orderedUsers = [];
@@ -286,7 +351,7 @@ export default function ChatPage() {
         });
 
         return orderedUsers;
-    }, [users, currentUserId, userSidebarOrder]);
+    }, [users, finalCurrentUserId, userSidebarOrder]);
 
     const selectedUser = useMemo(() =>
         users?.find(user => user._id === selectedUserId),
@@ -311,6 +376,7 @@ export default function ChatPage() {
                         isUserOnline={isUserOnline}
                         handleSelectUser={handleSelectUser}
                         unreadMessages={unreadMessages}
+                        conversationsData={conversationsData}
                     />
                 </div>
 
