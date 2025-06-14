@@ -14,19 +14,29 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import image from "../../../assets/pngtree-leaf-icon-png-image_4816090.png";
 import "./HomePage.css";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../routes/path";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { fetchAssessment, resetAssessmentData } from "../../../store/slices/quitSmokingSlice";
+import {
+  fetchAssessment,
+  resetAssessmentData,
+} from "../../../store/slices/quitSmokingSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { fetchPlan } from "../../../store/slices/planeSlice";
 
 export default function HomePage() {
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { assessmentData, isLoading, isError, errorMessage } = useSelector(
     (state) => state.quitSmoking
   );
+
+  const { plans } = useSelector((state) => state.plan);
+
+  const plan = plans?.data;
+  console.log("plan", plan);
+
   const [currentUser, setCurrentUser] = useState(
     JSON.parse(localStorage.getItem("currentUser"))
   );
@@ -34,11 +44,13 @@ const navigate = useNavigate();
   useEffect(() => {
     if (!currentUser || !currentUser.token) {
       navigate(PATH.LOGIN);
-      return
+      return;
     }
     dispatch(resetAssessmentData());
 
     dispatch(fetchAssessment(currentUser?.user?.id || "1"));
+
+    dispatch(fetchPlan({ page: 1, limit: 10 }));
   }, [currentUser, dispatch, navigate]);
 
   const handleStart = () => {
@@ -61,7 +73,7 @@ const navigate = useNavigate();
     const hasSurvey = assessmentData?.data?.length > 0;
     navigate(hasSurvey ? "/upgradeMember" : PATH.ASSESSMENTPAGE);
   };
-  const testimonials = [
+  const planss = [
     {
       quote:
         "QuitSmoke đã thay đổi cuộc sống của tôi. Sau 15 năm hút thuốc, tôi đã cai được 6 tháng và cảm thấy khỏe mạnh hơn bao giờ hết",
@@ -309,7 +321,7 @@ const navigate = useNavigate();
               1024: { slidesPerView: 3 },
             }}
           >
-            {testimonials.map((testimonial, index) => (
+            {plan?.map((plans, index) => (
               <SwiperSlide key={index}>
                 <Card
                   sx={{
@@ -356,7 +368,7 @@ const navigate = useNavigate();
                           },
                         }}
                       >
-                        {testimonial.quote}
+                        {plans.reason}
                       </Typography>
                     </Box>
                     <Box
@@ -367,8 +379,8 @@ const navigate = useNavigate();
                       }}
                     >
                       <img
-                        src={testimonial.avatar}
-                        alt={`${testimonial.author} avatar`}
+                        src={plans.image}
+                        alt={`${plans.title} avatar`}
                         style={{
                           width: "50px",
                           height: "50px",
@@ -377,7 +389,7 @@ const navigate = useNavigate();
                         }}
                       />
                       <Typography variant="h6" sx={{ color: "#209d4b" }}>
-                        {testimonial.author}
+                        {plans.title}
                       </Typography>
                     </Box>
                     <Button

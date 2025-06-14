@@ -21,8 +21,11 @@ import {
   CheckCircle as CheckCircleIcon,
   Info as InfoIcon,
 } from "@mui/icons-material";
-import { fetchAssessment } from "../../../store/slices/quitSmokingSlice";
-import "./PlanCustomization.css"; 
+import {
+  fetchAssessment,
+  updateAssment,
+} from "../../../store/slices/quitSmokingSlice";
+import "./PlanCustomization.css";
 
 function PlanCustomizationPage() {
   const navigate = useNavigate();
@@ -30,6 +33,8 @@ function PlanCustomizationPage() {
   const { assessmentData, isLoading, isError, errorMessage } = useSelector(
     (state) => state.quitSmoking
   );
+
+  console.log("assessmentData", assessmentData);
 
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,7 +47,6 @@ function PlanCustomizationPage() {
     severity: "success",
   });
 
-
   const [planData, setPlanData] = useState({
     startDate: new Date().toISOString().split("T")[0],
     endDate: (() => {
@@ -50,33 +54,36 @@ function PlanCustomizationPage() {
       date.setMonth(date.getMonth() + 3);
       return date.toISOString().split("T")[0];
     })(),
-    userId: assessmentData?.userId || "",
-    motivation: assessmentData?.motivation || "",
-    smokingDurationYear: assessmentData?.smokingDurationYear || 0, 
-    peakSmokingTimes: assessmentData?.peakSmokingTimes?.split(", ") || [],
-    quitAttempts: assessmentData?.quitAttempts || 0,
-    supportNeeded: assessmentData?.supportNeeded || "",
-    createdAt: assessmentData?.createdAt || "",
-    updatedAt: assessmentData?.updatedAt || "",
+    userId: "",
+    motivation: "",
+    smokingDurationYear: 0,
+    peakSmokingTimes: [],
+    quitAttempts: 0,
+    supportNeeded: "",
+    createdAt: "",
+    updatedAt: "",
   });
 
   useEffect(() => {
-    dispatch(fetchAssessment("1")); 
+    dispatch(fetchAssessment("1"));
   }, [dispatch]);
 
   useEffect(() => {
-
-    if (assessmentData) {
+    console.log("assessmentData in useEffect:", assessmentData);
+    if (assessmentData?.data?.length > 0) {
+      const surveyData = assessmentData.data[0];
       setPlanData((prev) => ({
         ...prev,
-        userId: assessmentData.userId || "",
-        motivation: assessmentData.motivation || "",
-        smokingDurationYear: assessmentData.smokingDurationYear || 0, 
-        peakSmokingTimes: assessmentData.peakSmokingTimes?.split(", ") || [],
-        quitAttempts: assessmentData.quitAttempts || 0,
-        supportNeeded: assessmentData.supportNeeded || "",
-        createdAt: assessmentData.createdAt || "",
-        updatedAt: assessmentData.updatedAt || "",
+        userId: surveyData.userId || "",
+        motivation: surveyData.motivation || "",
+        smokingDurationYear: surveyData.smokingDurationYear || 0,
+        peakSmokingTimes: surveyData.peakSmokingTimes
+          ? surveyData.peakSmokingTimes.split(", ").map((item) => item.trim())
+          : [],
+        quitAttempts: surveyData.quitAttempts || 0,
+        supportNeeded: surveyData.supportNeeded || "",
+        createdAt: surveyData.createdAt || "",
+        updatedAt: surveyData.updatedAt || "",
       }));
     }
   }, [assessmentData]);
@@ -86,23 +93,89 @@ function PlanCustomizationPage() {
   };
 
   const handleSavePlan = async () => {
+    if (planData.smokingDurationYear < 0 || planData.quitAttempts < 0) {
+      setSnackbar({
+        open: true,
+        title: "Lỗi",
+        description:
+          "Số năm hút thuốc và số lần thử cai thuốc phải lớn hơn hoặc bằng 0.",
+        severity: "error",
+      });
+      return;
+    }
+    if (new Date(planData.endDate) < new Date(planData.startDate)) {
+      setSnackbar({
+        open: true,
+        title: "Lỗi",
+        description: "Ngày hoàn thành phải sau ngày bắt đầu.",
+        severity: "error",
+      });
+      return;
+    }
+    if (!assessmentData?.data?.length || !assessmentData.data[0]._id) {
+      setSnackbar({
+        open: true,
+        title: "Lỗi",
+        description: "Dữ liệu đánh giá không hợp lệ. Vui lòng tải lại trang.",
+        severity: "error",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Tạo payload theo schema của backend
+      const surveyData = {
+        title: `Kế hoạch cai thuốc - ${planData.motivation}`,
+        description: `Hỗ trợ: ${planData.supportNeeded}, Thời gian hút thuốc: ${planData.smokingDurationYear} năm`,
+        questions: [
+          {
+            question: "Thời gian hút thuốc nhiều nhất",
+            type: "multiple-choice",
+            options: planData.peakSmokingTimes.map((time) => ({
+              [time]: time,
+            })),
+          },
+          {
+            question: "Số lần thử cai thuốc",
+            type: "multiple-choice",
+            options: [
+              {
+                [`${planData.quitAttempts} lần`]: `${planData.quitAttempts} lần`,
+              },
+            ],
+          },
+        ],
+      };
+
+      // Gửi yêu cầu update
+      await dispatch(
+        updateAssment({
+          surveyId: assessmentData.data[0]._id,
+          data: surveyData,
+        })
+      ).unwrap();
+
+      // Lấy lại dữ liệu mới từ backend
+      await dispatch(fetchAssessment("1")).unwrap();
+
       setIsEditing(false);
       setPlanSaved(true);
       setSnackbar({
         open: true,
         title: "Kế hoạch đã được lưu",
-        description: "Kế hoạch cai thuốc của bạn đã được lưu thành công.",
+        description:
+          "Kế hoạch cai thuốc của bạn đã được lưu thành công. Vui lòng kiểm tra trước khi chuyển trang.",
         severity: "success",
       });
-      setTimeout(() => navigate("/coachPlan"), 2000);
+      setTimeout(() => navigate("/coachPlan"), 2000); // Chuyển trang sau 2 giây
     } catch (error) {
+      console.error("Error in handleSavePlan:", error);
       setSnackbar({
         open: true,
         title: "Lỗi",
-        description: "Đã xảy ra lỗi khi lưu kế hoạch. Vui lòng thử lại.",
+        description:
+          error.message || "Đã xảy ra lỗi khi lưu kế hoạch. Vui lòng thử lại.",
         severity: "error",
       });
     } finally {
@@ -120,7 +193,7 @@ function PlanCustomizationPage() {
 
   if (isLoading) {
     return (
-      <Box className="flex justify-center items-center h-screen">
+      <Box className="PlanCustomization-flex PlanCustomization-justify-center PlanCustomization-items-center PlanCustomization-h-screen">
         <CircularProgress />
       </Box>
     );
@@ -128,7 +201,7 @@ function PlanCustomizationPage() {
 
   if (isError) {
     return (
-      <Box className="plan-container">
+      <Box className="PlanCustomization-container">
         <Alert severity="error">
           <Typography variant="h6">Lỗi</Typography>
           <Typography>
@@ -139,9 +212,9 @@ function PlanCustomizationPage() {
     );
   }
 
-  if (!assessmentData) {
+  if (!assessmentData?.data?.length) {
     return (
-      <Box className="plan-container">
+      <Box className="PlanCustomization-container">
         <Alert severity="warning">
           <Typography variant="h6">Không tìm thấy dữ liệu</Typography>
           <Typography>
@@ -150,7 +223,7 @@ function PlanCustomizationPage() {
           <Button
             variant="contained"
             onClick={() => navigate("/assessment")}
-            className="mt-4"
+            className="PlanCustomization-mt-4"
           >
             Quay lại trang đánh giá
           </Button>
@@ -160,19 +233,19 @@ function PlanCustomizationPage() {
   }
 
   return (
-    <Box className="plan-container">
-      <Box className="plan-content">
-        <Box className="plan-header">
+    <Box className="PlanCustomization-container">
+      <Box className="PlanCustomization-content">
+        <Box className="PlanCustomization-header">
           <Box>
-            <Typography variant="h4" className="plan-title">
+            <Typography variant="h4" className="PlanCustomization-title">
               Tùy chỉnh kế hoạch cai thuốc
             </Typography>
             <Typography variant="body2" color="textSecondary">
-              Dựa trên đánh giá của bạn, chúng tôi đã tạo một kế hoạch cai thuốc.
-              Hãy tùy chỉnh theo nhu cầu của bạn.
+              Dựa trên đánh giá của bạn, chúng tôi đã tạo một kế hoạch cai
+              thuốc. Hãy tùy chỉnh theo nhu cầu của bạn.
             </Typography>
           </Box>
-          <Box className="plan-header-buttons">
+          <Box className="PlanCustomization-header-buttons">
             {isEditing ? (
               <Button
                 variant="contained"
@@ -205,18 +278,23 @@ function PlanCustomizationPage() {
           <Alert
             icon={<CheckCircleIcon />}
             severity="success"
-            className="plan-alert"
+            className="PlanCustomization-alert PlanCustomization-alert-success"
           >
             <Typography variant="h6">
               Kế hoạch cai thuốc đã được lưu!
             </Typography>
             <Typography>
-              Bây giờ bạn có thể xem các kế hoạch từ huấn luyện viên.
+              Vui lòng kiểm tra thông tin dưới đây trước khi chuyển sang trang
+              kế hoạch huấn luyện viên.
             </Typography>
           </Alert>
         )}
 
-        <Alert icon={<InfoIcon />} severity="info" className="plan-alert">
+        <Alert
+          icon={<InfoIcon />}
+          severity="info"
+          className="PlanCustomization-alert"
+        >
           <Typography variant="h6">
             Kế hoạch được tạo dựa trên đánh giá của bạn
           </Typography>
@@ -225,26 +303,32 @@ function PlanCustomizationPage() {
           </Typography>
         </Alert>
 
-        <Tabs value={tabValue} onChange={handleTabChange} className="plan-tabs">
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          className="PlanCustomization-tabs"
+        >
           <Tab label="Tổng quan" value="overview" />
         </Tabs>
 
         {tabValue === "overview" && (
-          <Card className="plan-card">
+          <Card className="PlanCustomization-card">
             <CardHeader
               title="Tổng quan kế hoạch"
               subheader="Thông tin cơ bản về kế hoạch cai thuốc của bạn"
             />
             <CardContent>
-              <Box className="plan-grid">
-                <Box className="plan-grid-item">
+              <Box className="PlanCustomization-grid">
+                <Box className="PlanCustomization-grid-item">
                   <Typography variant="h6">Thông tin cơ bản</Typography>
-                  <Box className="plan-section">
+                  <Box className="PlanCustomization-section">
                     <TextField
                       label="Ngày bắt đầu"
                       type="date"
                       value={planData.startDate}
-                      onChange={(e) => updatePlanData("startDate", e.target.value)}
+                      onChange={(e) =>
+                        updatePlanData("startDate", e.target.value)
+                      }
                       disabled={!isEditing}
                       fullWidth
                       margin="normal"
@@ -254,17 +338,19 @@ function PlanCustomizationPage() {
                       label="Dự kiến hoàn thành"
                       type="date"
                       value={planData.endDate}
-                      onChange={(e) => updatePlanData("endDate", e.target.value)}
+                      onChange={(e) =>
+                        updatePlanData("endDate", e.target.value)
+                      }
                       disabled={!isEditing}
                       fullWidth
                       margin="normal"
                       InputLabelProps={{ shrink: true }}
                     />
                   </Box>
-                  <Typography variant="h6" className="mt-4">
+                  <Typography variant="h6" className="PlanCustomization-mt-4">
                     Thói quen và thông tin cá nhân
                   </Typography>
-                  <Box className="plan-section">
+                  <Box className="PlanCustomization-section">
                     <TextField
                       label="Số năm hút thuốc"
                       type="number"
@@ -279,7 +365,7 @@ function PlanCustomizationPage() {
                     />
                     <TextField
                       label="Thời gian hút thuốc nhiều nhất"
-                      value={planData.peakSmokingTimes.join(", ")}
+                      value={planData.peakSmokingTimes.join(", ") || ""}
                       onChange={(e) =>
                         updatePlanData(
                           "peakSmokingTimes",
@@ -305,13 +391,15 @@ function PlanCustomizationPage() {
                     />
                   </Box>
                 </Box>
-                <Box className="plan-grid-item">
+                <Box className="PlanCustomization-grid-item">
                   <Typography variant="h6">Động lực và hỗ trợ</Typography>
-                  <Box className="plan-section">
+                  <Box className="PlanCustomization-section">
                     <TextField
                       label="Động lực cai thuốc"
                       value={planData.motivation}
-                      onChange={(e) => updatePlanData("motivation", e.target.value)}
+                      onChange={(e) =>
+                        updatePlanData("motivation", e.target.value)
+                      }
                       disabled={!isEditing}
                       fullWidth
                       margin="normal"
@@ -331,10 +419,10 @@ function PlanCustomizationPage() {
                       rows={2}
                     />
                   </Box>
-                  <Typography variant="h6" className="mt-4">
+                  <Typography variant="h6" className="PlanCustomization-mt-4">
                     Thông tin hệ thống
                   </Typography>
-                  <Box className="plan-section">
+                  <Box className="PlanCustomization-section">
                     <TextField
                       label="Ngày tạo"
                       value={planData.createdAt}
