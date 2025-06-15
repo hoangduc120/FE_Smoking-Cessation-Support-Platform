@@ -12,9 +12,17 @@ import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import image from "../../../assets/pngtree-leaf-icon-png-image_4816090.png";
+import image from "../../../assets/—Pngtree—no smoking and world tobacco_15200908.png";
+import {
+  Timeline,
+  Group,
+  Lightbulb,
+  HealthAndSafety,
+  Assignment,
+  EmojiEvents,
+} from "@mui/icons-material";
 import "./HomePage.css";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PATH } from "../../../routes/path";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -71,73 +79,46 @@ export default function HomePage() {
     }
 
     const hasSurvey = assessmentData?.data?.length > 0;
-    navigate(hasSurvey ? "/upgradeMember" : PATH.ASSESSMENTPAGE);
+    navigate(hasSurvey ? "/coachPlan" : PATH.COASHPLANE);
   };
-  const planss = [
-    {
-      quote:
-        "QuitSmoke đã thay đổi cuộc sống của tôi. Sau 15 năm hút thuốc, tôi đã cai được 6 tháng và cảm thấy khỏe mạnh hơn bao giờ hết",
-      author: "Perilys",
-      avatar: "../../../assets/avatars/perilys.png",
-    },
-    {
-      quote:
-        "Tính năng theo dõi tiền tiết kiệm đã thực sự tạo động lực cho tôi. Tôi đã tiết kiệm được hơn 18 triệu đồng sau 1 năm không hút thuốc!",
-      author: "Charlotte",
-      avatar: "../../../assets/avatars/charlotte.png",
-    },
-    {
-      quote:
-        "Cộng đồng hỗ trợ trên QuitSmoke thật tuyệt vời. Mỗi khi tôi cảm thấy muốn quay lại hút thuốc, tôi đều nhận được sự động viên từ mọi người.",
-      author: "Damien",
-      avatar: "../../../assets/avatars/damien.png",
-    },
-    {
-      quote:
-        "Ứng dụng này giúp tôi có động lực bằng những lời nhắc nhở và mẹo hàng ngày. Nó đã thay đổi cuộc chơi đối với sức khỏe của tôi!",
-      author: "Sophie",
-      avatar: "../../../assets/avatars/sophie.png",
-    },
-    {
-      quote:
-        "Tôi thích khía cạnh cộng đồng; cảm giác như tôi không đơn độc trong hành trình này.",
-      author: "Alex",
-      avatar: "../../../assets/avatars/alex.png",
-    },
-    {
-      quote:
-        "Việc theo dõi tiến trình của mình khiến việc cai thuốc trở nên dễ dàng và bổ ích hơn rất nhiều.",
-      author: "Emma",
-      avatar: "../../../assets/avatars/emma.png",
-    },
-  ];
 
-  // Sample data for features
   const features = [
     {
       title: "Theo dõi tiến trình",
       description: "Ghi lại từng bước trong hành trình cai thuốc lá của bạn.",
+      icon: "Timeline",
+      color: "#1aa146", // Primary green
     },
     {
       title: "Hỗ trợ cộng đồng",
       description:
         "Kết nối với những người cùng mục tiêu để động viên lẫn nhau.",
+      icon: "Group",
+      color: "#0288d1", // Blue
     },
     {
       title: "Mẹo hàng ngày",
       description: "Nhận gợi ý và chiến lược để vượt qua cơn thèm thuốc.",
+      icon: "Lightbulb",
+      color: "#f57c00", // Orange
     },
     {
       title: "Thống kê sức khỏe",
       description: "Xem cải thiện sức khỏe qua các số liệu trực quan.",
+      icon: "HealthAndSafety",
+      color: "#d81b60", // Pink
     },
     {
       title: "Kế hoạch cá nhân",
       description: "Tùy chỉnh kế hoạch cai thuốc phù hợp với bạn.",
+      icon: "Assignment",
+      color: "#7b1fa2", // Purple
     },
     {
       title: "Thưởng thành tích",
       description: "Nhận huy hiệu khi đạt các cột mốc quan trọng.",
+      icon: "EmojiEvents",
+      color: "#388e3c", // Darker green
     },
   ];
 
@@ -246,7 +227,7 @@ export default function HomePage() {
               <Box key={index} className="step-item">
                 <Box className="step-circle">{step.number}</Box>
                 {index !== steps.length - 1 && <div className="line" />}
-                <Typography className="step浪title">{step.title}</Typography>
+                <Typography className="step-title">{step.title}</Typography>
                 <Typography className="step-desc">
                   {step.description}
                 </Typography>
@@ -277,17 +258,99 @@ export default function HomePage() {
                     sx={{
                       height: "100%",
                       boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px",
+                      transition: "transform 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-3px)",
+                        boxShadow: "0 5px 15px rgba(0, 0, 0, 0.07)",
+                      },
                     }}
                   >
                     <CardActionArea
                       sx={{
                         alignItems: "center",
                         textAlign: "center",
-                        height: "150px",
+                        height: "100%",
+                        padding: "20px",
                       }}
                     >
-                      <CardContent>
-                        <Typography variant="h5" component="div">
+                      <CardContent
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          height: "100%",
+                        }}
+                      >
+                        {feature.icon === "Timeline" && (
+                          <Timeline
+                            sx={{
+                              fontSize: 40,
+                              color: feature.color,
+                              marginBottom: "10px",
+                            }}
+                            aria-hidden="true"
+                          />
+                        )}
+                        {feature.icon === "Group" && (
+                          <Group
+                            sx={{
+                              fontSize: 40,
+                              color: feature.color,
+                              marginBottom: "10px",
+                            }}
+                            aria-hidden="true"
+                          />
+                        )}
+                        {feature.icon === "Lightbulb" && (
+                          <Lightbulb
+                            sx={{
+                              fontSize: 40,
+                              color: feature.color,
+                              marginBottom: "10px",
+                            }}
+                            aria-hidden="true"
+                          />
+                        )}
+                        {feature.icon === "HealthAndSafety" && (
+                          <HealthAndSafety
+                            sx={{
+                              fontSize: 40,
+                              color: feature.color,
+                              marginBottom: "10px",
+                            }}
+                            aria-hidden="true"
+                          />
+                        )}
+                        {feature.icon === "Assignment" && (
+                          <Assignment
+                            sx={{
+                              fontSize: 40,
+                              color: feature.color,
+                              marginBottom: "10px",
+                            }}
+                            aria-hidden="true"
+                          />
+                        )}
+                        {feature.icon === "EmojiEvents" && (
+                          <EmojiEvents
+                            sx={{
+                              fontSize: 40,
+                              color: feature.color,
+                              marginBottom: "10px",
+                            }}
+                            aria-hidden="true"
+                          />
+                        )}
+                        <Typography
+                          variant="h5"
+                          component="div"
+                          sx={{
+                            color: feature.color,
+                            fontWeight: "bold",
+                            marginBottom: "10px",
+                          }}
+                        >
                           {feature.title}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
@@ -327,20 +390,41 @@ export default function HomePage() {
                   sx={{
                     width: 400,
                     height: 350,
-                    padding: "20px",
                     boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px",
-                    borderRadius: "10px",
+                    borderRadius: "12px",
+                    overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
                   }}
                 >
+                  <Box
+                    sx={{
+                      margin: 0,
+                      padding: 0,
+                    }}
+                  >
+                    <img
+                      src={plans.image}
+                      alt="Plan avatar"
+                      style={{
+            
+                        width: "100%",
+                        height: "200px",
+                        borderTopLeftRadius: "12px",
+                        borderTopRightRadius: "12px",
+                        objectFit: "contain",
+                        display: "block",
+                      }}
+                    />
+                  </Box>
                   <CardContent
                     sx={{
                       flexGrow: 1,
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "space-between",
+                      padding: "20px",
                     }}
                   >
                     <Box>
@@ -349,7 +433,6 @@ export default function HomePage() {
                         color="text.secondary"
                         sx={{
                           position: "relative",
-                          minHeight: "120px",
                           "&:before": {
                             content: '"“"',
                             color: "#1aa146",
@@ -371,36 +454,18 @@ export default function HomePage() {
                         {plans.reason}
                       </Typography>
                     </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginTop: "20px",
-                      }}
-                    >
-                      <img
-                        src={plans.image}
-                        alt={`${plans.title} avatar`}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          borderRadius: "50%",
-                          marginRight: "10px",
-                        }}
-                      />
-                      <Typography variant="h6" sx={{ color: "#209d4b" }}>
-                        {plans.title}
-                      </Typography>
-                    </Box>
                     <Button
                       variant="text"
                       sx={{
-                        color: "#1aa146",
+                        color: "white",
                         marginTop: "10px",
                         alignSelf: "center",
+                        backgroundColor: "#229c49",
+                        width: "100%",
+                        boxShadow: "rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;",
                       }}
                     >
-                      Read more
+                      <Link to={PATH.COASHPLANE}>Xem thêm</Link>
                     </Button>
                   </CardContent>
                 </Card>

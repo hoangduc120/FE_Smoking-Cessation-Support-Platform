@@ -23,9 +23,8 @@
 }
 
 .banner_girdRight img {
-  width: 400px;
-  height: 400px;
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  width: 125%;
+  height: 500px;
 }
 
 .homePage {
@@ -187,14 +186,18 @@ button.button__more {
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 20px;
   position: relative;
+  margin: 0 auto;
 }
 
 .step-item {
   flex: 1;
   min-width: 200px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .step-circle {
@@ -209,16 +212,17 @@ button.button__more {
   margin: 0 auto 10px;
   font-weight: bold;
   font-size: 18px;
+  z-index: 1; 
 }
 
 .line {
-  height: 2px;
-  background-color: #d4fce5;
+  height: 4px; 
+  background: linear-gradient(to right, #d4fce5, #1aa146); 
   position: absolute;
   top: 25px;
-  right: -50%;
-  width: 100%;
-  z-index: -1;
+  left: calc(50% + 25px); 
+  right: calc(-50% - 25px); 
+  z-index: 0; 
 }
 
 .step-title {
@@ -307,7 +311,7 @@ button.button__more {
   background: #1aa146 !important;
 }
 
-/* Ensure consistent card alignment and spacing */
+
 .swiper-wrapper {
   align-items: stretch !important;
 }

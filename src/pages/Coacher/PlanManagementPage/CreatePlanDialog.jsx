@@ -24,6 +24,7 @@ import {
 
 // Define Yup schema for validation
 const schema = yup.object().shape({
+  image: yup.string().required("Hình ảnh là bắt buộc"),
   title: yup
     .string()
     .required("Tên kế hoạch là bắt buộc")
@@ -79,6 +80,7 @@ export default function CreatePlanDialog({
       title: "",
       reason: "",
       startDate: "",
+      image:"",
       endDate: "",
       status: "template",
     },
@@ -91,6 +93,7 @@ export default function CreatePlanDialog({
       reset({
         title: planToEdit.title || "",
         reason: planToEdit.reason || "",
+        image:planToEdit.image || "",
         startDate: planToEdit.startDate
           ? format(new Date(planToEdit.startDate), "yyyy-MM-dd")
           : "",
@@ -104,6 +107,7 @@ export default function CreatePlanDialog({
         title: "",
         reason: "",
         startDate: "",
+        image:"",
         endDate: "",
         status: "template",
       });
@@ -115,6 +119,7 @@ export default function CreatePlanDialog({
     reset({
       title: "",
       reason: "",
+      image:"",
       startDate: "",
       endDate: "",
       status: "template",
@@ -217,6 +222,22 @@ export default function CreatePlanDialog({
                 fullWidth
                 error={!!errors.reason}
                 helperText={errors.reason?.message}
+                sx={{ mb: 2 }}
+              />
+            )}
+          />
+            <Controller
+            name="image"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                margin="dense"
+                label="Hình ảnh"
+                type="text"
+                fullWidth
+                error={!!errors.image}
+                helperText={errors.image?.message}
                 sx={{ mb: 2 }}
               />
             )}

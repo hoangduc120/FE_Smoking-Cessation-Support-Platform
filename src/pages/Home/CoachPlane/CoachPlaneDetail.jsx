@@ -329,9 +329,9 @@ export default function CoachPlaneDetail() {
           <Grid item size={4} md={6}>
             <Box className="CoachPlaneDetail-image">
               <img
-                src={plan.quitPlan.image || "https://via.placeholder.com/150"}
+                src={plan.quitPlan.image || "https://cdn2.tuoitre.vn/zoom/700_525/tto/i/s626/2014/02/17/Jq0uXJ0R.jpg"}
                 alt={plan.quitPlan.title || "Kế hoạch"}
-                style={{ width: "100%", height: "auto" }}
+                style={{ width: "100%", height: "300px", objectFit:"contain" }}
               />
               <Box className="CoachPlaneDetail-image-text">
                 <Button

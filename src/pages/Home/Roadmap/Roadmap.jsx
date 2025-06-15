@@ -70,6 +70,8 @@ const Roadmap = () => {
   const { plan, stages, progress, isLoading, isError, errorMessage } =
     useSelector((state) => state.plan);
 
+    console.log("plan", plan)
+
   const {
     control,
     handleSubmit,
@@ -126,7 +128,9 @@ const Roadmap = () => {
 
   useEffect(() => {
     dispatch(fetchPlanCurrent());
+
   }, [dispatch]);
+
 
   if (isLoading) {
     return <Typography>Đang tải dữ liệu...</Typography>;
@@ -136,7 +140,7 @@ const Roadmap = () => {
     return <Typography color="error">Lỗi: {errorMessage}</Typography>;
   }
 
-  if (!plan || !stages || stages.length === 0) {
+  if (!plan) {
     return (
       <Typography>
         Bạn chưa có kế hoạch nào. Hãy bắt đầu hành trình cai thuốc lá!
@@ -152,9 +156,11 @@ const Roadmap = () => {
     );
   }
 
+
+
   // Calculate progress based on completed stages
-  const totalStages = stages.length;
-  const completedStages = stages.filter((stage) => stage.completed).length;
+  const totalStages = stages?.length;
+  const completedStages = stages.filter((stage) => stage?.completed)?.length;
   const overallProgress = Math.round((completedStages / totalStages) * 100);
 
   // Determine current stage
@@ -228,7 +234,7 @@ const Roadmap = () => {
             <div className="roadMap-card-header-content">
               <div>
                 <Typography variant="h5" className="roadMap-card-title">
-                  {plan.title}
+                  {plan?.title}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -236,7 +242,7 @@ const Roadmap = () => {
                 >
                   <Users size={16} className="roadMap-icon" /> Coach:{" "}
                   <Typography className="roadMap-coach-link">
-                    {plan.coachId.email}
+                    {plan?.coachId?.email}
                   </Typography>
                 </Typography>
               </div>
@@ -319,7 +325,7 @@ const Roadmap = () => {
             <Badge color="primary" className="roadMap-badge">
               Giai đoạn {currentStageIndex}/{totalStages}
             </Badge>
-            <span>{currentStage.stage_name}</span>
+            <span>{currentStage?.stage_name}</span>
           </div>
           <div className="roadMap-footer-actions">
             <Button

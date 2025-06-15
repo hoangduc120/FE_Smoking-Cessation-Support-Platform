@@ -109,37 +109,37 @@ const CoachPlane = () => {
           Tất cả
         </Button>
         <Button
-          variant={filterStatus === "template" ? "contained" : "outlined"}
-          onClick={() => setFilterStatus("template")}
+          variant={filterStatus === "ongoing" ? "contained" : "outlined"}
+          onClick={() => setFilterStatus("ongoing")}
           startIcon={<FilterListIcon />}
           className="planeCoach-filterButton"
           sx={{
             backgroundColor:
-              filterStatus === "template" ? "#4CAF50" : "transparent",
-            color: filterStatus === "template" ? "#fff" : "#000",
+              filterStatus === "ongoing" ? "#4CAF50" : "transparent",
+            color: filterStatus === "ongoing" ? "#fff" : "#000",
             borderColor: "#4CAF50",
             "&:hover": {
               backgroundColor:
-                filterStatus === "template" ? "#45a049" : "#e8f5e9",
+                filterStatus === "ongoing" ? "#45a049" : "#e8f5e9",
               borderColor: "#4CAF50",
-              color: filterStatus === "template" ? "#fff" : "#000",
+              color: filterStatus === "ongoing" ? "#fff" : "#000",
             },
           }}
         >
           Đang hoạt động
         </Button>
         <Button
-          variant={filterStatus === "draft" ? "contained" : "outlined"}
-          onClick={() => setFilterStatus("draft")}
+          variant={filterStatus === "template" ? "contained" : "outlined"}
+          onClick={() => setFilterStatus("template")}
           startIcon={<FilterListIcon />}
           sx={{
             backgroundColor:
-              filterStatus === "draft" ? "#4CAF50" : "transparent",
-            color: filterStatus === "draft" ? "#fff" : "#000",
+              filterStatus === "template" ? "#4CAF50" : "transparent",
+            color: filterStatus === "template" ? "#fff" : "#000",
             borderColor: "#4CAF50",
             "&:hover": {
-              backgroundColor: filterStatus === "draft" ? "#45a049" : "#e8f5e9",
-              color: filterStatus === "draft" ? "#fff" : "#000",
+              backgroundColor: filterStatus === "template" ? "#45a049" : "#e8f5e9",
+              color: filterStatus === "template" ? "#fff" : "#000",
             },
           }}
         >
@@ -152,7 +152,7 @@ const CoachPlane = () => {
             <CardMedia
               component="img"
               className="planeCoach-planImage"
-              image="https://via.placeholder.com/150" // Fallback vì API không có thumbnail
+              image={plan.image}
               alt={plan.title}
             />
             <CardContent className="planeCoach-planContent">
@@ -168,9 +168,9 @@ const CoachPlane = () => {
               <Typography variant="body2" color="text.secondary">
                 Lý do: {plan.reason || "Không có lý do"}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+             <Typography variant="body2" color="text.secondary">
                 Trạng thái:{" "}
-                {plan.status === "template" ? "Đang hoạt động" : "Bản nháp"}
+                {plan.status === "ongoing" ? "Đang hoạt động" : "Bản nháp"}
               </Typography>
               <Button
                 variant="contained"
