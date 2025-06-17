@@ -413,7 +413,7 @@ export default function HomePage() {
                         height: "200px",
                         borderTopLeftRadius: "12px",
                         borderTopRightRadius: "12px",
-                        objectFit: "contain",
+                        objectFit: "cover",
                         display: "block",
                       }}
                     />

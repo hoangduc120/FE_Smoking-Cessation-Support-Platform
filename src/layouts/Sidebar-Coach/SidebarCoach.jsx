@@ -1,4 +1,3 @@
-// SidebarCoach.jsx
 import { MessageSquare, Calendar, Settings, Menu, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -30,12 +29,12 @@ const SIDEBAR_ITEMS = [
     color: "#10B981",
     href: "/coach/badge",
   },
-  {
-    name: "Settings",
-    icon: Settings,
-    color: "#6EE7B7",
-    href: "/coach/settings",
-  },
+  // {
+  //   name: "Settings",
+  //   icon: Settings,
+  //   color: "#6EE7B7",
+  //   href: "/coach/settings",
+  // },
 ];
 
 const SidebarCoach = () => {
@@ -103,7 +102,10 @@ const SidebarCoach = () => {
         <nav className="sidebar__nav-menu">
           {SIDEBAR_ITEMS.map((item) => (
             <Link key={item.href} to={item.href}>
-              <motion.div className="sidebar__nav-item">
+              <motion.div
+                className="sidebar__nav-item"
+                style={{ borderRight: `4px solid ${item.color}` }} 
+              >
                 <item.icon
                   size={20}
                   className="sidebar__nav-icon"
@@ -117,6 +119,7 @@ const SidebarCoach = () => {
                       animate={{ opacity: 1, width: "auto" }}
                       exit={{ opacity: 0, width: 0 }}
                       transition={{ duration: 0.2, delay: 0.3 }}
+                      style={{ color: item.color }}
                     >
                       {item.name}
                     </motion.span>
@@ -132,6 +135,7 @@ const SidebarCoach = () => {
           whileTap={{ scale: 0.9 }}
           onClick={handleLogout}
           className="sidebar__logout-button"
+          style={{ borderRight: "4px solid #EF4444" }} // Apply borderRight for logout
         >
           <LogOut
             size={20}
@@ -146,6 +150,7 @@ const SidebarCoach = () => {
                 animate={{ opacity: 1, width: "auto" }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: 0.2, delay: 0.3 }}
+                style={{ color: "#EF4444" }}
               >
                 Logout
               </motion.span>

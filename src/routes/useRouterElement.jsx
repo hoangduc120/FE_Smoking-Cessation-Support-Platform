@@ -35,7 +35,8 @@ import BadgeTable from "../pages/Coacher/Badge/BadgeTable";
 import ProfileCoach from "../pages/Auth/ProfileCoach/ProfileCoach";
 import AuthorProfile from "../pages/Home/Blogs/AuthorProfile";
 import Account from "../pages/Admin/Account/Account";
-
+import SuccessPlanResult from "../components/SuccessPlanResult/SuccessPlanResult";
+import FailedPlanResult from "../components/FailedPlanResult/FailedPlanResult";
 export default function useRouterElement() {
   const element = useRoutes([
     // AUTH
@@ -170,6 +171,15 @@ export default function useRouterElement() {
             </ProtectedRoute>
           ),
         },
+        {
+          path: PATH.SUCCESSPLANRESULT,
+          element: <SuccessPlanResult />,
+        },
+        {
+          path: PATH.FAILEDPLANRESULT,
+          element: <FailedPlanResult />,
+        },
+
         { path: PATH.ABOUTUS, element: <AboutUs /> },
         { path: PATH.BENEFIT, element: <Benefits /> },
         { path: PATH.RESOURCES, element: <Resources /> },

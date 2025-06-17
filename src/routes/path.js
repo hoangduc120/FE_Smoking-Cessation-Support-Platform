@@ -24,6 +24,8 @@ export const PATH = {
   RESOURCES: "/resources",
   CHATPAGE: "/chat",
   ROADMAP: "/roadmap",
+  SUCCESSPLANRESULT: "/successPlanResult",
+  FAILEDPLANRESULT: "/failedPlanResult",
 
   // COACH
   COACH: "/coach",

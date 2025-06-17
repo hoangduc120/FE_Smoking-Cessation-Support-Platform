@@ -8,7 +8,6 @@ export const fetchPlan = createAsyncThunk(
       const response = await fetcher.get(
         `/plans/quitplans?page=${page}&limit=${limit}`
       );
-
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -36,7 +35,7 @@ export const fetchAllPlan = createAsyncThunk(
 
 export const fetchPlanById = createAsyncThunk(
   "plan/fetchPlanById",
-  async ({ id }, rejectWithValue) => {
+  async ({ id }, { rejectWithValue }) => {
     try {
       const response = await fetcher.get(`/plans/quitplans/${id}`);
       return response.data;
@@ -120,12 +119,40 @@ export const fetchPlanCurrent = createAsyncThunk(
   }
 );
 
+export const completeQuitPlan = createAsyncThunk(
+  "plan/completeQuitPlan",
+  async ({planId}, {rejectWithValue}) => {
+    try {
+      const response = await fetcher.put(`/plans/quitplans/${planId}/complete`)
+      return response.data
+    } catch (error) {
+        return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+)
+
+export const failQuitPlan = createAsyncThunk(
+  "plan/failQuitPlan",
+  async ({ planId }, { rejectWithValue }) => {
+   try {
+    const response = await fetcher.put(`/plans/quitplans/${planId}/fail`)
+    return response.data
+   } catch (error) {
+    return rejectWithValue(
+      error.response ? error.response.data : error.message
+    );
+   }
+  }
+)
+
 export const planSlice = createSlice({
   name: "plan",
   initialState: {
     plan: null,
-    stages: [],
-    progress: [],
+    stages: [], 
+    progress: [], 
     isLoading: false,
     isError: null,
     errorMessage: "",
@@ -214,7 +241,7 @@ export const planSlice = createSlice({
       })
       .addCase(fetchPlanById.fulfilled, (state, { payload }) => {
         state.isLoading = false;
-        state.plan = Array.isArray(payload) ? payload : payload.data || [];
+        state.plan = Array.isArray(payload) ? payload : payload.data || null;
       })
       .addCase(fetchPlanById.rejected, (state, { payload }) => {
         state.isLoading = false;
@@ -226,7 +253,10 @@ export const planSlice = createSlice({
       .addCase(selectPlan.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.isError = null;
-        state.plan = payload;
+        console.log("selectPlan payload:", payload); // Debug payload
+        state.plan = payload?.quitPlan ? { quitPlan: payload.quitPlan } : payload?.plan ? payload : null;
+        state.stages = payload?.stages || state.stages;
+        state.progress = payload?.progress || state.progress;
       })
       .addCase(selectPlan.rejected, (state, { payload }) => {
         state.isLoading = false;
@@ -239,14 +269,40 @@ export const planSlice = createSlice({
       .addCase(fetchPlanCurrent.fulfilled, (state, action) => {
         state.isLoading = false;
         state.plan = action.payload?.plan || null;
-        state.stages = action.payload?.stages;
-        state.progress = action.payload?.progress;
+        state.stages = action.payload?.stages || [];
+        state.progress = action.payload?.progress || [];
       })
       .addCase(fetchPlanCurrent.rejected, (state, { payload }) => {
         state.isLoading = false;
         state.isError = true;
-        state.errorMessage = payload?.message || "Failed to select quit plan";
-      });
+        state.errorMessage = payload?.message || "Failed to fetch current plan";
+      })
+      .addCase(completeQuitPlan.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(completeQuitPlan.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.plan = payload;
+      })
+      .addCase(completeQuitPlan.rejected, (state, { payload }) => { 
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = payload?.message || "Failed to complete quit plan";
+      })
+      .addCase(failQuitPlan.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(failQuitPlan.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.plan = payload;
+      })
+      .addCase(failQuitPlan.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = payload?.message || "Failed to fail quit plan";
+      })
   },
 });
 
