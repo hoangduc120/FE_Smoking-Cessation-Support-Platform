@@ -29,9 +29,9 @@ import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 import { getStageById } from "../../../store/slices/stagesSlice";
 import CreateStageDialog from "../../Coacher/PlanManagementPage/CreateStageDialog";
 import { format, differenceInDays, parse } from "date-fns";
-import { fetchPlanById } from "../../../store/slices/planeSlice";
-import { selectPlan } from "../../../store/slices/planeSlice";
+import { fetchPlanById, selectPlan } from "../../../store/slices/planeSlice";
 import toast from "react-hot-toast";
+import Loading from "../../../components/Loading/Loading";
 
 export default function CoachPlaneDetail() {
   const { id } = useParams();
@@ -52,6 +52,7 @@ export default function CoachPlaneDetail() {
   const [stageToEdit, setStageToEdit] = useState(null);
   const [openErrorModal, setOpenErrorModal] = useState(false);
   const [errorMessageModal, setErrorMessageModal] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false); // Thêm trạng thái đăng ký
 
   useEffect(() => {
     if (id) {
@@ -60,10 +61,6 @@ export default function CoachPlaneDetail() {
     }
   }, [dispatch, id]);
 
-  const handleEditStage = (stage) => {
-    setStageToEdit(stage);
-    setOpenStageDialog(true);
-  };
 
   const handleStageUpdated = () => {
     if (id) {
@@ -99,21 +96,24 @@ export default function CoachPlaneDetail() {
 
   const handleRegisterPlan = () => {
     if (plan?.quitPlan?._id) {
+      setIsRegistering(true); // Bắt đầu quá trình đăng ký
       dispatch(selectPlan({ quitPlanId: plan.quitPlan._id }))
         .unwrap()
         .then(() => {
           toast.success("Đăng ký kế hoạch thành công!");
-          setTimeout(() => {
-            navigate("/roadmap");
-          }, 1000);
+          setIsRegistering(false); // Kết thúc quá trình
+          navigate("/roadmap"); // Chuyển hướng ngay lập tức
         })
         .catch((error) => {
+          setIsRegistering(false);
           const errorMsg = error?.message || "Đã có lỗi xảy ra!";
           setErrorMessageModal(errorMsg);
           setOpenErrorModal(true);
         });
     } else {
       console.log("plan.quitPlan._id is undefined or null");
+      setErrorMessageModal("Không tìm thấy ID kế hoạch!");
+      setOpenErrorModal(true);
     }
   };
 
@@ -122,15 +122,25 @@ export default function CoachPlaneDetail() {
     navigate("/coachPlan");
   };
 
-  // Chỉ hiển thị lỗi tải dữ liệu ban đầu, không liên quan đến selectPlan
-  if (isLoading || isStageLoading) {
+  // Xử lý trạng thái đang đăng ký
+  if (isRegistering) {
     return (
       <Box className="homePage">
-        <Typography>Đang tải...</Typography>
+        <Typography>Đang xử lý đăng ký...</Typography>
       </Box>
     );
   }
 
+  // Xử lý trạng thái đang tải
+  if (isLoading || isStageLoading) {
+    return (
+      <Box className="homePage">
+        <Typography><Loading /></Typography>
+      </Box>
+    );
+  }
+
+  // Xử lý lỗi tải dữ liệu
   if (isError && !openErrorModal && !isLoading) {
     return (
       <Box className="homePage">
@@ -141,6 +151,7 @@ export default function CoachPlaneDetail() {
     );
   }
 
+  // Xử lý trường hợp không tìm thấy kế hoạch
   if (!plan || !plan.quitPlan) {
     return (
       <Box className="homePage">
@@ -245,15 +256,7 @@ export default function CoachPlaneDetail() {
                             <StairsIcon sx={{ color: "#479062" }} />
                             {stage.stage_name}
                           </Typography>
-                          <IconButton
-                            color="primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditStage(stage);
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
+                        
                         </AccordionSummary>
                         <AccordionDetails>
                           <Box
@@ -331,13 +334,13 @@ export default function CoachPlaneDetail() {
               <img
                 src={plan.quitPlan.image || "https://cdn2.tuoitre.vn/zoom/700_525/tto/i/s626/2014/02/17/Jq0uXJ0R.jpg"}
                 alt={plan.quitPlan.title || "Kế hoạch"}
-                style={{ width: "100%", height: "300px", objectFit:"contain" }}
+                style={{ width: "100%", height: "300px", objectFit: "contain" }}
               />
               <Box className="CoachPlaneDetail-image-text">
                 <Button
                   className="btn-apply"
                   onClick={handleRegisterPlan}
-                  disabled={isLoading || !plan?.quitPlan?._id}
+                  disabled={isLoading || isRegistering || !plan?.quitPlan?._id}
                 >
                   Đăng ký ngay
                 </Button>

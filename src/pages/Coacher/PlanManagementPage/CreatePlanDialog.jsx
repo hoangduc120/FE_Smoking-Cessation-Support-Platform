@@ -35,15 +35,15 @@ const schema = yup.object().shape({
     .min(10, "Lý do phải có ít nhất 10 ký tự"),
   startDate: yup
     .string()
-    .required("Ngày bắt đầu là bắt buộc")
-    .test(
-      "is-future-date",
-      "Ngày bắt đầu không được trước ngày hiện tại",
-      (value) => {
-        const today = format(new Date(), "yyyy-MM-dd");
-        return value >= today;
-      }
-    ),
+    .required("Ngày bắt đầu là bắt buộc"),
+    // .test(
+    //   "is-future-date",
+    //   "Ngày bắt đầu không được trước ngày hiện tại",
+    //   (value) => {
+    //     const today = format(new Date(), "yyyy-MM-dd");
+    //     return value >= today;
+    //   }
+    // ),
   endDate: yup
     .string()
     .required("Ngày kết thúc là bắt buộc")
@@ -258,7 +258,7 @@ export default function CreatePlanDialog({
                 error={!!errors.startDate}
                 helperText={errors.startDate?.message}
                 sx={{ mb: 2 }}
-                inputProps={{ min: today }}
+                // inputProps={{ min: today }}
               />
             )}
           />
@@ -278,7 +278,7 @@ export default function CreatePlanDialog({
                 error={!!errors.endDate}
                 helperText={errors.endDate?.message}
                 sx={{ mb: 2 }}
-                inputProps={{ min: today }}
+                // inputProps={{ min: today }}
               />
             )}
           />

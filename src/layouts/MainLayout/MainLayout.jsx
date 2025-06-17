@@ -20,9 +20,15 @@ export default function MainLayout() {
   };
 
   return (
-    <div>
+    <div style={{ 
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       {renderHeader()}
-      <Outlet />
+      <div style={{ flex: 1 }}>
+        <Outlet />
+      </div>
       <Footer />
     </div>
   );

@@ -16,6 +16,7 @@ import "./CoachPlane.css";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { fetchPlan } from "../../../store/slices/planeSlice";
+import Loading from "../../../components/Loading/Loading";
 
 const CoachPlane = () => {
   const dispatch = useDispatch();
@@ -60,7 +61,9 @@ const CoachPlane = () => {
     setCurrentPage(value);
   };
 
-  if (isLoading) return <Typography>Đang tải...</Typography>;
+  if (isLoading) return <Typography>
+    <Loading />
+  </Typography>;
   if (isError)
     return (
       <Typography color="error">{errorMessage || "Có lỗi xảy ra!"}</Typography>

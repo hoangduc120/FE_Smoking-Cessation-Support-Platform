@@ -64,6 +64,20 @@ export const getStageById = createAsyncThunk(
   }
 );
 
+export const completeStageApi = createAsyncThunk(
+  "stages/completeStageApi",
+  async ({ id }, { rejectWithValue }) => {
+      try {
+        const response = await fetcher.put(`/plans/quitplan-stages/${id}/complete`);
+        return response.data;
+      } catch (error) {
+        return rejectWithValue(
+          error.response ? error.response.data : error.message
+        );
+      }
+  }
+)
+
 export const stagesSlice = createSlice({
   name: "stages",
   initialState: {
@@ -126,7 +140,21 @@ export const stagesSlice = createSlice({
       .addCase(getStageById.rejected, (state, { payload }) => {
         state.isLoading = false;
         state.isError = payload;
-      });
+      })
+      .addCase(completeStageApi.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(completeStageApi.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.stages = state.stages.map((stage) =>
+          stage._id === payload._id ? payload : stage
+        );
+      })
+      .addCase(completeStageApi.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = payload;
+      })
   },
 });
 
