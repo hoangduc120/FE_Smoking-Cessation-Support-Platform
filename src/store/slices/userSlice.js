@@ -72,8 +72,7 @@ export const fetchFollowers = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await fetcher.get(`/users/followers/${userId}`);
-      const followers = response.data.data.followers.map((user) => user._id);
-      return followers;
+      return response.data.data.followers;
     } catch (error) {
       console.error("Error fetching followers:", error.response?.data || error);
       return rejectWithValue(
@@ -89,8 +88,7 @@ export const fetchFollowing = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await fetcher.get(`/users/following/${userId}`);
-      const following = response.data.data.following.map((user) => user._id);
-      return following;
+      return response.data.data.following;
     } catch (error) {
       console.error("Error fetching following:", error.response?.data || error);
       return rejectWithValue(
@@ -132,98 +130,74 @@ export const changeImageApi = createAsyncThunk(
   }
 );
 
+// Follow user
 export const followUser = createAsyncThunk(
   "user/followUser",
-  async (id, { rejectWithValue, dispatch, getState }) => {
+  async (targetId, { rejectWithValue, dispatch, getState }) => {
     try {
       const state = getState();
-      const userId = state.user.user?._id;
-      if (userId && Array.isArray(state.user.following)) {
-        if (!state.user.following.includes(id)) {
-          const updatedFollowing = [...state.user.following, id];
-          dispatch({ type: 'user/updateFollowing', payload: updatedFollowing });
+      const viewer = state.user.user;
+
+      // Cập nhật tạm danh sách đang theo dõi của người dùng đăng nhập
+      if (viewer && Array.isArray(state.user.viewerFollowing)) {
+        const alreadyFollowing = state.user.viewerFollowing.some(
+          (u) => u._id === targetId
+        );
+        if (!alreadyFollowing) {
+          const updatedFollowing = [
+            ...state.user.viewerFollowing,
+            { _id: targetId },
+          ];
+          dispatch({
+            type: "user/updateViewerFollowing",
+            payload: updatedFollowing,
+          });
         }
       }
 
-      const currentStats = state.user.stats || { followersCount: 0, followingCount: 0 };
-      const updatedStats = {
-        ...currentStats,
-        followersCount: currentStats.followersCount + 1
-      };
-      dispatch({ type: 'user/updateStats', payload: updatedStats });
-
-      const response = await fetcher.put(`/users/follow/${id}`);
-
+      const response = await fetcher.put(`/users/follow/${targetId}`);
       return { success: true, data: response.data };
     } catch (error) {
+      // Nếu thất bại, rollback
       const state = getState();
-      const userId = state.user.user?._id;
-      if (userId && Array.isArray(state.user.following)) {
-        const revertedFollowing = state.user.following.filter(followingId => followingId !== id);
-        dispatch({ type: 'user/updateFollowing', payload: revertedFollowing });
-      }
-
-      const currentStats = state.user.stats || { followersCount: 0, followingCount: 0 };
-      const revertedStats = {
-        ...currentStats,
-        followersCount: Math.max(0, currentStats.followersCount - 1)
-      };
-      dispatch({ type: 'user/updateStats', payload: revertedStats });
-
-      console.error("Error following user:", error.response?.data || error);
-      return rejectWithValue(
-        error.response
-          ? error.response.data.message || error.message
-          : error.message
+      const viewer = state.user.user;
+      const rolledBack = state.user.viewerFollowing.filter(
+        (u) => u._id !== targetId
       );
+      dispatch({ type: "user/updateViewerFollowing", payload: rolledBack });
+
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
 
+// Unfollow user
 export const unfollowUser = createAsyncThunk(
-  "user/unfollow",
-  async (id, { rejectWithValue, dispatch, getState }) => {
+  "user/unfollowUser",
+  async (targetId, { rejectWithValue, dispatch, getState }) => {
     try {
       const state = getState();
-      const userId = state.user.user?._id;
-      if (userId && Array.isArray(state.user.following)) {
-        const updatedFollowing = state.user.following.filter(followingId => followingId !== id);
-        dispatch({ type: 'user/updateFollowing', payload: updatedFollowing });
+      const viewer = state.user.user;
+
+      if (viewer && Array.isArray(state.user.viewerFollowing)) {
+        const updatedFollowing = state.user.viewerFollowing.filter(
+          (u) => u._id !== targetId
+        );
+        dispatch({
+          type: "user/updateViewerFollowing",
+          payload: updatedFollowing,
+        });
       }
 
-      const currentStats = state.user.stats || { followersCount: 0, followingCount: 0 };
-      const updatedStats = {
-        ...currentStats,
-        followersCount: Math.max(0, currentStats.followersCount - 1)
-      };
-      dispatch({ type: 'user/updateStats', payload: updatedStats });
-
-      const response = await fetcher.put(`/users/unfollow/${id}`);
-
+      const response = await fetcher.put(`/users/unfollow/${targetId}`);
       return { success: true, data: response.data };
     } catch (error) {
       const state = getState();
-      const userId = state.user.user?._id;
-      if (userId && Array.isArray(state.user.following)) {
-        if (!state.user.following.includes(id)) {
-          const revertedFollowing = [...state.user.following, id];
-          dispatch({ type: 'user/updateFollowing', payload: revertedFollowing });
-        }
-      }
+      const viewer = state.user.user;
+      const rolledBack = [...state.user.viewerFollowing, { _id: targetId }];
+      dispatch({ type: "user/updateViewerFollowing", payload: rolledBack });
 
-      const currentStats = state.user.stats || { followersCount: 0, followingCount: 0 };
-      const revertedStats = {
-        ...currentStats,
-        followersCount: currentStats.followersCount + 1
-      };
-      dispatch({ type: 'user/updateStats', payload: revertedStats });
-
-      console.error("Error unfollowing user:", error.response?.data || error);
-      return rejectWithValue(
-        error.response
-          ? error.response.data.message || error.message
-          : error.message
-      );
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
@@ -231,18 +205,25 @@ export const unfollowUser = createAsyncThunk(
 const userSlice = createSlice({
   name: "user",
   initialState: {
-    user: null,
-    author: null,
-    followers: [],
-    following: [],
-    stats: { followersCount: 0, followingCount: 0 },
+    user: null, // người dùng đăng nhập
+    author: null, // tác giả đang được xem
+    stats: null, // stats của tác giả
+    followers: [], // followers của tác giả
+    authorFollowing: [], // tác giả đang theo dõi ai
+    viewerFollowing: [], // người dùng đăng nhập đang theo dõi ai
     isLoading: false,
     isError: false,
     errorMessage: null,
   },
   reducers: {
-    updateFollowing: (state, { payload }) => {
-      state.following = payload;
+    updateViewerFollowing: (state, action) => {
+      state.viewerFollowing = action.payload;
+    },
+    updateAuthorFollowing: (state, action) => {
+      state.authorFollowing = action.payload;
+    },
+    updateFollowers: (state, action) => {
+      state.followers = action.payload;
     },
     updateStats: (state, { payload }) => {
       state.stats = payload;
@@ -315,7 +296,7 @@ const userSlice = createSlice({
       .addCase(fetchFollowing.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.isError = false;
-        state.following = payload;
+        // Không gán trực tiếp vào state để tránh ghi đè
       })
       .addCase(fetchFollowing.rejected, (state, { payload }) => {
         state.isLoading = false;
@@ -351,35 +332,34 @@ const userSlice = createSlice({
         state.errorMessage = payload || "Lỗi khi upload ảnh";
       })
       .addCase(followUser.pending, (state) => {
-        // Không set isLoading để tránh reload trang
         state.isError = false;
         state.errorMessage = "";
       })
       .addCase(followUser.fulfilled, (state, { payload }) => {
-        // UI đã được cập nhật optimistic rồi, không cần làm gì thêm
         state.isError = false;
       })
       .addCase(followUser.rejected, (state, { payload }) => {
-        // Optimistic updates đã được revert trong thunk
         state.isError = true;
         state.errorMessage = payload || "Lỗi khi theo dõi người dùng";
       })
       .addCase(unfollowUser.pending, (state) => {
-        // Không set isLoading để tránh reload trang
         state.isError = false;
         state.errorMessage = "";
       })
       .addCase(unfollowUser.fulfilled, (state, { payload }) => {
-        // UI đã được cập nhật optimistic rồi, không cần làm gì thêm
         state.isError = false;
       })
       .addCase(unfollowUser.rejected, (state, { payload }) => {
-        // Optimistic updates đã được revert trong thunk
         state.isError = true;
         state.errorMessage = payload || "Lỗi khi bỏ theo dõi người dùng";
       });
   },
 });
 
-export const { updateFollowing, updateStats } = userSlice.actions;
+export const {
+  updateViewerFollowing,
+  updateAuthorFollowing,
+  updateFollowers,
+  updateStats,
+} = userSlice.actions;
 export default userSlice.reducer;

@@ -1,7 +1,16 @@
-import { Box, Button, Typography, Avatar, Menu, MenuItem } from "@mui/material";
+import {
+  Box,
+  Button,
+  Typography,
+  Avatar,
+  Menu,
+  MenuItem,
+  IconButton,
+} from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
+import ChatIcon from "@mui/icons-material/Chat";
 import "./Header.css";
 import { PATH } from "../../routes/path";
 import { logoutApi } from "../../store/slices/authSlice";
@@ -49,10 +58,22 @@ const Header = () => {
     handleClose();
     navigate(PATH.PROFILE);
   };
+
   const handleChat = () => {
     handleClose();
     navigate(PATH.CHATPAGE);
   };
+
+  const handleBlog = () => {
+    handleClose();
+    if (user?._id) {
+      navigate(`/author/${user._id}`);
+    } else {
+      toast.error("Vui lòng đăng nhập để xem bài viết của bạn!");
+      navigate(PATH.LOGIN);
+    }
+  };
+
   const handleRoadmap = () => {
     handleClose();
     navigate(PATH.ROADMAP);
@@ -92,7 +113,17 @@ const Header = () => {
           Liên hệ
         </Link>
       </Box>
-      <Box className="header-actions">
+      <Box
+        className="header-actions"
+        sx={{ display: "flex", alignItems: "center" }}
+      >
+        <IconButton
+          onClick={handleChat}
+          sx={{ color: "#2e7d32", mr: 1 }}
+          aria-label="messenger"
+        >
+          <ChatIcon />
+        </IconButton>
         <Avatar
           src={user?.profilePicture || ""}
           sx={{ bgcolor: "#2e7d32", cursor: "pointer" }}
@@ -114,7 +145,7 @@ const Header = () => {
           }}
         >
           <MenuItem onClick={handleProfile}>Hồ sơ</MenuItem>
-          <MenuItem onClick={handleChat}>Tin nhắn</MenuItem>
+          <MenuItem onClick={handleBlog}>Bài viết của tôi</MenuItem>
           <MenuItem onClick={handleRoadmap}>Lộ trình</MenuItem>
           <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
         </Menu>

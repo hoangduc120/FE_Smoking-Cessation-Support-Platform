@@ -16,7 +16,7 @@ export const PATH = {
   PROFILE: "/profile",
   BLOGPAGE: "/blog",
   BLOGDETAIL: "/blog/:slug",
-  AUTHORPROFILE: "/author/:authorId",
+  AUTHORPROFILE: "/author/:userId",
   CREATEBLOG: "/blog/create",
   CONTACT: "/contact",
   BENEFIT: "/benefit",
@@ -27,6 +27,7 @@ export const PATH = {
   SUCCESSPLANRESULT: "/successPlanResult",
   FAILEDPLANRESULT: "/failedPlanResult",
 
+  FOLLOWPAGE: "/follow/:userId",
   // COACH
   COACH: "/coach",
   PLANMANAGEMEMTPAGE: "/coach/plan-management",

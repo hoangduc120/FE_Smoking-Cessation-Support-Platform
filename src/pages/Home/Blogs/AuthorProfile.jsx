@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardMedia,
-  Chip,
   Divider,
   Button,
   CircularProgress,
@@ -34,6 +33,7 @@ import {
   fetchUser,
   fetchUserStats,
   fetchFollowing,
+  updateStats,
 } from "../../../store/slices/userSlice";
 import {
   fetchBlogsByUserApi,
@@ -43,84 +43,135 @@ import {
 import toast from "react-hot-toast";
 
 export default function AuthorProfile() {
-  const { authorId } = useParams();
+  const { userId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { author, user, following, stats, isLoading, isError, errorMessage } =
-    useSelector((state) => state.user);
-  const { blogs, isLoading: blogsLoading } = useSelector(
-    (state) => state.blogs
-  );
+  const {
+    author,
+    user,
+    viewerFollowing,
+    stats,
+    isLoading,
+    isError,
+    errorMessage,
+  } = useSelector((state) => state.user);
+  const {
+    blogs,
+    isLoading: blogsLoading,
+    isError: blogsError,
+  } = useSelector((state) => state.blogs);
   const [isFollowProcessing, setIsFollowProcessing] = useState(false);
   const [expandedPostId, setExpandedPostId] = useState(null);
   const [showAllComments, setShowAllComments] = useState({});
   const [commentTexts, setCommentTexts] = useState({});
   const hasFetchedStats = useRef(false);
+  const hasFetchedFollowing = useRef(false);
 
+  // State cho Theo dõi
   const [localFollowState, setLocalFollowState] = useState(null);
+
+  // State cho bình luận
+  const [localComments, setLocalComments] = useState({});
+
+  // Đồng bộ localFollowState
   useEffect(() => {
-    if (Array.isArray(following) && authorId) {
-      setLocalFollowState(following.includes(authorId));
+    if (Array.isArray(viewerFollowing) && userId) {
+      setLocalFollowState(viewerFollowing.some((f) => f._id === userId));
     }
-  }, [following, authorId]);
+  }, [viewerFollowing, userId]);
 
-  const isFollowing = localFollowState !== null ? localFollowState : (Array.isArray(following) && following.includes(authorId));
+  const isFollowing =
+    localFollowState ?? viewerFollowing.some((f) => f._id === userId);
 
   useEffect(() => {
-    if (authorId) {
-      dispatch(fetchAuthorById(authorId));
-      dispatch(fetchBlogsByUserApi({ userId: authorId }));
+    if (userId) {
+      dispatch(fetchAuthorById(userId));
+      dispatch(fetchBlogsByUserApi({ userId }));
       dispatch(fetchUser());
     } else {
-      console.error("No authorId provided");
+      console.error("Không có userId được cung cấp");
     }
-  }, [dispatch, authorId]);
+  }, [dispatch, userId]);
 
   useEffect(() => {
-    if (authorId && !hasFetchedStats.current) {
-      dispatch(fetchUserStats(authorId));
+    if (userId && !hasFetchedStats.current) {
+      dispatch(fetchUserStats(userId));
       hasFetchedStats.current = true;
     }
-  }, [dispatch, authorId]);
+  }, [dispatch, userId]);
 
   useEffect(() => {
-    if (user?._id && following.length === 0) {
-      dispatch(fetchFollowing(user._id));
+    if (user?._id && !hasFetchedFollowing.current) {
+      console.log("Fetching following for user:", user._id);
+      dispatch(fetchFollowing(user._id))
+        .unwrap()
+        .then(() => {
+          hasFetchedFollowing.current = true;
+        })
+        .catch((error) => {
+          console.error("Failed to fetch following:", error);
+        });
     }
-  }, [dispatch, user?._id, following.length]);
+  }, [dispatch, user?._id]);
 
-  const authorPosts = blogs.filter((post) => post.authorId === authorId);
+  const authorPosts = blogs.filter((post) => post.userId === userId);
+
+  const handleNavigateToFollowPage = (tab) => {
+    navigate(`/follow/${userId}?tab=${tab}`, { replace: true });
+  };
 
   const handleFollowToggle = useCallback(
     async (event) => {
       event.preventDefault();
       event.stopPropagation();
 
-      if (isFollowProcessing || !authorId || !user?._id) return;
+      if (isFollowProcessing || !userId || !user?._id) {
+        toast.error("Vui lòng đăng nhập để thực hiện hành động này!");
+        return;
+      }
 
+      const wasFollowing = isFollowing;
       setIsFollowProcessing(true);
+      setLocalFollowState(!wasFollowing);
+
+      // Optimistic update cho stats.followersCount
+      const currentStats = stats || { followersCount: 0, followingCount: 0 };
+      const updatedStats = {
+        ...currentStats,
+        followersCount: wasFollowing
+          ? Math.max(0, currentStats.followersCount - 1)
+          : currentStats.followersCount + 1,
+      };
+      dispatch(updateStats(updatedStats));
 
       try {
-        const action = isFollowing ? unfollowUser : followUser;
-        const result = await dispatch(action(authorId)).unwrap();
+        const action = wasFollowing ? unfollowUser : followUser;
+        const result = await dispatch(action(userId)).unwrap();
 
         if (result.success) {
-          toast.success(isFollowing ? "Đã bỏ theo dõi!" : "Đã theo dõi!");
+          toast.success(wasFollowing ? "Đã bỏ theo dõi!" : "Đã theo dõi!");
+          setLocalFollowState(!wasFollowing);
         }
       } catch (error) {
-        console.error("Follow action error:", error);
-        if (error === "Already following this user") {
-          toast.error("Bạn đã theo dõi người dùng này!");
-        } else {
-          toast.error(
-            error || `Lỗi khi ${isFollowing ? "bỏ theo dõi" : "theo dõi"}`
-          );
-        }
+        // Rollback optimistic updates
+        setLocalFollowState(wasFollowing);
+        dispatch(
+          updateStats({
+            ...currentStats,
+            followersCount: currentStats.followersCount,
+          })
+        );
+        console.error("Lỗi khi thực hiện hành động theo dõi:", error);
+        toast.error(
+          error.message ||
+            error ||
+            `Lỗi khi ${wasFollowing ? "bỏ theo dõi" : "theo dõi"}`
+        );
       } finally {
         setIsFollowProcessing(false);
       }
     },
-    [isFollowProcessing, authorId, user?._id, isFollowing, dispatch]
+    [isFollowProcessing, userId, user?._id, isFollowing, dispatch, stats]
   );
 
   const handleMessage = () => {
@@ -134,41 +185,47 @@ export default function AuthorProfile() {
   const handleSubmitComment = (blogId) => (e) => {
     e.preventDefault();
     const commentText = commentTexts[blogId] || "";
+
     if (commentText.trim() && user?._id) {
       const tempComment = {
         id: `temp-${Date.now()}`,
         text: commentText,
         author: {
-          id: user?._id || "unknown",
+          id: user._id,
           name: user?.email?.split("@")[0] || "Người dùng",
           avatar: user?.avatar || "/placeholder.svg",
         },
         createdAt: new Date().toISOString(),
       };
 
-      // Thêm bình luận tạm thời vào state Redux
-      dispatch({
-        type: "blogs/addComment",
-        payload: { blogId, comment: tempComment },
-      });
+      // Thêm bình luận vào localComments để hiển thị ngay
+      setLocalComments((prev) => ({
+        ...prev,
+        [blogId]: [...(prev[blogId] || []), tempComment],
+      }));
 
-      // Gửi bình luận lên server
+      // Gửi lên server
       dispatch(addCommentApi({ blogId, comment: commentText }))
         .unwrap()
         .then(() => {
           toast.success("Bình luận đã được gửi!");
         })
         .catch((error) => {
-          // Xóa bình luận tạm thời nếu API thất bại
-          dispatch({
-            type: "blogs/addCommentFailed",
-            payload: { blogId, commentId: tempComment.id },
-          });
+          // Xóa bình luận tạm nếu API thất bại
+          setLocalComments((prev) => ({
+            ...prev,
+            [blogId]: (prev[blogId] || []).filter(
+              (c) => c.id !== tempComment.id
+            ),
+          }));
           toast.error(error.message || "Không thể gửi bình luận");
         });
 
-      // Xóa nội dung bình luận sau khi gửi
-      setCommentTexts((prev) => ({ ...prev, [blogId]: "" }));
+      // Xóa nội dung ô nhập
+      setCommentTexts((prev) => ({
+        ...prev,
+        [blogId]: "",
+      }));
     }
   };
 
@@ -181,17 +238,17 @@ export default function AuthorProfile() {
 
   const formatDate = (dateStr) => {
     if (!dateStr) {
-      console.error("Invalid date string: null or undefined", dateStr);
+      console.error("Chuỗi ngày không hợp lệ: null hoặc undefined", dateStr);
       return "Không xác định";
     }
     try {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) {
-        throw new Error("Invalid date format");
+        throw new Error("Định dạng ngày không hợp lệ");
       }
       return format(date, "dd/MM/yyyy HH:mm", { locale: vi });
     } catch (error) {
-      console.error("Invalid date format:", dateStr, error);
+      console.error("Định dạng ngày không hợp lệ:", dateStr, error);
       return "Không xác định";
     }
   };
@@ -205,7 +262,7 @@ export default function AuthorProfile() {
   };
 
   const handleGoBack = () => {
-    navigate(-1);
+    navigate(-1, { replace: true });
   };
 
   if (isLoading) {
@@ -216,7 +273,10 @@ export default function AuthorProfile() {
           justifyContent: "center",
           alignItems: "center",
           minHeight: "100vh",
-          background: `linear-gradient(135deg, ${alpha("#4CAF50", 0.2)} 0%, ${alpha("#81C784", 0.2)} 100%)`,
+          background: `linear-gradient(135deg, ${alpha(
+            "#4CAF50",
+            0.2
+          )} 0%, ${alpha("#81C784", 0.2)} 100%)`,
         }}
       >
         <CircularProgress size={60} sx={{ color: "#4CAF50" }} />
@@ -249,14 +309,17 @@ export default function AuthorProfile() {
     <Box
       sx={{
         minHeight: "100vh",
-        background: `linear-gradient(135deg, ${alpha("#E8F5E8", 0.3)} 0%, ${alpha("#F1F8E9", 0.5)} 100%)`,
+        background: `linear-gradient(135deg, ${alpha(
+          "#E8F5E8",
+          0.3
+        )} 0%, ${alpha("#F1F8E9", 0.5)} 100%)`,
         py: 4,
       }}
     >
       <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 8 } }}>
-        {/* Back Button */}
         <Box sx={{ mb: 4 }}>
           <Button
+            type="button"
             startIcon={<ArrowBackIcon />}
             onClick={handleGoBack}
             variant="text"
@@ -273,7 +336,6 @@ export default function AuthorProfile() {
           </Button>
         </Box>
 
-        {/* Author Header */}
         <Paper
           elevation={0}
           sx={{
@@ -319,13 +381,25 @@ export default function AuthorProfile() {
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                cursor: "pointer",
               }}
             >
-              {stats?.followersCount || 0} người theo dõi •{" "}
-              {stats?.followingCount || 0} người đang theo dõi
+              <span
+                onClick={() => handleNavigateToFollowPage("followers")}
+                style={{ color: "#4CAF50", fontWeight: "bold" }}
+              >
+                {stats?.followersCount || 0} người theo dõi
+              </span>{" "}
+              •{" "}
+              <span
+                onClick={() => handleNavigateToFollowPage("following")}
+                style={{ color: "#4CAF50", fontWeight: "bold" }}
+              >
+                {stats?.followingCount || 0} người đang theo dõi
+              </span>
             </Typography>
           </Box>
-          {user && user._id !== authorId && (
+          {user && user._id !== userId && (
             <Box sx={{ display: "flex", gap: 1.5 }}>
               <Button
                 type="button"
@@ -353,6 +427,7 @@ export default function AuthorProfile() {
                 {isFollowing ? "Đã theo dõi" : "Theo dõi"}
               </Button>
               <Button
+                type="button"
                 variant="outlined"
                 onClick={handleMessage}
                 sx={{
@@ -377,7 +452,6 @@ export default function AuthorProfile() {
 
         <Divider sx={{ mb: 4, borderColor: alpha("#4CAF50", 0.2) }} />
 
-        {/* Author's Posts */}
         <Typography
           variant="h4"
           sx={{ fontWeight: "bold", mb: 4, color: "#2E7D32" }}
@@ -396,19 +470,29 @@ export default function AuthorProfile() {
           >
             <CircularProgress size={40} sx={{ color: "#4CAF50" }} />
           </Box>
+        ) : blogsError ? (
+          <Box sx={{ textAlign: "center", py: 8, width: "100%" }}>
+            <Typography variant="h6" color="#2E7D32">
+              Lỗi tải bài viết
+            </Typography>
+          </Box>
         ) : (
           <Grid container spacing={3}>
             {authorPosts.length > 0 ? (
               authorPosts.map((post) => {
                 const isExpanded = expandedPostId === post.id;
+                // Kết hợp comments từ server và localComments
+                const mergedComments = [
+                  ...(post.comments || []),
+                  ...(localComments[post.id] || []),
+                ];
                 const visibleComments = showAllComments[post.id]
-                  ? post.comments
-                  : post.comments?.slice(0, 2) || [];
+                  ? mergedComments
+                  : mergedComments.slice(0, 2);
 
-                // Làm sạch description, loại bỏ base64 và giữ HTML
                 const cleanDescription = post.description
-                  ?.replace(/<img[^>]*>/g, "") // Loại bỏ thẻ img
-                  .replace(/data:image\/[a-zA-Z]*;base64[^"]*/g, ""); // Loại bỏ base64
+                  ?.replace(/<img[^>]*>/g, "")
+                  .replace(/data:image\/[a-zA-Z]*;base64[^"]*/g, "");
 
                 return (
                   <Grid item xs={12} key={post.id}>
@@ -418,7 +502,6 @@ export default function AuthorProfile() {
                         borderRadius: 2,
                       }}
                     >
-                      {/* Post Header */}
                       <Box sx={{ p: 2, display: "flex", alignItems: "center" }}>
                         <Avatar
                           src={authorData.avatar}
@@ -438,7 +521,6 @@ export default function AuthorProfile() {
                         </Box>
                       </Box>
 
-                      {/* Post Content */}
                       <CardMedia
                         component="img"
                         height="200"
@@ -447,7 +529,6 @@ export default function AuthorProfile() {
                         sx={{ objectFit: "cover" }}
                       />
                       <CardContent>
-                        {/* Hiển thị tiêu đề bài viết */}
                         <Typography
                           variant="h6"
                           sx={{ fontWeight: "bold", mb: 1 }}
@@ -467,6 +548,7 @@ export default function AuthorProfile() {
                         />
                         {!isExpanded && (
                           <Button
+                            type="button"
                             variant="text"
                             onClick={() => setExpandedPostId(post.id)}
                             sx={{ color: "#4CAF50", textTransform: "none" }}
@@ -476,6 +558,7 @@ export default function AuthorProfile() {
                         )}
                         {isExpanded && (
                           <Button
+                            type="button"
                             variant="text"
                             onClick={() => setExpandedPostId(null)}
                             sx={{ color: "#4CAF50", textTransform: "none" }}
@@ -485,14 +568,13 @@ export default function AuthorProfile() {
                         )}
                       </CardContent>
 
-                      {/* Like and Comment Section */}
                       <Box
                         sx={{
                           p: 2,
                           borderTop: `1px solid ${alpha("#4CAF50", 0.2)}`,
                         }}
                       >
-                        <Box
+                        {/* <Box
                           sx={{ display: "flex", alignItems: "center", mb: 2 }}
                         >
                           <IconButton
@@ -508,40 +590,113 @@ export default function AuthorProfile() {
                           <Typography variant="body2" sx={{ ml: 1 }}>
                             {post.likeCount} lượt thích
                           </Typography>
+                        </Box> */}
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", mb: 2 }}
+                        >
+                          <IconButton
+                            onClick={() => handleToggleLike(post.id)}
+                            sx={{
+                              color: post.isLiked
+                                ? "#1976d2"
+                                : "rgba(0, 0, 0, 0.54)", // blue nếu liked, xám nếu không
+                              transition: "color 0.3s ease",
+                              "&:hover": {
+                                color: post.isLiked ? "#115293" : "#1976d2", // hover đổi nhẹ
+                                backgroundColor: "transparent", // tránh bị MUI hover background làm mờ
+                              },
+                            }}
+                          >
+                            {post.isLiked ? (
+                              <ThumbUpIcon />
+                            ) : (
+                              <ThumbUpOutlinedIcon />
+                            )}
+                          </IconButton>
+
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              ml: 1,
+                              fontWeight: 500,
+                              color: post.isLiked
+                                ? "#1976d2"
+                                : "text.secondary",
+                            }}
+                          >
+                            {post.likeCount} lượt thích
+                          </Typography>
                         </Box>
+
                         <Box>
                           {visibleComments.map((comment) => (
-                            <Box key={comment.id} sx={{ mb: 1 }}>
-                              <Typography variant="body2">
-                                <strong>{comment.author.name}:</strong>{" "}
-                                {comment.text}
-                              </Typography>
+                            <Box
+                              key={comment.id}
+                              sx={{
+                                display: "flex",
+                                alignItems: "flex-start",
+                                gap: 1.5,
+                                mb: 2,
+                                px: 2,
+                                py: 1.5,
+                                borderRadius: 2,
+                                bgcolor: "#f5f5f5",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                              }}
+                            >
+                              <Avatar
+                                src={
+                                  comment.author.avatar || "/placeholder.svg"
+                                }
+                                alt={comment.author.name}
+                                sx={{ width: 36, height: 36 }}
+                              />
+                              <Box>
+                                <Typography
+                                  variant="subtitle2"
+                                  sx={{ fontWeight: 600, color: "#2E7D32" }}
+                                >
+                                  {comment.author.name}
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    color: "#333",
+                                    mt: 0.3,
+                                    wordWrap: "break-word",
+                                    whiteSpace: "pre-line",
+                                  }}
+                                >
+                                  {comment.text}
+                                </Typography>
+                              </Box>
                             </Box>
                           ))}
-                          {post.comments &&
-                            post.comments.length > 2 &&
+                          {mergedComments.length > 2 &&
                             !showAllComments[post.id] && (
                               <Button
+                                type="button"
                                 variant="text"
                                 onClick={() =>
-                                  setShowAllComments({
-                                    ...showAllComments,
+                                  setShowAllComments((prev) => ({
+                                    ...prev,
                                     [post.id]: true,
-                                  })
+                                  }))
                                 }
                                 sx={{ color: "#4CAF50", textTransform: "none" }}
                               >
-                                Xem thêm {post.comments.length - 2} bình luận
+                                Xem thêm {mergedComments.length - 2} bình luận
                               </Button>
                             )}
                           {showAllComments[post.id] && (
                             <Button
+                              type="button"
                               variant="text"
                               onClick={() =>
-                                setShowAllComments({
-                                  ...showAllComments,
+                                setShowAllComments((prev) => ({
+                                  ...prev,
                                   [post.id]: false,
-                                })
+                                }))
                               }
                               sx={{ color: "#4CAF50", textTransform: "none" }}
                             >
