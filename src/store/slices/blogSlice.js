@@ -10,7 +10,7 @@ const normalizeBlog = (blog, currentUserId) => ({
   imageUrl: blog.image?.[0] || "/placeholder.svg?height=400&width=600",
   tags: blog.tags?.map((tag) => tag.tagName) || [],
   createdAt: blog.createdAt,
-  authorId: blog.user?._id || "unknown",
+  userId: blog.user?._id || "unknown",
   authorName: blog.user?.email?.split("@")[0] || "Người dùng ẩn danh",
   avatar: "/placeholder.svg?height=40&width=40",
   likeCount: blog.likes?.length || 0,
@@ -111,8 +111,8 @@ export const fetchBlogsByUserApi = createAsyncThunk(
         error.response
           ? error.response.data
           : {
-            message: error.message || "Không thể tải bài viết của người dùng",
-          }
+              message: error.message || "Không thể tải bài viết của người dùng",
+            }
       );
     }
   }
@@ -323,7 +323,7 @@ const blogSlice = createSlice({
       toast.error(payload?.message || "Không thể tạo bài viết");
     });
 
-    builder.addCase(toggleLikeBlogApi.pending, (state) => { });
+    builder.addCase(toggleLikeBlogApi.pending, (state) => {});
     builder.addCase(toggleLikeBlogApi.fulfilled, (state, { payload }) => {
       const blog = state.blogs.find(
         (b) => b.id === payload.id || b._id === payload.id

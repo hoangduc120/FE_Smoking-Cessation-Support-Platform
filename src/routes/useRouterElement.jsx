@@ -37,6 +37,8 @@ import AuthorProfile from "../pages/Home/Blogs/AuthorProfile";
 import Account from "../pages/Admin/Account/Account";
 import SuccessPlanResult from "../components/SuccessPlanResult/SuccessPlanResult";
 import FailedPlanResult from "../components/FailedPlanResult/FailedPlanResult";
+import FollowPage from "../pages/Home/FollowPage/FollowPage";
+
 export default function useRouterElement() {
   const element = useRoutes([
     // AUTH
@@ -184,6 +186,14 @@ export default function useRouterElement() {
         { path: PATH.BENEFIT, element: <Benefits /> },
         { path: PATH.RESOURCES, element: <Resources /> },
         { path: PATH.CONTACT, element: <Contact /> },
+        {
+          path: PATH.FOLLOWPAGE,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach"]}>
+              <FollowPage />
+            </ProtectedRoute>
+          ),
+        },
       ],
     },
 

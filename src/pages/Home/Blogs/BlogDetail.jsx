@@ -128,8 +128,8 @@ const BlogDetail = () => {
   };
 
   const handleAuthorClick = () => {
-    if (selectedBlog?.authorId) {
-      navigate(`/author/${selectedBlog.authorId}`);
+    if (selectedBlog?.userId) {
+      navigate(`/author/${selectedBlog.userId}`);
     }
   };
 
