@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   Avatar,
   Card,
@@ -28,6 +30,7 @@ import {
   fetchUser,
   updateUser,
   changeImageApi,
+  fetchUserStats,
 } from "../../../store/slices/userSlice";
 import { fetchAssessment } from "../../../store/slices/quitSmokingSlice";
 import { useForm } from "react-hook-form";
@@ -75,8 +78,11 @@ export const profileSchema = yup.object().shape({
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const {
     user,
+    stats,
     isLoading: userLoading,
     isError: userError,
     errorMessage: userErrorMessage,
@@ -125,21 +131,42 @@ export default function ProfilePage() {
     }
   }, [user, reset]);
 
+  // useEffect(() => {
+  //   if (!user && !userLoading) {
+  //     dispatch(fetchUser());
+  //   }
+  //   if (user?._id) {
+  //     dispatch(fetchUserStats(user._id));
+  //   }
+  //   if (
+  //     user?._id &&
+  //     !hasFetchedAssessment.current &&
+  //     !assessmentLoading &&
+  //     !assessmentData
+  //   ) {
+  //     hasFetchedAssessment.current = true;
+  //     dispatch(fetchAssessment(user._id));
+  //   }
+  // }, [dispatch, user, userLoading, assessmentLoading, assessmentData]);
   useEffect(() => {
     if (!user && !userLoading) {
       dispatch(fetchUser());
     }
+  }, [dispatch, user, userLoading]);
 
-    if (
-      user?._id &&
-      !hasFetchedAssessment.current &&
-      !assessmentLoading &&
-      !assessmentData
-    ) {
-      hasFetchedAssessment.current = true;
-      dispatch(fetchAssessment(user._id));
+  useEffect(() => {
+    if (user?._id) {
+      dispatch(fetchUserStats(user._id));
+      if (
+        !hasFetchedAssessment.current &&
+        !assessmentLoading &&
+        !assessmentData
+      ) {
+        hasFetchedAssessment.current = true;
+        dispatch(fetchAssessment(user._id));
+      }
     }
-  }, [dispatch, user, userLoading, assessmentLoading, assessmentData]);
+  }, [dispatch, user, assessmentLoading, assessmentData]);
 
   const onSubmit = async (data) => {
     try {
@@ -316,20 +343,32 @@ export default function ProfilePage() {
                       />
                     </Box>
                     <Box className="stats-container">
-                      <Box className="stat-item">
+                      <Box
+                        className="stat-item"
+                        onClick={() =>
+                          navigate(`/follow/${user._id}?tab=followers`)
+                        }
+                        style={{ cursor: "pointer" }}
+                      >
                         <Typography variant="body2" color="textSecondary">
                           Người theo dõi:
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                          {user?.followers?.length || 0}
+                          {stats?.followersCount ?? 0}
                         </Typography>
                       </Box>
-                      <Box className="stat-item">
+                      <Box
+                        className="stat-item"
+                        onClick={() =>
+                          navigate(`/follow/${user._id}?tab=following`)
+                        }
+                        style={{ cursor: "pointer" }}
+                      >
                         <Typography variant="body2" color="textSecondary">
                           Đang theo dõi:
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                          {user?.following?.length || 0}
+                          {stats?.followingCount ?? 0}
                         </Typography>
                       </Box>
                     </Box>

@@ -244,7 +244,7 @@ const FollowPage = () => {
     >
       <CssBaseline />
       <Container maxWidth="lg">
-        <Box sx={{ mb: 4 }}>
+        {/* <Box sx={{ mb: 4 }}>
           <Button
             startIcon={<ArrowBackIcon />}
             onClick={handleGoBack}
@@ -260,7 +260,43 @@ const FollowPage = () => {
           >
             Quay lại
           </Button>
+        </Box> */}
+        <Box sx={{ mb: 4, display: "flex", gap: 2 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={handleGoBack}
+            variant="text"
+            sx={{
+              color: "#4CAF50",
+              textTransform: "none",
+              "&:hover": {
+                bgcolor: alpha("#4CAF50", 0.1),
+                borderRadius: 2,
+              },
+            }}
+          >
+            Quay lại
+          </Button>
+
+          {user?._id === userId && (
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate("/profile")}
+              variant="text"
+              sx={{
+                color: "#2E7D32",
+                textTransform: "none",
+                "&:hover": {
+                  bgcolor: alpha("#2E7D32", 0.1),
+                  borderRadius: 2,
+                },
+              }}
+            >
+              Hồ sơ của tôi
+            </Button>
+          )}
         </Box>
+
         <Grid container spacing={4}>
           {/* Left Profile Section */}
           <Grid item xs={12} md={4}>
