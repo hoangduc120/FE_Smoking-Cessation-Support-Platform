@@ -3,7 +3,9 @@ import { Box, Button, Card, CardContent, CardHeader, Chip, Grid, Typography, Lin
 import { motion } from "framer-motion"
 
 import { EmojiEvents, ArrowBack, Share, Star, CalendarToday, AccessTime, AttachMoney, MonitorHeart, AutoAwesome, TrendingUp, TrackChanges } from "@mui/icons-material"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
+import { infoCompleteQuitPlan } from "../../store/slices/planeSlice"
 
 // Confetti Component
 const Confetti = () => {
@@ -48,29 +50,24 @@ const Confetti = () => {
   )
 }
 
-export default function SuccessPlanResult({ planId }) {
+export default function SuccessPlanResult({ planId: propPlanId }) {
+  const dispatch = useDispatch()
+  const { plan, isLoading, isError, errorMessage } = useSelector((state) => state.plan)
+  const {badge} = useSelector((state) => state.badge)
+  console.log("badge",badge )
+  const [searchParams] = useSearchParams()
+
   const [showConfetti, setShowConfetti] = useState(false)
 
-  const successData = {
-    plan: {
-      title: "Tháng không thuốc - vì sức khỏe",
-      reason: "Muốn tiết kiệm chi phí và cải thiện sức khỏe",
-      startDate: "2025-06-15T00:00:00.000Z",
-      endDate: "2025-07-15T00:00:00.000Z",
-      status: "completed",
-    },
-    badge: {
-      name: "Plan Completed",
-      description: "Hoàn thành kế hoạch cai thuốc: Tháng không thuốc - vì sức khỏe",
-      icon_url: "/badges/plan-completed.png",
-    },
-    stats: {
-      moneySaved: 900000,
-      healthImprovement: 85,
-      daysSmokeFree: 30,
-      cigarettesAvoided: 600,
-    },
-  }
+  // Lấy planId từ prop hoặc từ URL query parameter
+  const planId = propPlanId || searchParams.get('planId')
+
+  useEffect(() => {
+    if (planId) {
+
+      dispatch(infoCompleteQuitPlan({ planId }))
+    }
+  }, [dispatch, planId])
 
   useEffect(() => {
     setShowConfetti(true)
@@ -94,9 +91,71 @@ export default function SuccessPlanResult({ planId }) {
   }
 
   const calculateDays = () => {
-    const start = new Date(successData.plan.startDate)
-    const end = new Date(successData.plan.endDate)
+    if (!plan?.plan?.startDate || !plan?.plan?.endDate) return 0
+    const start = new Date(plan.plan.startDate)
+    const end = new Date(plan.plan.endDate)
     return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+  }
+
+  // Tính toán các thống kê dựa trên dữ liệu thực tế
+  const calculateStats = () => {
+    if (!plan?.plan) return {
+      moneySaved: 0,
+      healthImprovement: 0,
+      daysSmokeFree: 0,
+      cigarettesAvoided: 0,
+    }
+
+    const daysSmokeFree = calculateDays()
+    const cigarettesPerDay = 20 // Giả sử trung bình 20 điếu/ngày
+    const pricePerPack = 30000 // Giả sử 30,000 VND/gói (20 điếu)
+    
+    return {
+      moneySaved: daysSmokeFree * (pricePerPack / 20) * cigarettesPerDay,
+      healthImprovement: Math.min(85, daysSmokeFree * 2.8), // Cải thiện sức khỏe theo thời gian
+      daysSmokeFree: daysSmokeFree,
+      cigarettesAvoided: daysSmokeFree * cigarettesPerDay,
+    }
+  }
+
+  // Hiển thị loading nếu đang tải dữ liệu
+  if (isLoading) {
+    return (
+      <Box className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
+        <Typography variant="h5" className="text-gray-600">
+          Đang tải thông tin kế hoạch...
+        </Typography>
+      </Box>
+    )
+  }
+
+  // Hiển thị lỗi nếu có
+  if (isError) {
+    return (
+      <Box className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
+        <Typography variant="h5" className="text-red-600">
+          Lỗi: {errorMessage || "Không thể tải thông tin kế hoạch"}
+        </Typography>
+      </Box>
+    )
+  }
+
+  // Kiểm tra nếu không có dữ liệu plan
+  if (!plan || !plan.plan) {
+    return (
+      <Box className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
+        <Typography variant="h5" className="text-gray-600">
+          Không tìm thấy thông tin kế hoạch
+        </Typography>
+      </Box>
+    )
+  }
+
+  const stats = calculateStats()
+  const planData = plan.plan
+  const badgeData = plan.badges?.[0] || {
+    name: "Plan Completed",
+    description: `Hoàn thành kế hoạch cai thuốc: ${planData.title}`,
   }
 
   return (
@@ -201,10 +260,10 @@ export default function SuccessPlanResult({ planId }) {
                 <CardContent className="space-y-6">
                   <Box className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6">
                     <Typography variant="h6" className="font-bold text-2xl mb-3 text-gray-800">
-                      {successData.plan.title}
+                      {planData.title}
                     </Typography>
                     <Typography className="text-gray-600 text-lg leading-relaxed">
-                      {successData.plan.reason}
+                      {planData.reason}
                     </Typography>
                   </Box>
 
@@ -213,14 +272,14 @@ export default function SuccessPlanResult({ planId }) {
                       <Box className="bg-blue-50 rounded-xl p-4 text-center">
                         <CalendarToday className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                         <Typography className="text-sm text-blue-600 font-medium">Ngày bắt đầu</Typography>
-                        <Typography className="font-bold text-lg text-gray-800">{formatDate(successData.plan.startDate)}</Typography>
+                        <Typography className="font-bold text-lg text-gray-800">{formatDate(planData.startDate)}</Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <Box className="bg-purple-50 rounded-xl p-4 text-center">
                         <CalendarToday className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                         <Typography className="text-sm text-purple-600 font-medium">Ngày kết thúc</Typography>
-                        <Typography className="font-bold text-lg text-gray-800">{formatDate(successData.plan.endDate)}</Typography>
+                        <Typography className="font-bold text-lg text-gray-800">{formatDate(planData.endDate)}</Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={12} md={4}>
@@ -274,8 +333,8 @@ export default function SuccessPlanResult({ planId }) {
                     >
                       <EmojiEvents className="h-12 w-12 text-white" />
                     </motion.div>
-                    <Typography className="font-bold text-xl text-green-800 mb-2">{successData.badge.name}</Typography>
-                    <Typography className="text-green-700 text-sm leading-relaxed">{successData.badge.description}</Typography>
+                    <Typography className="font-bold text-xl text-green-800 mb-2">{badgeData.name}</Typography>
+                    <Typography className="text-green-700 text-sm leading-relaxed">{badgeData.description}</Typography>
                   </Box>
 
                   <Box className="space-y-4">
@@ -285,7 +344,7 @@ export default function SuccessPlanResult({ planId }) {
                           <AttachMoney className="h-5 w-5 text-green-600" />
                           <Typography className="font-medium">Tiết kiệm</Typography>
                         </Box>
-                        <Typography className="font-bold text-green-600">{formatCurrency(successData.stats.moneySaved)}</Typography>
+                        <Typography className="font-bold text-green-600">{formatCurrency(stats.moneySaved)}</Typography>
                       </Box>
                     </Box>
 
@@ -295,9 +354,9 @@ export default function SuccessPlanResult({ planId }) {
                           <MonitorHeart className="h-5 w-5 text-blue-600" />
                           <Typography className="font-medium">Sức khỏe</Typography>
                         </Box>
-                        <Typography className="font-bold text-blue-600">+{successData.stats.healthImprovement}%</Typography>
+                        <Typography className="font-bold text-blue-600">+{stats.healthImprovement}%</Typography>
                       </Box>
-                      <LinearProgress variant="determinate" value={successData.stats.healthImprovement} className="h-2" />
+                      <LinearProgress variant="determinate" value={stats.healthImprovement} className="h-2" />
                     </Box>
 
                     <Box className="bg-white rounded-xl p-4 shadow-sm">
@@ -306,7 +365,7 @@ export default function SuccessPlanResult({ planId }) {
                           <CalendarToday className="h-5 w-5 text-purple-600" />
                           <Typography className="font-medium">Ngày không thuốc</Typography>
                         </Box>
-                        <Typography className="font-bold text-purple-600">{successData.stats.daysSmokeFree} ngày</Typography>
+                        <Typography className="font-bold text-purple-600">{stats.daysSmokeFree} ngày</Typography>
                       </Box>
                     </Box>
 
@@ -316,7 +375,7 @@ export default function SuccessPlanResult({ planId }) {
                           <TrendingUp className="h-5 w-5 text-orange-600" />
                           <Typography className="font-medium">Điếu thuốc tránh được</Typography>
                         </Box>
-                        <Typography className="font-bold text-orange-600">{successData.stats.cigarettesAvoided} điếu</Typography>
+                        <Typography className="font-bold text-orange-600">{stats.cigarettesAvoided} điếu</Typography>
                       </Box>
                     </Box>
                   </Box>
@@ -332,24 +391,18 @@ export default function SuccessPlanResult({ planId }) {
           transition={{ delay: 0.8 }}
           className="flex flex-wrap justify-center gap-6"
         >
-          <Link to="/member/dashboard">
+          <Link to="/coachPlan">
             <Button
               variant="outlined"
               size="large"
               className="bg-white/80 backdrop-blur-sm hover:bg-white border-2 shadow-lg text-lg px-8 py-4"
             >
               <ArrowBack className="h-5 w-5 mr-2" />
-              Về Dashboard
+              Xem kế hoạch
             </Button>
           </Link>
-          <Button
-            size="large"
-            className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 shadow-lg text-lg px-8 py-4"
-          >
-            <Share className="h-5 w-5 mr-2" />
-            Chia sẻ thành công
-          </Button>
-          <Link to="/member/my-roadmap/achievements">
+      
+          <Link to="/historyPlan">
             <Button
               variant="outlined"
               size="large"
@@ -368,7 +421,7 @@ export default function SuccessPlanResult({ planId }) {
           className="mt-12 text-center"
         >
           <Box className="inline-block bg-white/50 backdrop-blur-sm rounded-full px-6 py-2 text-sm text-gray-600">
-            Status: <span className="font-mono">success</span> | Plan ID: <span className="font-mono">{planId}</span>
+            Status: <span className="font-mono">{planData.status}</span> | Plan ID: <span className="font-mono">{planId}</span>
           </Box>
         </motion.div>
       </Box>

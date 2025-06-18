@@ -210,33 +210,25 @@ export default function FailedPlanResult({ planId }) {
           transition={{ delay: 0.8 }}
           className="flex flex-wrap justify-center gap-6"
         >
-          <Link to="/member/dashboard">
+          <Link to="/coachPlan">
             <Button
               variant="outlined"
               size="large"
               className="bg-white/80 backdrop-blur-sm hover:bg-white border-2 shadow-lg text-lg px-8 py-4"
             >
               <ArrowBack className="h-5 w-5 mr-2" />
-              Về Dashboard
+              Tìm lộ trình phù hợp hơn
             </Button>
           </Link>
-          <Link to="/member/plan-customization">
-            <Button
-              size="large"
-              className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 shadow-lg text-lg px-8 py-4"
-            >
-              <Refresh className="h-5 w-5 mr-2" />
-              Thử lại ngay
-            </Button>
-          </Link>
-          <Link to="/member/coaches">
+        
+          <Link to="/historyPlan">
             <Button
               variant="outlined"
               size="large"
               className="bg-orange-50 hover:bg-orange-100 border-orange-300 text-orange-800 shadow-lg text-lg px-8 py-4"
             >
               <People className="h-5 w-5 mr-2" />
-              Tìm coach hỗ trợ
+              Xem thành tựu
             </Button>
           </Link>
         </motion.div>

@@ -18,7 +18,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import EditIcon from "@mui/icons-material/Edit";
+
 import "./CoachPlaneDetail.css";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import StairsIcon from "@mui/icons-material/Stairs";
@@ -52,21 +52,22 @@ export default function CoachPlaneDetail() {
   const [stageToEdit, setStageToEdit] = useState(null);
   const [openErrorModal, setOpenErrorModal] = useState(false);
   const [errorMessageModal, setErrorMessageModal] = useState("");
-  const [isRegistering, setIsRegistering] = useState(false); // Thêm trạng thái đăng ký
+  const [isRegistering, setIsRegistering] = useState(false); 
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchPlanById({ id }));
-      dispatch(getStageById({ id, page: 1, limit: 100 }));
+      const fetchData = async () => {
+        try {
+          await dispatch(fetchPlanById({ id })).unwrap();
+          await dispatch(getStageById({ id, page: 1, limit: 100 })).unwrap();
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          // Xử lý lỗi ở đây
+        }
+      };
+      fetchData();
     }
   }, [dispatch, id]);
-
-
-  const handleStageUpdated = () => {
-    if (id) {
-      dispatch(getStageById({ id, page: 1, limit: 100 }));
-    }
-  };
 
   const calculateDuration = () => {
     if (!plan?.quitPlan?.startDate || !plan?.quitPlan?.endDate) {
@@ -132,7 +133,7 @@ export default function CoachPlaneDetail() {
   }
 
   // Xử lý trạng thái đang tải
-  if (isLoading || isStageLoading) {
+  if (isLoading ) {
     return (
       <Box className="homePage">
         <Typography><Loading /></Typography>
@@ -415,7 +416,6 @@ export default function CoachPlaneDetail() {
         plans={{ data: [plan.quitPlan] }}
         isLoading={isLoading}
         stageToEdit={stageToEdit}
-        onStageUpdated={handleStageUpdated}
       />
     </Box>
   );

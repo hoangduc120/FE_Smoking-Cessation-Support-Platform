@@ -46,7 +46,7 @@ const CoachPlane = () => {
   const filteredPlans = (plans?.data || []).filter(
     (plan) =>
       plan.title?.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterStatus === "all" || plan.status === filterStatus)
+      plan.status === "template"
   );
 
   const totalPlans = filteredPlans.length;
@@ -131,7 +131,7 @@ const CoachPlane = () => {
         >
           Đang hoạt động
         </Button>
-        <Button
+        {/* <Button
           variant={filterStatus === "template" ? "contained" : "outlined"}
           onClick={() => setFilterStatus("template")}
           startIcon={<FilterListIcon />}
@@ -146,8 +146,8 @@ const CoachPlane = () => {
             },
           }}
         >
-          Bản nháp
-        </Button>
+         Kế hoạch theo yêu cầu
+        </Button> */}
       </Box>
       <Box className="planeCoach-container">
         {currentPlans.map((plan) => (
@@ -173,7 +173,7 @@ const CoachPlane = () => {
               </Typography>
              <Typography variant="body2" color="text.secondary">
                 Trạng thái:{" "}
-                {plan.status === "ongoing" ? "Đang hoạt động" : "Bản nháp"}
+                {plan.status === "template" ? "Đang hoạt động" : "Bản nháp"}
               </Typography>
               <Button
                 variant="contained"

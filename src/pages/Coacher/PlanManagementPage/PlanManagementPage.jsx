@@ -306,11 +306,9 @@ export default function PlanManagementPage() {
                     <TableCell sx={{ fontWeight: "bold", color: "#333" }}>
                       Tên kế hoạch
                     </TableCell>
+               
                     <TableCell sx={{ fontWeight: "bold", color: "#333" }}>
-                      Ngày bắt đầu
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#333" }}>
-                      Ngày kết thúc
+                    Thời gian 
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold", color: "#333" }}>
                       Lý do cai thuốc
@@ -358,17 +356,14 @@ export default function PlanManagementPage() {
                           </Box>
                         </TableCell>
                         <TableCell>
-                          {planItem.startDate &&
-                          !isNaN(new Date(planItem.startDate).getTime())
-                            ? format(new Date(planItem.startDate), "dd/MM/yyyy")
-                            : "N/A"}
+                          <Box>
+                            {planItem.duration
+                              ? `${planItem.duration} ngày`
+                              : "Chưa xác định"}
+                          </Box>
                         </TableCell>
-                        <TableCell>
-                          {planItem.endDate &&
-                          !isNaN(new Date(planItem.endDate).getTime())
-                            ? format(new Date(planItem.endDate), "dd/MM/yyyy")
-                            : "N/A"}
-                        </TableCell>
+                       
+                       
                         <TableCell>{planItem.reason || "N/A"}</TableCell>
                         <TableCell>
                           <Chip
@@ -381,7 +376,7 @@ export default function PlanManagementPage() {
                               backgroundColor:
                                 planItem.status === "template"
                                   ? "#39ad32"
-                                  : "#f0f0f0",
+                                  : "#737577",
                               color: "white",
                               fontSize: "12px",
                             }}
