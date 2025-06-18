@@ -102,7 +102,6 @@ export default function AuthorProfile() {
 
   useEffect(() => {
     if (user?._id && !hasFetchedFollowing.current) {
-      console.log("Fetching following for user:", user._id);
       dispatch(fetchFollowing(user._id))
         .unwrap()
         .then(() => {
@@ -175,7 +174,7 @@ export default function AuthorProfile() {
   );
 
   const handleMessage = () => {
-    toast.info("Chức năng nhắn tin đang được phát triển!");
+    navigate(`/chat`);
   };
 
   const handleToggleLike = (blogId) => {
@@ -485,7 +484,7 @@ export default function AuthorProfile() {
                 const mergedComments = [
                   ...(post.comments || []),
                   ...(localComments[post.id] || []),
-                ];
+                ].reverse();
                 const visibleComments = showAllComments[post.id]
                   ? mergedComments
                   : mergedComments.slice(0, 2);

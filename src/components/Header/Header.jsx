@@ -10,7 +10,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import ChatIcon from "@mui/icons-material/Chat";
+import { FaFacebookMessenger } from "react-icons/fa";
 import "./Header.css";
 import { PATH } from "../../routes/path";
 import { logoutApi } from "../../store/slices/authSlice";
@@ -122,7 +122,7 @@ const Header = () => {
           sx={{ color: "#2e7d32", mr: 1 }}
           aria-label="messenger"
         >
-          <ChatIcon />
+          <FaFacebookMessenger />
         </IconButton>
         <Avatar
           src={user?.profilePicture || ""}
