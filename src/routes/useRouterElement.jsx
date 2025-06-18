@@ -38,6 +38,7 @@ import Account from "../pages/Admin/Account/Account";
 import SuccessPlanResult from "../components/SuccessPlanResult/SuccessPlanResult";
 import FailedPlanResult from "../components/FailedPlanResult/FailedPlanResult";
 import FollowPage from "../pages/Home/FollowPage/FollowPage";
+import HistoryPlan from "../pages/Home/HistoryPlan/HistoryPlan";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -180,6 +181,11 @@ export default function useRouterElement() {
         {
           path: PATH.FAILEDPLANRESULT,
           element: <FailedPlanResult />,
+        },
+
+        {
+          path: PATH.HISTORYPLAN,
+          element: <HistoryPlan />,
         },
 
         { path: PATH.ABOUTUS, element: <AboutUs /> },

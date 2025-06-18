@@ -36,6 +36,7 @@ import { fetchPlanCurrent, completeQuitPlan, failQuitPlan } from "../../../store
 import { createQuitProgree } from "../../../store/slices/progressSlice";
 import { completeStageApi } from "../../../store/slices/stagesSlice";
 import Loading from "../../../components/Loading/Loading";
+import { infoCompleteQuitPlan } from "../../../store/slices/planeSlice";
 
 // Hardcode data for sections not provided by API
 const hardcodedData = {
@@ -73,7 +74,7 @@ const Roadmap = () => {
   const { plan, stages, progress, isLoading, isError, errorMessage } =
     useSelector((state) => state.plan);
 
-    console.log("plan", plan)
+
 
   const {
     control,
@@ -133,15 +134,13 @@ const Roadmap = () => {
   useEffect(() => {
     const checkAndUpdateStages = async () => {
       if (plan && stages && stages.length > 0) {
-        console.log("Kiểm tra và cập nhật các giai đoạn:", stages);
-        
         try {
           let hasUpdates = false;
           // Kiểm tra từng stage
           for (const stage of stages) {
             // Nếu stage chưa hoàn thành và có đủ điều kiện hoàn thành
             if (!stage.completed && stage.progress >= 100) {
-              console.log(`Đang hoàn thành giai đoạn ${stage.stage_name}...`);
+          
               await dispatch(completeStageApi({ id: stage._id })).unwrap();
               hasUpdates = true;
             }
@@ -153,17 +152,19 @@ const Roadmap = () => {
             const hasFailedStages = stages.some((stage) => stage.status === "failed");
 
             if (allStagesCompleted && plan.status === "ongoing") {
-              console.log("Tất cả giai đoạn đã hoàn thành, đang hoàn thành kế hoạch...");
+           
               const result = await dispatch(completeQuitPlan({ planId: plan._id })).unwrap();
               if (result?.status === 200) {
-                navigate(`/successPlanResult?status=success&planId=${plan._id}`);
+                // Sau khi hoàn thành kế hoạch, kiểm tra trạng thái
+                await checkPlanStatus();
                 return;
               }
             } else if (hasFailedStages && plan.status === "ongoing") {
-              console.log("Có giai đoạn thất bại, đang đánh dấu kế hoạch thất bại...");
+          
               const result = await dispatch(failQuitPlan({ planId: plan._id })).unwrap();
               if (result?.status === 200) {
-                navigate(`/failedPlanResult?status=failed&planId=${plan._id}`);
+                // Sau khi đánh dấu thất bại, kiểm tra trạng thái
+                await checkPlanStatus();
                 return;
               }
             }
@@ -177,24 +178,103 @@ const Roadmap = () => {
     checkAndUpdateStages();
   }, [plan, stages, dispatch, navigate]);
 
-  // Tách riêng useEffect để fetch dữ liệu ban đầu
+  const checkPlanStatus = async () => {
+    try {
+      if (!plan?._id) return;
+
+      const completionInfo = await dispatch(infoCompleteQuitPlan({ planId: plan._id })).unwrap();
+
+      
+      if (completionInfo?.data?.plan?.status === "completed") {
+        navigate(`/successPlanResult?status=success&planId=${plan._id}`);
+        return;
+      } else if (completionInfo?.data?.plan?.status === "failed") {
+        navigate(`/failedPlanResult?status=failed&planId=${plan._id}`);
+        return;
+      }
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra trạng thái kế hoạch:", error);
+    }
+  };
+
+  // Thêm useEffect để tự động kiểm tra trạng thái kế hoạch định kỳ
+  useEffect(() => {
+    let isMounted = true;
+    let checkInterval;
+
+    const startChecking = async () => {
+      if (plan?._id) {
+        // Kiểm tra ngay lập tức
+        await checkPlanStatus();
+
+        // Thiết lập interval kiểm tra mỗi 3 giây
+        checkInterval = setInterval(async () => {
+          if (isMounted) {
+            await checkPlanStatus();
+          }
+        }, 3000); 
+      }
+    };
+
+    startChecking();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      if (checkInterval) {
+        clearInterval(checkInterval);
+      }
+    };
+  }, [plan?._id]); 
+
+  // Giữ lại useEffect để fetch dữ liệu ban đầu
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
       try {
-        console.log("Đang fetch dữ liệu kế hoạch...");
+        // Lấy kế hoạch hiện tại
         const result = await dispatch(fetchPlanCurrent()).unwrap();
-        console.log("Kết quả fetch:", result);
+   
         
         if (!isMounted) return;
 
-        if (result?.plan?.status === "completed") {
-          console.log("Phát hiện kế hoạch đã hoàn thành, đang chuyển hướng...");
-          navigate(`/successPlanResult?status=success&planId=${result.plan._id}`);
-        } else if (result?.plan?.status === "failed") {
-          console.log("Phát hiện kế hoạch đã thất bại, đang chuyển hướng...");
-          navigate(`/failedPlanResult?status=failed&planId=${result.plan._id}`);
+        // Nếu có kế hoạch đang diễn ra
+        if (result?.data?.plan) {
+          if (result.data.plan.status === "completed") {
+            navigate(`/successPlanResult?status=success&planId=${result.data.plan._id}`);
+            return;
+          } else if (result.data.plan.status === "failed") {
+            navigate(`/failedPlanResult?status=failed&planId=${result.data.plan._id}`);
+            return;
+          }
+        } 
+        // Nếu có kế hoạch từ selectPlan
+        else if (result?.data?.quitPlan) {
+          if (result.data.quitPlan.status === "completed") {
+            navigate(`/successPlanResult?status=success&planId=${result.data.quitPlan._id}`);
+            return;
+          } else if (result.data.quitPlan.status === "failed") {
+            navigate(`/failedPlanResult?status=failed&planId=${result.data.quitPlan._id}`);
+            return;
+          }
+        }
+        // Nếu không có kế hoạch đang diễn ra, kiểm tra thông tin hoàn thành
+        else {
+          // Lấy planId từ localStorage hoặc state
+          const lastPlanId = localStorage.getItem('lastPlanId');
+          if (lastPlanId) {
+            const completionInfo = await dispatch(infoCompleteQuitPlan({ planId: lastPlanId })).unwrap();
+      
+            
+            if (completionInfo?.data?.plan?.status === "completed") {
+              navigate(`/successPlanResult?status=success&planId=${lastPlanId}`);
+              return;
+            } else if (completionInfo?.data?.plan?.status === "failed") {
+              navigate(`/failedPlanResult?status=failed&planId=${lastPlanId}`);
+              return;
+            }
+          }
         }
       } catch (error) {
         console.error("Lỗi khi fetch dữ liệu:", error);
@@ -203,10 +283,17 @@ const Roadmap = () => {
 
     fetchData();
 
-    return () => {  
+    return () => {
       isMounted = false;
     };
   }, [dispatch, navigate]);
+
+  // Thêm useEffect để lưu planId vào localStorage khi có thay đổi
+  useEffect(() => {
+    if (plan?._id) {
+      localStorage.setItem('lastPlanId', plan._id);
+    }
+  }, [plan?._id]);
 
   if (isLoading) {
     return <Typography><Loading/></Typography>;
@@ -216,7 +303,8 @@ const Roadmap = () => {
     return <Typography color="error">Lỗi: {errorMessage}</Typography>;
   }
 
-  if (!plan) {
+  // Kiểm tra cả plan và plan.quitPlan
+  if (!plan && !plan?.quitPlan) {
     return (
       <Typography>
         Bạn chưa có kế hoạch nào. Hãy bắt đầu hành trình cai thuốc lá!
@@ -231,8 +319,6 @@ const Roadmap = () => {
       </Typography>
     );
   }
-
-
 
   // Calculate progress based on completed stages
 const totalStages = Array.isArray(stages) ? stages.length : 0;

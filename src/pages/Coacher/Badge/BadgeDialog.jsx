@@ -34,6 +34,7 @@ const schema = yup.object().shape({
     .string()
     .required("Kế hoạch là bắt buộc")
     .matches(/^[0-9a-fA-F]{24}$/, "Kế hoạch không hợp lệ"),
+    icon_url:yup.string().required("Hình ảnh là bắt buộc")
 });
 
 export default function BadgeDialog({ open, setOpen, plans = [] }) {
@@ -54,6 +55,7 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
       name: "",
       description: "",
       quitPlanId: "",
+      icon_url:""
     },
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -65,6 +67,7 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
       name: "",
       description: "",
       quitPlanId: "",
+      icon_url:"",
     });
   };
 
@@ -88,6 +91,7 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
       const payload = {
         name: data.name,
         description: data.description,
+        icon_url:data.icon_url,
         userId,
       };
       await dispatch(
@@ -155,6 +159,23 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
                 fullWidth
                 error={!!errors.name}
                 helperText={errors.name?.message}
+                sx={{ mb: 2 }}
+              />
+            )}
+          />
+           <Controller
+            name="icon_url"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                autoFocus
+                margin="dense"
+                label="hình ảnh"
+                type="text"
+                fullWidth
+                error={!!errors.icon_url}
+                helperText={errors.icon_url?.message}
                 sx={{ mb: 2 }}
               />
             )}

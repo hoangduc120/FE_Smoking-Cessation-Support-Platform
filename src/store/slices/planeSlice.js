@@ -147,6 +147,20 @@ export const failQuitPlan = createAsyncThunk(
   }
 )
 
+export const infoCompleteQuitPlan = createAsyncThunk(
+  "plan/infoCompleteQuitPlan",
+  async({planId}, {rejectWithValue}) => {
+    try {
+      const response = await fetcher.get(`/plans/quitplans/${planId}/completion`)
+      return response.data
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+)
+
 export const planSlice = createSlice({
   name: "plan",
   initialState: {
@@ -299,6 +313,19 @@ export const planSlice = createSlice({
         state.plan = payload;
       })
       .addCase(failQuitPlan.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = payload?.message || "Failed to fail quit plan";
+      })
+      .addCase(infoCompleteQuitPlan.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(infoCompleteQuitPlan.fulfilled, (state, {payload}) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.plan = payload.data
+      })
+      .addCase(infoCompleteQuitPlan.rejected, (state, { payload }) => {
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = payload?.message || "Failed to fail quit plan";

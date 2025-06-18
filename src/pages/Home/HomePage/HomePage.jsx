@@ -43,7 +43,6 @@ export default function HomePage() {
   const { plans } = useSelector((state) => state.plan);
 
   const plan = plans?.data;
-  console.log("plan", plan);
 
   const [currentUser, setCurrentUser] = useState(
     JSON.parse(localStorage.getItem("currentUser"))

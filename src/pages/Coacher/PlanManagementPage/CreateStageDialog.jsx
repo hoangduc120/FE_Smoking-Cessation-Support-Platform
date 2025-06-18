@@ -1,4 +1,3 @@
-
 import {
   Box,
   Button,
@@ -19,9 +18,9 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { createStageApi, updateStageApi } from "../../../store/slices/stagesSlice";
+import { createStageApi, updateStageApi, getStageById } from "../../../store/slices/stagesSlice";
 import { useEffect, useState } from "react";
 
 // Yup validation schema for stages
@@ -36,20 +35,12 @@ const stageSchema = Yup.object().shape({
   order_index: Yup.number()
     .required("Vui lòng nhập thứ tự")
     .min(1, "Thứ tự phải lớn hơn 0"),
-  start_date: Yup.string().required("Vui lòng chọn ngày bắt đầu"),
-  end_date: Yup.string()
-    .required("Vui lòng chọn ngày kết thúc")
-    .test(
-      "is-after-start",
-      "Ngày kết thúc phải sau ngày bắt đầu",
-      function (value) {
-        const { start_date } = this.parent;
-        return !start_date || !value || new Date(value) >= new Date(start_date);
-      }
-    ),
+  duration: Yup.number()
+    .required("Vui lòng nhập thời gian (ngày)")
+    .min(1, "Thời gian phải lớn hơn 0"),
   status: Yup.string()
     .required("Vui lòng chọn trạng thái")
-    .oneOf(["draft", "active", "completed"]),
+    .oneOf(["template", "ongoing", ]) ,
 });
 
 export default function CreateStageDialog({
@@ -62,20 +53,15 @@ export default function CreateStageDialog({
 }) {
   const dispatch = useDispatch();
   const [isStageLoading, setIsStageLoading] = useState(false);
-
-  // Format date to YYYY-MM-DD
-  const formatDate = (date) => {
-    if (!date) return "";
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return "";
-    return d.toISOString().split("T")[0];
-  };
+  const { stages } = useSelector((state) => state.stages);
 
   // React Hook Form setup
   const {
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(stageSchema),
@@ -84,11 +70,12 @@ export default function CreateStageDialog({
       stage_name: stageToEdit?.stage_name || "",
       description: stageToEdit?.description || "",
       order_index: stageToEdit?.order_index || 1,
-      start_date: stageToEdit ? formatDate(stageToEdit.start_date) : "",
-      end_date: stageToEdit ? formatDate(stageToEdit.end_date) : "",
-      status: stageToEdit?.status || "draft",
+      duration: stageToEdit?.duration || 1,
+      status: stageToEdit?.status || "template",
     },
   });
+
+  const watchQuitPlanId = watch("quitPlanId");
 
   // Reset form when stageToEdit or plans change
   useEffect(() => {
@@ -97,20 +84,68 @@ export default function CreateStageDialog({
       stage_name: stageToEdit?.stage_name || "",
       description: stageToEdit?.description || "",
       order_index: stageToEdit?.order_index || 1,
-      start_date: stageToEdit ? formatDate(stageToEdit.start_date) : "",
-      end_date: stageToEdit ? formatDate(stageToEdit.end_date) : "",
-      status: stageToEdit?.status || "draft",
+      duration: stageToEdit?.duration || 1,
+      status: stageToEdit?.status || "template",
     });
   }, [stageToEdit, plans, reset]);
 
+  // Fetch stages when quitPlanId changes
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchStages = async () => {
+      if (watchQuitPlanId && !stageToEdit) {
+        try {
+          await dispatch(getStageById({ id: watchQuitPlanId, page: 1, limit: 100 })).unwrap();
+          if (isMounted) {
+            // Tìm order_index lớn nhất và tăng lên 1
+            const maxOrderIndex = stages?.reduce((max, stage) => 
+              Math.max(max, stage.order_index || 0), 0);
+            setValue("order_index", maxOrderIndex + 1);
+          }
+        } catch (error) {
+          console.error("Error fetching stages:", error);
+        }
+      }
+    };
+
+    fetchStages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [watchQuitPlanId, stageToEdit]);
+
+  // Reset form when dialog is closed
+  const handleClose = () => {
+    reset({
+      quitPlanId: plans?.data?.[0]?._id || "",
+      stage_name: "",
+      description: "",
+      order_index: 1,
+      duration: 1,
+      status: "template",
+    });
+    setOpen(false);
+  };
+
   const handleCreateStage = async (data) => {
+    // Kiểm tra order_index trùng lặp
+    const isDuplicate = stages?.some(
+      stage => stage.order_index === data.order_index && stage.quitPlanId === data.quitPlanId
+    );
+
+    if (isDuplicate) {
+      toast.error("Thứ tự này đã tồn tại trong kế hoạch. Vui lòng chọn thứ tự khác.");
+      return;
+    }
+
     setIsStageLoading(true);
     try {
       const response = await dispatch(
         createStageApi({ data, id: data.quitPlanId })
       ).unwrap();
-      setOpen(false);
-      reset();
+      handleClose();
       toast.success("Tạo giai đoạn thành công");
       onStageUpdated();
     } catch (error) {
@@ -125,13 +160,26 @@ export default function CreateStageDialog({
 
   const handleEditStage = async (data) => {
     if (!stageToEdit) return;
+
+    // Kiểm tra order_index trùng lặp (bỏ qua giai đoạn đang edit)
+    const isDuplicate = stages?.some(
+      stage => 
+        stage.order_index === data.order_index && 
+        stage.quitPlanId === data.quitPlanId &&
+        stage._id !== stageToEdit._id
+    );
+
+    if (isDuplicate) {
+      toast.error("Thứ tự này đã tồn tại trong kế hoạch. Vui lòng chọn thứ tự khác.");
+      return;
+    }
+
     setIsStageLoading(true);
     try {
       const response = await dispatch(
         updateStageApi({ data, id: stageToEdit._id })
       ).unwrap();
-      setOpen(false);
-      reset();
+      handleClose();
       toast.success("Cập nhật giai đoạn thành công");
       onStageUpdated();
     } catch (error) {
@@ -146,7 +194,7 @@ export default function CreateStageDialog({
   };
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)}>
+    <Dialog open={open} onClose={handleClose}>
       <DialogTitle>
         {stageToEdit ? "Chỉnh sửa giai đoạn" : "Tạo giai đoạn mới"}
       </DialogTitle>
@@ -218,7 +266,7 @@ export default function CreateStageDialog({
             )}
           />
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid item size={4}>
               <Controller
                 name="order_index"
                 control={control}
@@ -236,7 +284,25 @@ export default function CreateStageDialog({
                 )}
               />
             </Grid>
-            <Grid item xs={6}>
+             <Grid item size={4}>
+              <Controller
+                name="duration"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type="number"
+                    label="Thời gian (ngày)"
+                    fullWidth
+                    margin="normal"
+                    inputProps={{ min: 1 }}
+                    error={!!errors.duration}
+                    helperText={errors.duration?.message}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item size={4}>
               <FormControl fullWidth margin="normal" error={!!errors.status}>
                 <InputLabel>Trạng thái</InputLabel>
                 <Controller
@@ -244,9 +310,8 @@ export default function CreateStageDialog({
                   control={control}
                   render={({ field }) => (
                     <Select {...field} label="Trạng thái">
-                      <MenuItem value="draft">Nháp</MenuItem>
-                      <MenuItem value="active">Đang hoạt động</MenuItem>
-                      <MenuItem value="completed">Hoàn thành</MenuItem>
+                      <MenuItem value="template"> Bản nháp</MenuItem>
+                      <MenuItem value="ongoing">Đang hoạt động</MenuItem>
                     </Select>
                   )}
                 />
@@ -256,48 +321,10 @@ export default function CreateStageDialog({
               </FormControl>
             </Grid>
           </Grid>
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <Controller
-                name="start_date"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="date"
-                    label="Ngày bắt đầu"
-                    fullWidth
-                    margin="normal"
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.start_date}
-                    helperText={errors.start_date?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="end_date"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="date"
-                    label="Ngày kết thúc"
-                    fullWidth
-                    margin="normal"
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.end_date}
-                    helperText={errors.end_date?.message}
-                  />
-                )}
-              />
-            </Grid>
-          </Grid>
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setOpen(false)} variant="outlined">
+        <Button onClick={handleClose} variant="outlined">
           Hủy
         </Button>
         <Button

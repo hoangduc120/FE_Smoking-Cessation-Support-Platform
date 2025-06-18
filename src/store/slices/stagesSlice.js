@@ -53,7 +53,7 @@ export const getStageById = createAsyncThunk(
   async ({ id, page, limit }, { rejectWithValue }) => {
     try {
       const response = await fetcher.get(
-        `/plans/quitplans/${id}/stages?page=${page}&limit=${limit}`
+        `/plans/quitplans/${id}/stages?page=${page}}&limit=${limit}`
       );
       return response.data;
     } catch (error) {

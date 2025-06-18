@@ -1,3 +1,5 @@
+
+
 export const PATH = {
   // AUTH
   AUTH: "/auth",
@@ -26,6 +28,7 @@ export const PATH = {
   ROADMAP: "/roadmap",
   SUCCESSPLANRESULT: "/successPlanResult",
   FAILEDPLANRESULT: "/failedPlanResult",
+  HISTORYPLAN:"/historyPlan",
 
   FOLLOWPAGE: "/follow/:userId",
   // COACH
