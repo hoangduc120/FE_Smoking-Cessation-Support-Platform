@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -26,246 +26,18 @@ import {
   Search,
   Star,
 } from '@mui/icons-material';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import { useDispatch, useSelector } from 'react-redux';
+import { histotyPlan } from '../../../store/slices/planeSlice';
 
-// Mock data remains unchanged
-const mockData = {
-  message: "User plan history fetched successfully",
-  status: 200,
-  data: {
-    planHistory: [
-      {
-        plan: {
-          _id: "68526da4b5208dcd4fe370da",
-          coachId: {
-            _id: "68356f22b0ed1351aecd262f",
-            userName: "Nguyễn Văn Tèo",
-            email: "coach1@gmail.com",
-          },
-          userId: {
-            _id: "683d17108df3a6a75db5d20f",
-            userName: "Hồ Công Duy",
-            email: "user@gmail.com",
-          },
-          title: "Kế hoạch cai thuốc 30 ngày",
-          reason: "Cải thiện sức khỏe và tiết kiệm chi phí",
-          image: "https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=600&h=400&fit=crop",
-          startDate: "2024-12-01T07:41:24.365Z",
-          endDate: "2024-12-31T07:41:24.365Z",
-          duration: 30,
-          status: "completed",
-          createdAt: "2024-12-01T07:41:24.365Z",
-          updatedAt: "2024-12-31T07:41:47.637Z",
-        },
-        completedStages: 4,
-        totalStages: 4,
-        completionPercentage: 100,
-        badgeCount: 3,
-        badges: [
-          {
-            _id: "badge1",
-            name: "Người mới bắt đầu",
-            description: "Hoàn thành 7 ngày đầu tiên",
-            awardedAt: "2024-12-08T07:41:47.734Z",
-          },
-          {
-            _id: "badge2",
-            name: "Kiên trì",
-            description: "Hoàn thành 15 ngày liên tiếp",
-            awardedAt: "2024-12-16T07:41:47.734Z",
-          },
-          {
-            _id: "badge3",
-            name: "Chiến thắng",
-            description: "Hoàn thành toàn bộ kế hoạch 30 ngày",
-            awardedAt: "2024-12-31T07:41:47.734Z",
-          },
-        ],
-        duration: 30,
-      },
-      {
-        plan: {
-          _id: "68526da4b5208dcd4fe370db",
-          coachId: {
-            _id: "68356f22b0ed1351aecd262g",
-            userName: "Trần Thị Mai",
-            email: "coach2@gmail.com",
-          },
-          userId: {
-            _id: "683d17108df3a6a75db5d20f",
-            userName: "Hồ Công Duy",
-            email: "user@gmail.com",
-          },
-          title: "Kế hoạch cai thuốc nâng cao 60 ngày",
-          reason: "Cai thuốc hoàn toàn và xây dựng lối sống lành mạnh",
-          image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&h=400&fit=crop",
-          startDate: "2025-01-01T07:41:24.365Z",
-          endDate: "2025-03-02T07:41:24.365Z",
-          duration: 60,
-          status: "ongoing",
-          createdAt: "2025-01-01T07:41:24.365Z",
-          updatedAt: "2025-01-15T07:41:47.637Z",
-        },
-        completedStages: 2,
-        totalStages: 6,
-        completionPercentage: 33,
-        badgeCount: 1,
-        badges: [
-          {
-            _id: "badge4",
-            name: "Khởi đầu mới",
-            description: "Bắt đầu kế hoạch cai thuốc mới",
-            awardedAt: "2025-01-01T07:41:47.734Z",
-          },
-        ],
-        duration: 60,
-      },
-      {
-        plan: {
-          _id: "68526da4b5208dcd4fe370dc",
-          coachId: {
-            _id: "68356f22b0ed1351aecd262h",
-            userName: "Lê Văn Nam",
-            email: "coach3@gmail.com",
-          },
-          userId: {
-            _id: "683d17108df3a6a75db5d20f",
-            userName: "Hồ Công Duy",
-            email: "user@gmail.com",
-          },
-          title: "Kế hoạch cai thuốc cấp tốc 14 ngày",
-          reason: "Chuẩn bị cho kỳ thi quan trọng",
-          image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop",
-          startDate: "2024-10-01T07:41:24.365Z",
-          endDate: "2024-10-15T07:41:24.365Z",
-          duration: 14,
-          status: "failed",
-          createdAt: "2024-10-01T07:41:24.365Z",
-          updatedAt: "2024-10-08T07:41:47.637Z",
-        },
-        completedStages: 1,
-        totalStages: 3,
-        completionPercentage: 33,
-        badgeCount: 1,
-        badges: [
-          {
-            _id: "badge5",
-            name: "Nỗ lực",
-            description: "Hoàn thành giai đoạn đầu tiên",
-            awardedAt: "2024-10-04T07:41:47.734Z",
-          },
-        ],
-        duration: 14,
-      },
-      {
-        plan: {
-          _id: "68526da4b5208dcd4fe370dd",
-          coachId: {
-            _id: "68356f22b0ed1351aecd262i",
-            userName: "Phạm Thị Lan",
-            email: "coach4@gmail.com",
-          },
-          userId: {
-            _id: "683d17108df3a6a75db5d20f",
-            userName: "Hồ Công Duy",
-            email: "user@gmail.com",
-          },
-          title: "Kế hoạch cai thuốc dài hạn 90 ngày",
-          reason: "Thay đổi hoàn toàn lối sống và tư duy",
-          image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
-          startDate: "2024-07-01T07:41:24.365Z",
-          endDate: "2024-09-29T07:41:24.365Z",
-          duration: 90,
-          status: "completed",
-          createdAt: "2024-07-01T07:41:24.365Z",
-          updatedAt: "2024-09-29T07:41:47.637Z",
-        },
-        completedStages: 9,
-        totalStages: 9,
-        completionPercentage: 100,
-        badgeCount: 5,
-        badges: [
-          {
-            _id: "badge6",
-            name: "Bậc thầy",
-            description: "Hoàn thành kế hoạch 90 ngày",
-            awardedAt: "2024-09-29T07:41:47.734Z",
-          },
-          {
-            _id: "badge7",
-            name: "Kiên định",
-            description: "Không hút thuốc trong 30 ngày",
-            awardedAt: "2024-07-31T07:41:47.734Z",
-          },
-          {
-            _id: "badge8",
-            name: "Vượt khó",
-            description: "Vượt qua giai đoạn khó khăn nhất",
-            awardedAt: "2024-08-15T07:41:47.734Z",
-          },
-          {
-            _id: "badge9",
-            name: "Thành công",
-            description: "Hoàn thành 60 ngày liên tiếp",
-            awardedAt: "2024-08-30T07:41:47.734Z",
-          },
-          {
-            _id: "badge10",
-            name: "Huyền thoại",
-            description: "Cai thuốc thành công trong 90 ngày",
-            awardedAt: "2024-09-29T07:41:47.734Z",
-          },
-        ],
-        duration: 90,
-      },
-      {
-        plan: {
-          _id: "68526da4b5208dcd4fe370de",
-          coachId: {
-            _id: "68356f22b0ed1351aecd262j",
-            userName: "Hoàng Văn Đức",
-            email: "coach5@gmail.com",
-          },
-          userId: {
-            _id: "683d17108df3a6a75db5d20f",
-            userName: "Hồ Công Duy",
-            email: "user@gmail.com",
-          },
-          title: "Kế hoạch cai thuốc cho người mới",
-          reason: "Lần đầu tiên thử cai thuốc",
-          image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=600&h=400&fit=crop",
-          startDate: "2024-05-01T07:41:24.365Z",
-          endDate: "2024-05-08T07:41:24.365Z",
-          duration: 7,
-          status: "failed",
-          createdAt: "2024-05-01T07:41:24.365Z",
-          updatedAt: "2024-05-04T07:41:47.637Z",
-        },
-        completedStages: 0,
-        totalStages: 2,
-        completionPercentage: 0,
-        badgeCount: 0,
-        badges: [],
-        duration: 7,
-      },
-    ],
-    summary: {
-      totalPlans: 5,
-      completedPlans: 2,
-      ongoingPlans: 1,
-      failedPlans: 2,
-      templatePlans: 0,
-      totalBadges: 10,
-    },
-  },
-  options: {},
-};
+
 
 const getStatusIcon = (status) => {
   switch (status) {
     case 'completed':
       return <CheckCircle sx={{ fontSize: 20, color: 'white' }} />;
     case 'ongoing':
-      return <PlayCircle sx={{ fontSize: 20, color: 'white' }} />;
+      return <PlayCircleOutlineIcon sx={{ fontSize: 20, color: 'white' }} />;
     case 'failed':
       return <Cancel sx={{ fontSize: 20, color: 'white' }} />;
     default:
@@ -323,6 +95,8 @@ const getStatusText = (status) => {
   switch (status) {
     case 'completed':
       return 'Hoàn thành';
+      case 'ongoing':
+        return 'Đang diễn ra';
     case 'failed':
       return 'Thất bại';
     default:
@@ -331,11 +105,24 @@ const getStatusText = (status) => {
 };
 
 const QuitSmokingHistory = () => {
-  const { planHistory, summary } = mockData.data;
+
+  const dispatch = useDispatch()
+  const {plan, isLoading, isError} = useSelector((state) => state.plan)
+  console.log("plan histoty", plan)
+
+  const summaryHistory = plan?.summary
+
+const historyData = plan?.planHistory
+console.log("historyData",historyData)
+
+  useEffect(() => {
+    dispatch(histotyPlan())
+  }, [])
+
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredPlans = planHistory.filter((item) => {
+  const filteredPlans = historyData?.filter((item) => {
     const matchesFilter = filter === 'all' || item.plan.status === filter;
     const matchesSearch =
       item.plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -365,11 +152,12 @@ const QuitSmokingHistory = () => {
         {/* Summary Cards */}
         <Grid container spacing={2}>
           {[
-            { icon: <Star />, value: summary.totalPlans, label: 'Tổng kế hoạch', color: '#2f70f0' },
-            { icon: <CheckCircle />, value: summary.completedPlans, label: 'Hoàn thành', color: '#1f9d4b' },
-            { icon: <Cancel />, value: summary.failedPlans, label: 'Thất bại', color: '#ef4444' },
+            { icon: <Star />, value: summaryHistory?.totalPlans, label: 'Tổng kế hoạch', color: '#b98937' },
+            { icon: <CheckCircle />, value: summaryHistory?.completedPlans, label: 'Hoàn thành', color: '#1f9d4b' },
+            { icon: <PlayCircleOutlineIcon />, value: summaryHistory?.ongoingPlans, label: 'Đang diễn ra', color: '#3c67e5' },
+            { icon: <Cancel />, value: summaryHistory?.failedPlans, label: 'Thất bại', color: '#ef4444' },
           ].map((item, index) => (
-            <Grid item size={4} key={index}>
+            <Grid item size={3} key={index}>
               <Card
                 sx={{
                   textAlign: 'center',
@@ -402,6 +190,7 @@ const QuitSmokingHistory = () => {
               {[
                 { label: 'Tất cả', value: 'all', color: '#1f9d4b' },
                 { label: 'Hoàn thành', value: 'completed', color: '#1f9d4b' },
+                { label: 'Đang diễn ra', value: 'ongoing', color: '#3c67e5' },
                 { label: 'Thất bại', value: 'failed', color: '#ef4444' },
               ].map((btn) => (
                 <Button
@@ -441,12 +230,12 @@ const QuitSmokingHistory = () => {
 
         {/* Results count */}
         <Typography variant="body2" sx={{ color: '#4b5563' }}>
-          Hiển thị {filteredPlans.length} trong tổng số {planHistory.length} kế hoạch
+          Hiển thị {filteredPlans?.length} trong tổng số {historyData?.length} kế hoạch
         </Typography>
 
         {/* Plan History */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {filteredPlans.map((item) => (
+          {filteredPlans?.map((item) => (
             <Card
               key={item.plan._id}
               sx={{
@@ -645,7 +434,7 @@ const QuitSmokingHistory = () => {
               </CardContent>
             </Card>
           ))}
-          {filteredPlans.length === 0 && (
+          {filteredPlans?.length === 0 && (
             <Card sx={{ textAlign: 'center', padding: 6 }}>
               <Star sx={{ fontSize: 64, color: '#9ca3af', marginBottom: 2 }} />
               <Typography variant="h6" sx={{ fontWeight: 'medium', color: '#111827', marginBottom: 1 }}>

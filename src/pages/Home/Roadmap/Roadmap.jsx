@@ -637,6 +637,13 @@ const isStage1Completed = Array.isArray(stages) && stages.length > 0 && stages[0
                         )}
                         sx={{ mt: 2 }}
                       >
+                        <TextField
+                          label="Ngày cập nhật"
+                          value={currentDate}
+                          fullWidth
+                          disabled
+                          sx={{ mb: 2 }}
+                        />
                         <Controller
                           name="cigarettesSmoked"
                           control={control}

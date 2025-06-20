@@ -18,7 +18,7 @@ import * as yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { createBadge } from "../../../store/slices/badgeSlice";
+import { createBadgeForPlan } from "../../../store/slices/badgeSlice";
 
 // Yup schema cho xác thực huy hiệu
 const schema = yup.object().shape({
@@ -88,22 +88,24 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
         throw new Error("User not authenticated");
       }
 
-      const payload = {
+      const badgeData = {
         name: data.name,
         description: data.description,
-        icon_url:data.icon_url,
+        icon_url: data.icon_url,
         userId,
+        quitPlanId: data.quitPlanId,
       };
-      await dispatch(
-        createBadge({ payload, quitPlanId: data.quitPlanId })
-      ).unwrap();
+      await dispatch(createBadgeForPlan({ data: badgeData })).unwrap();
       toast.success("Tạo huy hiệu thành công!");
       setToastOpen(true);
       handleCloseDialog();
     } catch (error) {
-      console.error("Tạo huy hiệu lỗi:", error);
-      setErrorMessage(error.message || "Tạo huy hiệu thất bại!");
-      setErrorToastOpen(true);
+      if (error?.error?.includes("E11000")) {
+        setErrorMessage("Mỗi kế hoạch chỉ tạo được một huy hiệu.");
+      } else {
+        setErrorMessage(error.message || "Tạo huy hiệu thất bại!");
+      }
+      // setErrorToastOpen(true);
     }
   };
 
