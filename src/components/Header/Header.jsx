@@ -79,6 +79,11 @@ const Header = () => {
     navigate(PATH.ROADMAP);
   };
 
+  const handleHistoryPlan = () => {
+    handleClose();
+    navigate(PATH.HISTORYPLAN);
+  };
+
   return (
     <Box className="header">
       <Box className="header-logo">
@@ -100,18 +105,17 @@ const Header = () => {
         <Link to={PATH.BLOGPAGE} className="nav-link">
           Bài viết
         </Link>
-        <Link to={PATH.ABOUTUS} className="nav-link">
-          Về chúng tôi
+        <Link to={PATH.UPGRADEMEMBER} className="nav-link">
+          Gói Thành Viên
         </Link>
+   
         <Link to={PATH.BENEFIT} className="nav-link">
           Lợi ích cai thuốc
         </Link>
-        <Link to={PATH.RESOURCES} className="nav-link">
-          Tài nguyên
+        <Link to={PATH.ABOUTUS} className="nav-link">
+          Về chúng tôi
         </Link>
-        <Link to={PATH.CONTACT} className="nav-link">
-          Liên hệ
-        </Link>
+     
       </Box>
       <Box
         className="header-actions"
@@ -144,9 +148,10 @@ const Header = () => {
             horizontal: "right",
           }}
         >
-          <MenuItem onClick={handleProfile}>Hồ sơ</MenuItem>
-          <MenuItem onClick={handleBlog}>Bài viết của tôi</MenuItem>
+          <MenuItem onClick={handleProfile}> Hồ sơ</MenuItem>
           <MenuItem onClick={handleRoadmap}>Lộ trình</MenuItem>
+          <MenuItem onClick={handleBlog}>Bài viết của tôi</MenuItem>
+          <MenuItem onClick={handleHistoryPlan}>Lịch sử lộ trình</MenuItem>
           <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
         </Menu>
       </Box>

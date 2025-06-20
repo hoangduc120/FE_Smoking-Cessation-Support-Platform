@@ -15,6 +15,7 @@ export const createQuitProgree = createAsyncThunk(
   }
 );
 
+
 export const progressSlice = createSlice({
   name: "progress",
   initialState: {

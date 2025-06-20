@@ -1,6 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import fetcher from "../../apis/fetcher";
 
+
+
+
 export const createBadge = createAsyncThunk(
   "badge/createBadge",
   async ({ payload, quitPlanId }, { rejectWithValue }) => {
@@ -28,6 +31,23 @@ export const createBadge = createAsyncThunk(
   }
 );
 
+
+export const createBadgeForPlan = createAsyncThunk(
+  "badge/createBadgeForPlan",
+  async({data}, {rejectWithValue}) => {
+    try {
+      const response = await fetcher.post("/badges/create-for-plan", data)
+      return response.data
+    } catch (error) {
+       return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+)
+
+
+// fetch Plan ID
 export const fetchBadgesByPlan = createAsyncThunk(
   "badge/fetchBadgesByPlan",
   async ({ quitPlanId, page = 1, limit = 10 }, { rejectWithValue }) => {
@@ -37,13 +57,28 @@ export const fetchBadgesByPlan = createAsyncThunk(
       );
       return response.data.data || [];
     } catch (error) {
-      console.error("Fetch badges error:", error);
+      
       return rejectWithValue(
         error.response ? error.response.data : error.message
       );
     }
   }
 );
+
+
+export const getAllBadge = createAsyncThunk(
+  "badge/getAllBadge",
+  async(_, {rejectWithValue}) => {
+    try {
+      const response = await fetcher.get("/badges/all")
+      return response.data
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+)
 
 const badgeSlice = createSlice({
   name: "badge",
@@ -69,6 +104,20 @@ const badgeSlice = createSlice({
         state.isError = payload;
         state.badges = [];
       })
+      .addCase(createBadgeForPlan.pending, (state) => {
+        state.isLoading = true;
+        state.isError = null;
+      })
+      .addCase(createBadgeForPlan.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.badges = Array.isArray(payload) ? payload : [payload];
+      })
+      .addCase(createBadgeForPlan.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = payload;
+        state.badges = [];
+      })
       .addCase(fetchBadgesByPlan.pending, (state) => {
         state.isLoading = true;
         state.isError = null;
@@ -82,7 +131,20 @@ const badgeSlice = createSlice({
         state.isLoading = false;
         state.isError = payload;
         state.badges = [];
-      });
+      })
+      .addCase(getAllBadge.pending,(state) => {
+        state.isLoading = true
+      })
+      .addCase(getAllBadge.fulfilled, (state, {payload}) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.badges = payload
+      })
+      .addCase(getAllBadge.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isError = payload;
+        state.badges = [];
+      })
   },
 });
 
