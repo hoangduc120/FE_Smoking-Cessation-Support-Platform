@@ -78,7 +78,7 @@ export default function HomePage() {
     }
 
     const hasSurvey = assessmentData?.data?.length > 0;
-    navigate(hasSurvey ? "/coachPlan" : PATH.COASHPLANE);
+    navigate(hasSurvey ? "/coachPlan" : PATH.ASSESSMENTPAGE);
   };
 
   const features = [
