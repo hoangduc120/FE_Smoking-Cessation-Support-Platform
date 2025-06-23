@@ -56,7 +56,7 @@ export default function BadgeTable() {
 
   const handleViewBadges = (planId) => {
     setSelectedPlanId(planId);
-    dispatch(fetchBadgesByPlan({ quitPlanId: planId, page: 1, limit: 10 }));
+    dispatch(fetchBadgesByPlan({ quitPlanId: planId }));
     setOpenModal(true);
   };
 
@@ -80,6 +80,7 @@ export default function BadgeTable() {
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
+
 
   if (!auth?.currentUser) {
     return null;

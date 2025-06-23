@@ -31,6 +31,9 @@ export const PATH = {
   HISTORYPLAN:"/historyPlan",
 
   FOLLOWPAGE: "/follow/:userId",
+  PAYMENTSUCCESS: "/payment-success",
+  PAYMENTFAILED: "/payment-failed",
+
   // COACH
   COACH: "/coach",
   PLANMANAGEMEMTPAGE: "/coach/plan-management",
