@@ -50,12 +50,13 @@ export const createBadgeForPlan = createAsyncThunk(
 // fetch Plan ID
 export const fetchBadgesByPlan = createAsyncThunk(
   "badge/fetchBadgesByPlan",
-  async ({ quitPlanId, page = 1, limit = 10 }, { rejectWithValue }) => {
+  async ({ quitPlanId}, { rejectWithValue }) => {
     try {
       const response = await fetcher.get(
-        `/plans/quitplans/${quitPlanId}/badges?page=${page}&limit=${limit}`
+        `/plans/quitplans/${quitPlanId}/badge`
       );
-      return response.data.data || [];
+      console.log(response.data)
+      return response.data.data;
     } catch (error) {
       
       return rejectWithValue(
@@ -125,7 +126,7 @@ const badgeSlice = createSlice({
       .addCase(fetchBadgesByPlan.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.isError = null;
-        state.badges = Array.isArray(payload) ? payload : [];
+        state.badges = Array.isArray(payload) ? payload : payload ? [payload] : [];
       })
       .addCase(fetchBadgesByPlan.rejected, (state, { payload }) => {
         state.isLoading = false;

@@ -39,6 +39,8 @@ import SuccessPlanResult from "../components/SuccessPlanResult/SuccessPlanResult
 import FailedPlanResult from "../components/FailedPlanResult/FailedPlanResult";
 import FollowPage from "../pages/Home/FollowPage/FollowPage";
 import HistoryPlan from "../pages/Home/HistoryPlan/HistoryPlan";
+import PaymentSuccessPage from "../pages/Home/Checkout/PaymentSuccessPage";
+import PaymentFailedPage from "../pages/Home/Checkout/PaymentFailedPage";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -199,6 +201,14 @@ export default function useRouterElement() {
               <FollowPage />
             </ProtectedRoute>
           ),
+        },
+        {
+          path: PATH.PAYMENTSUCCESS,
+          element: <PaymentSuccessPage />,
+        },
+        {
+          path: PATH.PAYMENTFAILED,
+          element: <PaymentFailedPage />,
         },
       ],
     },
