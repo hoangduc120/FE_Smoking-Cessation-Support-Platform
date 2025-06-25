@@ -23,12 +23,11 @@ const SIDEBAR_ITEMS = [
     color: "#EC4899",
     href: "/admin/account",
   },
-
   {
     name: "Settings",
     icon: Settings,
     color: "#6EE7B7",
-    href: "/admin",
+    href: "/admin/settings",
   },
 ];
 
