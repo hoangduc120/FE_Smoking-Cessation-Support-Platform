@@ -297,9 +297,9 @@ console.log("historyData",historyData)
                           <Typography variant="caption" sx={{ color: '#4b5563' }}>
                             {item.plan.coachId.userName}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                          {/* <Typography variant="caption" sx={{ color: '#6b7280' }}>
                             {item.plan.coachId.email}
-                          </Typography>
+                          </Typography> */}
                         </Box>
                       </Box>
                     </Box>
@@ -415,7 +415,7 @@ console.log("historyData",historyData)
                                     {badge.description}
                                   </Typography>
                                   <Typography variant="caption" sx={{ color: '#a16207' }}>
-                                    Đạt được: {formatDate(badge.awardedAt)}
+                                    Đạt được: {formatDate(badge.updatedAt)}
                                   </Typography>
                                 </Box>
                               </Box>
