@@ -74,8 +74,6 @@ const Roadmap = () => {
   const { plan, stages, progress, isLoading, isError, errorMessage } =
     useSelector((state) => state.plan);
 
-
-
   const {
     control,
     handleSubmit,
@@ -102,7 +100,7 @@ const Roadmap = () => {
     reset(); // Reset form khi mở/đóng
   };
 
-  const onSubmit = (data, stageId) => {
+  const onSubmit = async (data, stageId) => {
     const payload = {
       stageId,
       date: new Date().toISOString(),
@@ -110,11 +108,45 @@ const Roadmap = () => {
       healthStatus: data.healthStatus,
       notes: data.notes || "",
     };
-    dispatch(createQuitProgree(payload)).then(() => {
-      dispatch(fetchPlanCurrent());
+
+    try {
+
+      // Gửi cập nhật tiến trình
+      await dispatch(createQuitProgree(payload)).unwrap();
+     
+
+      // Tải lại kế hoạch hiện tại
+      const result = await dispatch(fetchPlanCurrent()).unwrap();
+    
+
+      // Kiểm tra nếu stage vừa cập nhật là stage cuối
+      const lastStage = stages[stages.length - 1];
+      if (stageId === lastStage?._id) {
+      
+        // Kiểm tra trạng thái tất cả các stage
+        const allStagesCompleted = stages.every((stage) => stage.completed);
+        const hasFailedStages = stages.some((stage) => stage.status === "failed");
+
+        if (allStagesCompleted && plan.status === "ongoing") {
+   
+          await dispatch(completeQuitPlan({ planId: plan._id })).unwrap();
+        } else if (hasFailedStages && plan.status === "ongoing") {
+       
+          await dispatch(failQuitPlan({ planId: plan._id })).unwrap();
+        }
+
+        // Gọi checkPlanStatus ngay lập tức
+
+        await checkPlanStatus();
+      } else {
+        console.log("Không phải stage cuối, không cần kiểm tra kế hoạch");
+      }
+
       reset();
       setUpdateFormOpen((prev) => ({ ...prev, [stageId]: false }));
-    });
+    } catch (error) {
+      console.error("Lỗi khi gửi cập nhật:", error);
+    }
   };
 
   // Kiểm tra ngày mới để reset form và đóng form mở
@@ -130,44 +162,22 @@ const Roadmap = () => {
     return () => clearInterval(interval);
   }, [currentDate, reset]);
 
-  // Thêm useEffect để kiểm tra và cập nhật trạng thái của từng stage
+  // Kiểm tra và cập nhật trạng thái stage
   useEffect(() => {
     const checkAndUpdateStages = async () => {
       if (plan && stages && stages.length > 0) {
         try {
           let hasUpdates = false;
-          // Kiểm tra từng stage
           for (const stage of stages) {
-            // Nếu stage chưa hoàn thành và có đủ điều kiện hoàn thành
             if (!stage.completed && stage.progress >= 100) {
-          
               await dispatch(completeStageApi({ id: stage._id })).unwrap();
               hasUpdates = true;
             }
           }
 
-          // Chỉ kiểm tra trạng thái plan nếu có cập nhật stage
+          // Nếu có cập nhật stage, kiểm tra trạng thái kế hoạch
           if (hasUpdates) {
-            const allStagesCompleted = stages.every((stage) => stage.completed);
-            const hasFailedStages = stages.some((stage) => stage.status === "failed");
-
-            if (allStagesCompleted && plan.status === "ongoing") {
-           
-              const result = await dispatch(completeQuitPlan({ planId: plan._id })).unwrap();
-              if (result?.status === 200) {
-                // Sau khi hoàn thành kế hoạch, kiểm tra trạng thái
-                await checkPlanStatus();
-                return;
-              }
-            } else if (hasFailedStages && plan.status === "ongoing") {
-          
-              const result = await dispatch(failQuitPlan({ planId: plan._id })).unwrap();
-              if (result?.status === 200) {
-                // Sau khi đánh dấu thất bại, kiểm tra trạng thái
-                await checkPlanStatus();
-                return;
-              }
-            }
+            await checkPlanStatus();
           }
         } catch (error) {
           console.error("Lỗi khi cập nhật trạng thái:", error);
@@ -176,70 +186,45 @@ const Roadmap = () => {
     };
 
     checkAndUpdateStages();
-  }, [plan, stages, dispatch, navigate]);
+  }, [plan, stages, dispatch]);
 
   const checkPlanStatus = async () => {
     try {
-      if (!plan?._id) return;
+      let planIdToCheck = plan?._id;
+      if (!planIdToCheck) {
+       
+        planIdToCheck = localStorage.getItem("lastPlanId");
+        if (!planIdToCheck) {
+          console.log("Không tìm thấy planId, bỏ qua checkPlanStatus");
+          return;
+        }
+      }
 
-      const completionInfo = await dispatch(infoCompleteQuitPlan({ planId: plan._id })).unwrap();
+      const completionInfo = await dispatch(infoCompleteQuitPlan({ planId: planIdToCheck })).unwrap();
+ 
 
-      
       if (completionInfo?.data?.plan?.status === "completed") {
-        navigate(`/successPlanResult?status=success&planId=${plan._id}`);
-        return;
+        navigate(`/successPlanResult?status=success&planId=${planIdToCheck}`);
       } else if (completionInfo?.data?.plan?.status === "failed") {
-        navigate(`/failedPlanResult?status=failed&planId=${plan._id}`);
-        return;
+        navigate(`/failedPlanResult?status=failed&planId=${planIdToCheck}`);
+      } else {
+        console.log("Trạng thái kế hoạch không phải completed hoặc failed:", completionInfo?.data?.plan?.status);
       }
     } catch (error) {
       console.error("Lỗi khi kiểm tra trạng thái kế hoạch:", error);
     }
   };
 
-  // Thêm useEffect để tự động kiểm tra trạng thái kế hoạch định kỳ
-  useEffect(() => {
-    let isMounted = true;
-    let checkInterval;
-
-    const startChecking = async () => {
-      if (plan?._id) {
-        // Kiểm tra ngay lập tức
-        await checkPlanStatus();
-
-        // Thiết lập interval kiểm tra mỗi 3 giây
-        checkInterval = setInterval(async () => {
-          if (isMounted) {
-            await checkPlanStatus();
-          }
-        }, 3000); 
-      }
-    };
-
-    startChecking();
-
-    // Cleanup function
-    return () => {
-      isMounted = false;
-      if (checkInterval) {
-        clearInterval(checkInterval);
-      }
-    };
-  }, [plan?._id]); 
-
-  // Giữ lại useEffect để fetch dữ liệu ban đầu
+  // useEffect để fetch dữ liệu ban đầu
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
       try {
-        // Lấy kế hoạch hiện tại
         const result = await dispatch(fetchPlanCurrent()).unwrap();
-   
-        
+
         if (!isMounted) return;
 
-        // Nếu có kế hoạch đang diễn ra
         if (result?.data?.plan) {
           if (result.data.plan.status === "completed") {
             navigate(`/successPlanResult?status=success&planId=${result.data.plan._id}`);
@@ -248,9 +233,7 @@ const Roadmap = () => {
             navigate(`/failedPlanResult?status=failed&planId=${result.data.plan._id}`);
             return;
           }
-        } 
-        // Nếu có kế hoạch từ selectPlan
-        else if (result?.data?.quitPlan) {
+        } else if (result?.data?.quitPlan) {
           if (result.data.quitPlan.status === "completed") {
             navigate(`/successPlanResult?status=success&planId=${result.data.quitPlan._id}`);
             return;
@@ -258,15 +241,11 @@ const Roadmap = () => {
             navigate(`/failedPlanResult?status=failed&planId=${result.data.quitPlan._id}`);
             return;
           }
-        }
-        // Nếu không có kế hoạch đang diễn ra, kiểm tra thông tin hoàn thành
-        else {
-          // Lấy planId từ localStorage hoặc state
-          const lastPlanId = localStorage.getItem('lastPlanId');
+        } else {
+          const lastPlanId = localStorage.getItem("lastPlanId");
           if (lastPlanId) {
             const completionInfo = await dispatch(infoCompleteQuitPlan({ planId: lastPlanId })).unwrap();
-      
-            
+
             if (completionInfo?.data?.plan?.status === "completed") {
               navigate(`/successPlanResult?status=success&planId=${lastPlanId}`);
               return;
@@ -288,22 +267,21 @@ const Roadmap = () => {
     };
   }, [dispatch, navigate]);
 
-  // Thêm useEffect để lưu planId vào localStorage khi có thay đổi
+  // useEffect để lưu planId vào localStorage
   useEffect(() => {
     if (plan?._id) {
-      localStorage.setItem('lastPlanId', plan._id);
+      localStorage.setItem("lastPlanId", plan._id);
     }
   }, [plan?._id]);
 
   if (isLoading) {
-    return <Typography><Loading/></Typography>;
+    return <Typography><Loading /></Typography>;
   }
 
   if (isError) {
     return <Typography color="error">Lỗi: {errorMessage}</Typography>;
   }
 
-  // Kiểm tra cả plan và plan.quitPlan
   if (!plan && !plan?.quitPlan) {
     return (
       <Typography>
@@ -321,22 +299,22 @@ const Roadmap = () => {
   }
 
   // Calculate progress based on completed stages
-const totalStages = Array.isArray(stages) ? stages.length : 0;
-const completedStages = Array.isArray(stages)
-  ? stages.filter((stage) => stage?.completed)?.length
-  : 0;
-const overallProgress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
+  const totalStages = Array.isArray(stages) ? stages.length : 0;
+  const completedStages = Array.isArray(stages)
+    ? stages.filter((stage) => stage?.completed)?.length
+    : 0;
+  const overallProgress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
 
-// Determine current stage
-const currentStage = Array.isArray(stages) && stages.length > 0
-  ? stages.find((stage) => !stage.completed) || stages[0]
-  : null;
-const currentStageIndex = currentStage && Array.isArray(stages)
-  ? stages.findIndex((stage) => stage._id === currentStage._id) + 1
-  : 1;
+  // Determine current stage
+  const currentStage = Array.isArray(stages) && stages.length > 0
+    ? stages.find((stage) => !stage.completed) || stages[0]
+    : null;
+  const currentStageIndex = currentStage && Array.isArray(stages)
+    ? stages.findIndex((stage) => stage._id === currentStage._id) + 1
+    : 1;
 
-// Check if stage 1 is completed
-const isStage1Completed = Array.isArray(stages) && stages.length > 0 && stages[0]?.completed || false;
+  // Check if stage 1 is completed
+  const isStage1Completed = Array.isArray(stages) && stages.length > 0 && stages[0]?.completed || false;
 
   // Format dates
   const formatDate = (dateString) => {
@@ -440,31 +418,31 @@ const isStage1Completed = Array.isArray(stages) && stages.length > 0 && stages[0
             />
           </div>
           <div className="roadMap-timeline">
-         <div className="roadMap-timeline-markers">
-  {Array.isArray(stages) && stages.length > 0 ? (
-    stages.map((stage, index) => (
-      <div key={stage._id} className="roadMap-timeline-marker">
-        <div
-          className={`roadMap-timeline-circle ${
-            stage.completed
-              ? "roadMap-timeline-completed"
-              : stage._id === currentStage?._id
-                ? "roadMap-timeline-current"
-                : "roadMap-timeline-pending"
-          }`}
-        >
-          {stage.completed ? (
-            <CheckCircle2 size={16} color="white" />
-          ) : (
-            index + 1
-          )}
-        </div>
-      </div>
-    ))
-  ) : (
-    <Typography>Không có giai đoạn nào.</Typography>
-  )}
-</div>
+            <div className="roadMap-timeline-markers">
+              {Array.isArray(stages) && stages.length > 0 ? (
+                stages.map((stage, index) => (
+                  <div key={stage._id} className="roadMap-timeline-marker">
+                    <div
+                      className={`roadMap-timeline-circle ${
+                        stage.completed
+                          ? "roadMap-timeline-completed"
+                          : stage._id === currentStage?._id
+                          ? "roadMap-timeline-current"
+                          : "roadMap-timeline-pending"
+                      }`}
+                    >
+                      {stage.completed ? (
+                        <CheckCircle2 size={16} color="white" />
+                      ) : (
+                        index + 1
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <Typography>Không có giai đoạn nào.</Typography>
+              )}
+            </div>
             <div className="roadMap-timeline-line"></div>
             <div
               className="roadMap-timeline-progress"
@@ -808,7 +786,7 @@ const isStage1Completed = Array.isArray(stages) && stages.length > 0 && stages[0
                       bg: "#e6f4e4",
                     },
                   ].map((stat, index) => (
-                    <Grid size={{ xs: 6 }} key={index}>
+                    <Grid item xs={6} key={index}>
                       <div
                         className="roadMap-stat-item"
                         style={{
@@ -816,7 +794,10 @@ const isStage1Completed = Array.isArray(stages) && stages.length > 0 && stages[0
                           borderColor: stat.bg,
                         }}
                       >
-                        <Typography variant="h5" style={{ color: stat.color }}>
+                        <Typography
+                          variant="h5"
+                          style={{ color: stat.color }}
+                        >
                           {stat.value}
                         </Typography>
                         <Typography variant="caption">{stat.label}</Typography>
@@ -836,7 +817,7 @@ const isStage1Completed = Array.isArray(stages) && stages.length > 0 && stages[0
                       color: "#6f7583",
                     }}
                   >
-                    Xem chi tiết{" "}
+                    Xem chi tiết
                     <ChevronRight size={16} className="roadMap-icon" />
                   </Link>
                 </Button>
