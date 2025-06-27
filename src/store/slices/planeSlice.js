@@ -176,6 +176,22 @@ export const histotyPlan = createAsyncThunk(
   }
 )
 
+export const cancelPlan = createAsyncThunk(
+  "plan/cancelPlan",
+  async ({ reason }, { rejectWithValue }) => {
+    try {
+      const response = await fetcher.post("/plans/quitplans/cancel", 
+        reason ? { reason } : {} // Nếu không có reason, gửi object rỗng
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+);
+
 export const planSlice = createSlice({
   name: "plan",
   initialState: {
@@ -354,6 +370,19 @@ export const planSlice = createSlice({
         state.plan = payload;
       })
       .addCase(histotyPlan.rejected, (state, {payload}) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.plan = payload.data
+      })
+      .addCase(cancelPlan.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(cancelPlan.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.plan = null;
+      })
+      .addCase(cancelPlan.rejected, (state, {payload}) => {
         state.isLoading = false;
         state.isError = null;
         state.plan = payload.data
