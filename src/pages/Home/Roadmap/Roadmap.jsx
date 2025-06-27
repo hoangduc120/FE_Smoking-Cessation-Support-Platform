@@ -15,6 +15,14 @@ import {
   LinearProgress,
   TextField,
   Collapse,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import {
   CalendarDays,
@@ -32,11 +40,12 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 
-import { fetchPlanCurrent, completeQuitPlan, failQuitPlan } from "../../../store/slices/planeSlice";
+import { fetchPlanCurrent, completeQuitPlan, failQuitPlan, cancelPlan } from "../../../store/slices/planeSlice";
 import { createQuitProgree } from "../../../store/slices/progressSlice";
 import { completeStageApi } from "../../../store/slices/stagesSlice";
 import Loading from "../../../components/Loading/Loading";
 import { infoCompleteQuitPlan } from "../../../store/slices/planeSlice";
+import toast from "react-hot-toast";
 
 // Hardcode data for sections not provided by API
 const hardcodedData = {
@@ -70,9 +79,13 @@ const Roadmap = () => {
   const [currentDate, setCurrentDate] = useState(
     new Date().toISOString().split("T")[0]
   ); // YYYY-MM-DD
+
+  const [isDayUpdated, setIsDayUpdated] = useState(false);
   const dispatch = useDispatch();
   const { plan, stages, progress, isLoading, isError, errorMessage } =
     useSelector((state) => state.plan);
+
+console.log("plan ne", plan)
 
   const {
     control,
@@ -88,19 +101,40 @@ const Roadmap = () => {
     },
   });
 
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelError, setCancelError] = useState("");
+
+    // Lọc progress chỉ hiển thị của ngày hiện tại
+    const filterTodayProgress = (progressItems) => {
+      return progressItems.filter((p) => {
+        const progressDate = new Date(p.date).toISOString().split("T")[0];
+        return progressDate === currentDate;
+      });
+    };
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
   const toggleUpdateForm = (stageId) => {
+    if (isDayUpdated) {
+      toast.error("Bạn chỉ được cập nhật trạng thái một lần mỗi ngày!");
+      return;
+    }
     setUpdateFormOpen((prev) => ({
       ...prev,
       [stageId]: !prev[stageId],
     }));
-    reset(); // Reset form khi mở/đóng
+    reset();
   };
 
   const onSubmit = async (data, stageId) => {
+    if (isDayUpdated) {
+      toast.error("Bạn chỉ được cập nhật trạng thái một lần mỗi ngày!");
+      return;
+    }
+  
     const payload = {
       stageId,
       date: new Date().toISOString(),
@@ -108,42 +142,30 @@ const Roadmap = () => {
       healthStatus: data.healthStatus,
       notes: data.notes || "",
     };
-
+  
     try {
-
-      // Gửi cập nhật tiến trình
       await dispatch(createQuitProgree(payload)).unwrap();
-     
-
-      // Tải lại kế hoạch hiện tại
-      const result = await dispatch(fetchPlanCurrent()).unwrap();
-    
-
-      // Kiểm tra nếu stage vừa cập nhật là stage cuối
+      await dispatch(fetchPlanCurrent()).unwrap();
+  
       const lastStage = stages[stages.length - 1];
       if (stageId === lastStage?._id) {
-      
-        // Kiểm tra trạng thái tất cả các stage
         const allStagesCompleted = stages.every((stage) => stage.completed);
         const hasFailedStages = stages.some((stage) => stage.status === "failed");
-
+  
         if (allStagesCompleted && plan.status === "ongoing") {
-   
           await dispatch(completeQuitPlan({ planId: plan._id })).unwrap();
         } else if (hasFailedStages && plan.status === "ongoing") {
-       
           await dispatch(failQuitPlan({ planId: plan._id })).unwrap();
         }
-
-        // Gọi checkPlanStatus ngay lập tức
-
+  
         await checkPlanStatus();
       } else {
         console.log("Không phải stage cuối, không cần kiểm tra kế hoạch");
       }
-
+  
       reset();
       setUpdateFormOpen((prev) => ({ ...prev, [stageId]: false }));
+      setIsDayUpdated(true); // Đánh dấu ngày đã cập nhật
     } catch (error) {
       console.error("Lỗi khi gửi cập nhật:", error);
     }
@@ -157,6 +179,7 @@ const Roadmap = () => {
         setCurrentDate(newDate);
         reset();
         setUpdateFormOpen({});
+        setIsDayUpdated(false); // Reset khi sang ngày mới
       }
     }, 60000);
     return () => clearInterval(interval);
@@ -274,6 +297,41 @@ const Roadmap = () => {
     }
   }, [plan?._id]);
 
+  const handleOpenCancelDialog = () => {
+    setCancelDialogOpen(true);
+    setCancelReason("");
+    setCancelError("");
+  };
+  const handleCloseCancelDialog = () => {
+    setCancelDialogOpen(false);
+    setCancelReason("");
+    setCancelError("");
+  };
+  const handleCancelPlan = async () => {
+    const reason = cancelReason.trim() || null;
+    if (!reason && cancelReason.trim() === "") {
+      setCancelError("Vui lòng nhập lý do huỷ kế hoạch.");
+      return;
+    }
+    try {
+      await dispatch(cancelPlan({ reason })).unwrap();
+      setCancelDialogOpen(false);
+      localStorage.removeItem("lastPlanId");
+      toast.success("Huỷ kế hoạch thành công ")
+      navigate("/coachPlan");
+    } catch {
+      setCancelError("Có lỗi xảy ra khi huỷ kế hoạch. Vui lòng thử lại.");
+    }
+  };
+
+  // Kiểm tra xem ngày đã có cập nhật chưa
+  useEffect(() => {
+    const todayProgress = filterTodayProgress(progress);
+    setIsDayUpdated(todayProgress.length > 0); 
+  }, [progress, currentDate])
+
+  
+
   if (isLoading) {
     return <Typography><Loading /></Typography>;
   }
@@ -284,13 +342,13 @@ const Roadmap = () => {
 
   if (!plan && !plan?.quitPlan) {
     return (
-      <Typography>
+      <Typography sx={{display:"flex", flexDirection:"column", alignItems:"center", padding:"200px", height:"20vh"}}>
         Bạn chưa có kế hoạch nào. Hãy bắt đầu hành trình cai thuốc lá!
         <Button
           component={Link}
-          to="/create-plan"
+          to="/coachPlan"
           variant="contained"
-          sx={{ mt: 2, background: "black", color: "white" }}
+          sx={{ mt: 2, background: "#367848", color: "white" }}
         >
           Tạo kế hoạch mới
         </Button>
@@ -334,13 +392,7 @@ const Roadmap = () => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Lọc progress chỉ hiển thị của ngày hiện tại
-  const filterTodayProgress = (progressItems) => {
-    return progressItems.filter((p) => {
-      const progressDate = new Date(p.date).toISOString().split("T")[0];
-      return progressDate === currentDate;
-    });
-  };
+
 
   return (
     <div className="roadMap-container">
@@ -370,6 +422,15 @@ const Roadmap = () => {
               Giai đoạn hiện tại
             </Link>
           </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            className="roadMap-action-button"
+            sx={{ marginLeft: 2 }}
+            onClick={handleOpenCancelDialog}
+          >
+            Huỷ kế hoạch
+          </Button>
         </div>
       </div>
 
@@ -387,18 +448,18 @@ const Roadmap = () => {
                 >
                   <Users size={16} className="roadMap-icon" /> Coach:{" "}
                   <Typography className="roadMap-coach-link">
-                    {plan?.coachId?.email}
+                    {plan?.plan?.coachId?.userName}
                   </Typography>
                 </Typography>
               </div>
               <div className="roadMap-card-badges">
                 <Badge color="secondary" className="roadMap-badge">
                   <CalendarDays size={12} className="roadMap-icon" />{" "}
-                  {formatDate(plan.startDate)} - {formatDate(plan.endDate)}
+                  {formatDate(plan?.plan?.startDate)} - {formatDate(plan?.plan?.endDate)}
                 </Badge>
                 <Badge color="secondary" className="roadMap-badge">
                   <Clock size={12} className="roadMap-icon" /> Còn lại:{" "}
-                  {calculateRemainingDays(plan.endDate)} ngày
+                  {calculateRemainingDays(plan?.plan?.endDate)} ngày
                 </Badge>
               </div>
             </div>
@@ -642,15 +703,30 @@ const Roadmap = () => {
                           name="healthStatus"
                           control={control}
                           render={({ field }) => (
-                            <TextField
-                              {...field}
-                              label="Trạng thái sức khỏe"
-                              fullWidth
-                              disabled={isDisabled}
-                              error={!!errors.healthStatus}
-                              helperText={errors.healthStatus?.message}
-                              sx={{ mb: 2 }}
-                            />
+                            <FormControl fullWidth error={!!errors.healthStatus} sx={{ mb: 2 }}>
+                              <InputLabel id="health-status-label">Trạng thái sức khỏe</InputLabel>
+                              <Select
+                                {...field}
+                                labelId="health-status-label"
+                                id="health-status"
+                                value={field.value}
+                                label="Trạng thái sức khỏe"
+                                onChange={(e) => field.onChange(e.target.value)}
+                                disabled={isDisabled}
+                              >
+                                <MenuItem value="">
+                                  <em>Chọn trạng thái sức khỏe</em>
+                                </MenuItem>
+                                <MenuItem value="Tốt">Tốt</MenuItem>
+                                <MenuItem value="Trung bình">Trung bình</MenuItem>
+                                <MenuItem value="Kém">Kém</MenuItem>
+                              </Select>
+                              {errors.healthStatus && (
+                                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                                  {errors.healthStatus.message}
+                                </Typography>
+                              )}
+                            </FormControl>
                           )}
                         />
                         <Controller
@@ -683,18 +759,16 @@ const Roadmap = () => {
                     </Collapse>
                   </CardContent>
                   <CardActions>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      sx={{ backgroundColor: "black", color: "white" }}
-                      onClick={() => toggleUpdateForm(stage._id)}
-                      disabled={isDisabled}
-                    >
-                      {updateFormOpen[stage._id]
-                        ? "Ẩn biểu mẫu"
-                        : "Cập nhật tình trạng"}
-                    </Button>
-                  </CardActions>
+  <Button
+    variant="contained"
+    fullWidth
+    sx={{ backgroundColor: "black", color: "white" }}
+    onClick={() => toggleUpdateForm(stage._id)}
+    disabled={isDisabled || isDayUpdated}
+  >
+    {updateFormOpen[stage._id] ? "Ẩn biểu mẫu" : "Cập nhật tình trạng"}
+  </Button>
+</CardActions>
                 </Card>
               );
             })}
@@ -913,6 +987,42 @@ const Roadmap = () => {
           </CardContent>
         </Card>
       </Box>
+
+      {/* Dialog huỷ kế hoạch */}
+      <Dialog open={cancelDialogOpen} onClose={handleCloseCancelDialog} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#d32f2f', fontWeight: 700, fontSize: 22 }}>
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            <svg style={{ marginRight: 8 }} width="28" height="28" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fdecea"/><path d="M12 8v4" stroke="#d32f2f" strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="16" r="1" fill="#d32f2f"/></svg>
+            Huỷ kế hoạch
+          </span>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', pb: 2 }}>
+          <div style={{ marginBottom: 16, fontSize: 16, color: '#d32f2f', fontWeight: 500 }}>
+            Bạn chắc chắn muốn huỷ kế hoạch này? <br/>
+            Vui lòng nhập lý do huỷ kế hoạch bên dưới:
+          </div>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Lý do huỷ kế hoạch"
+            type="text"
+            fullWidth
+            multiline
+            minRows={2}
+            value={cancelReason}
+            onChange={e => setCancelReason(e.target.value)}
+            error={!!cancelError}
+            helperText={cancelError}
+            sx={{ background: '#fff8f8', borderRadius: 1 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <Button onClick={handleCloseCancelDialog} variant="outlined" sx={{ minWidth: 120 }}>Đóng</Button>
+          <Button onClick={handleCancelPlan} color="error" variant="contained" sx={{ minWidth: 160, fontWeight: 700, boxShadow: '0 2px 8px #fdecea' }}>
+            Xác nhận huỷ
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
