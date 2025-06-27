@@ -1,5 +1,5 @@
 .subscription-container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   text-align: center;
@@ -22,19 +22,23 @@
 }
 
 .plans-container {
-  margin-top: 40px;
-  display: flex;
-  justify-content: center;
-  gap: 50px;
+  /* display, gap, flex-wrap được xử lý bởi MUI Grid */
+  /* Các thuộc tính flexbox cũ đã bị xóa */
 }
 
 .plan-card {
   position: relative;
-  width: 500px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s;
-  border: solid 1px black;
+  width: 100%; /* Chiếm toàn bộ Grid item */
+  height: 100%; /* Giúp các card trên 1 hàng cao bằng nhau */
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(86,197,150,0.13);
+  border: 2px solid #eafaf1;
+  background: #fff;
+  transition: box-shadow 0.2s, border 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
 }
 
 .plan-card:hover {
@@ -303,4 +307,270 @@ button.continue-button {
   .step3-card {
     padding: 12px;
   }
+}
+
+/* Layout tổng thể */
+.upgrade-root {
+  background: #f6fcf7;
+  min-height: 100vh;
+}
+
+/* Banner đầu trang */
+.main-banner {
+  width: 100vw;
+  background: linear-gradient(135deg, #6fcf97 0%, #56c596 100%);
+  padding: 60px 0 40px 0;
+  text-align: center;
+  position: relative;
+}
+.banner-icon-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.main-banner-icon {
+  width: 80px;
+  height: 80px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  padding: 16px;
+}
+.main-banner-title {
+  font-size: 3rem !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  margin-bottom: 12px !important;
+}
+.main-banner-desc {
+  font-size: 1.3rem;
+  color: #eafaf1;
+  margin-bottom: 28px;
+}
+.main-banner-benefits {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.benefit-item {
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  color: #fff;
+  gap: 8px;
+  font-weight: 500;
+}
+.benefit-icon {
+  font-size: 1.3em;
+}
+
+/* Section: Tại Sao Chọn Chúng Tôi */
+.why-choose-section {
+  background: #eafaf1;
+  padding: 40px 0 30px 0;
+  text-align: center;
+}
+.why-choose-title {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  color: #183a2c !important;
+  margin-bottom: 8px !important;
+}
+.why-choose-desc {
+  color: #2d5942;
+  margin-bottom: 32px;
+  font-size: 1.1rem;
+}
+.why-choose-cards {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.why-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(111,207,151,0.10);
+  padding: 32px 24px 24px 24px;
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s;
+}
+.why-card:hover {
+  box-shadow: 0 8px 32px rgba(86,197,150,0.18);
+}
+.why-card-icon img {
+  width: 54px;
+  height: 54px;
+  background: #eafaf1;
+  border-radius: 50%;
+  margin-bottom: 18px;
+  padding: 10px;
+}
+.why-card-title {
+  font-weight: 700;
+  color: #183a2c;
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+}
+.why-card-desc {
+  color: #2d5942;
+  font-size: 1rem;
+}
+
+/* Gói thành viên */
+.plans-section {
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+.plan-card {
+  position: relative;
+  width: 340px;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(86,197,150,0.13);
+  border: 2px solid #eafaf1;
+  background: #fff;
+  transition: box-shadow 0.2s, border 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+}
+.plan-card.popular {
+  border: 2.5px solid #56c596;
+}
+.plan-card.highlighted {
+  border: 2.5px solid #1c9f47;
+  box-shadow: 0 12px 36px rgba(28,159,71,0.18);
+}
+.popular-badge {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #56c596;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 4px 18px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(86,197,150,0.13);
+}
+.plan-icon-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 38px;
+  margin-bottom: 18px;
+}
+.plan-icon {
+  width: 48px;
+  height: 48px;
+}
+.plan-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #183a2c;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.plan-price {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #56c596;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.plan-duration {
+  font-size: 1rem;
+  color: #888;
+  font-weight: 400;
+  margin-left: 4px;
+}
+.features-list {
+  list-style: none;
+  padding: 0 0 0 0;
+  margin: 18px 0 18px 0;
+  text-align: left;
+}
+.features-list li {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  font-size: 1rem;
+  color: #2d5942;
+}
+.check-mark {
+  color: #1c9f47;
+  margin-right: 10px;
+  font-weight: bold;
+}
+.choose-button {
+  width: 100%;
+  background: #56c596 !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  margin-top: 10px !important;
+  margin-bottom: 18px !important;
+  font-size: 1.1rem !important;
+  box-shadow: 0 2px 8px rgba(86,197,150,0.10);
+  transition: background 0.2s;
+}
+.choose-button.chosen {
+  background: #1c9f47 !important;
+}
+.choose-button:disabled {
+  background: #eafaf1 !important;
+  color: #1c9f47 !important;
+  font-weight: 700 !important;
+}
+.continue-button {
+  margin: 32px auto 0 auto;
+  display: block;
+  background: #1c9f47 !important;
+  color: #fff !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  border-radius: 30px !important;
+  padding: 12px 48px !important;
+  box-shadow: 0 2px 8px rgba(28,159,71,0.10);
+  transition: background 0.2s;
+}
+.continue-button:disabled {
+  background: #eafaf1 !important;
+  color: #1c9f47 !important;
+}
+
+@media (max-width: 1100px) {
+  /* .plans-container, .why-choose-cards {
+    gap: 18px;
+  } */ /* Gap đã được xử lý bởi Grid spacing */
+  .plan-card, .why-card {
+    width: 100%; /* Đảm bảo card fill grid item */
+    max-width: 400px; /* Có thể giữ lại hoặc bỏ tùy vào thiết kế */
+  }
+}
+@media (max-width: 700px) {
+  .main-banner-title {
+    font-size: 2rem !important;
+  }
+  .main-banner-desc {
+    font-size: 1rem;
+  }
+  .main-banner-benefits {
+    gap: 12px;
+    font-size: 0.95rem;
+  }
+  .why-choose-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+  /* .plans-container đã được xử lý bởi Grid item (xs=12) */
 }

@@ -1,23 +1,63 @@
-
 import { Box, Button, Card, CardContent, CardHeader, Chip, Grid, Typography, LinearProgress } from "@mui/material"
+import { useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { infoCompleteQuitPlan } from "../../store/slices/planeSlice"
+import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 
 import { Favorite, ArrowBack, Refresh, CalendarToday, AccessTime, People, TrackChanges } from "@mui/icons-material"
-import { Link } from "react-router-dom"
 
-export default function FailedPlanResult({ planId }) {
+export default function FailedPlanResult({ planId: propPlanId }) {
+  const dispatch = useDispatch()
+  const { plan, isLoading, isError, errorMessage } = useSelector((state) => state.plan)
+  const planId = propPlanId
+
+  useEffect(() => {
+    if (planId) {
+      dispatch(infoCompleteQuitPlan({ planId }))
+    }
+  }, [dispatch, planId])
+
+  // Xử lý loading
+  if (isLoading) {
+    return (
+      <Box className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
+        <Typography variant="h5" className="text-gray-600">
+          Đang tải thông tin kế hoạch...
+        </Typography>
+      </Box>
+    )
+  }
+
+  // Xử lý lỗi
+  if (isError) {
+    return (
+      <Box className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
+        <Typography variant="h5" className="text-red-600">
+          Lỗi: {errorMessage || "Không thể tải thông tin kế hoạch"}
+        </Typography>
+      </Box>
+    )
+  }
+
+  // Kiểm tra nếu không có dữ liệu plan
+  if (!plan || !plan.plan) {
+    return (
+      <Box className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
+        <Typography variant="h5" className="text-gray-600">
+          Không tìm thấy thông tin kế hoạch
+        </Typography>
+      </Box>
+    )
+  }
+
+  // Lấy dữ liệu từ API
   const failedData = {
-    plan: {
-      title: "Tháng không thuốc - vì sức khỏe",
-      reason: "Muốn tiết kiệm chi phí và cải thiện sức khỏe",
-      startDate: "2025-06-15T00:00:00.000Z",
-      endDate: "2025-07-15T00:00:00.000Z",
-      status: "failed",
-    },
-    progress: {
-      daysCompleted: 18,
-      totalDays: 30,
-      percentage: 60,
+    plan: plan.plan,
+    progress: plan.progress || {
+      daysCompleted: 0,
+      totalDays: 0,
+      percentage: 0,
     },
   }
 
@@ -30,6 +70,7 @@ export default function FailedPlanResult({ planId }) {
   }
 
   const calculateDays = () => {
+    if (!failedData.plan?.startDate || !failedData.plan?.endDate) return 0
     const start = new Date(failedData.plan.startDate)
     const end = new Date(failedData.plan.endDate)
     return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))

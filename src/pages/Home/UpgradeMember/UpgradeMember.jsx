@@ -16,6 +16,7 @@ import {
   Modal,
   Alert,
   LinearProgress,
+  Grid,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMembership } from "../../../store/slices/membershipSlice";
@@ -38,9 +39,7 @@ const bankOptions = [
 
 const UpgradeMember = () => {
   const dispatch = useDispatch();
-  const { membershipData, isLoading, isError, errorMessage } = useSelector(
-    (state) => state.membership
-  );
+  const { membershipData } = useSelector((state) => state.membership);
 
   const user = useSelector((state) => state.user);
   const info = user.user;
@@ -48,9 +47,9 @@ const UpgradeMember = () => {
   const [value, setValue] = useState(0);
   const [selectedCard, setSelectedCard] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [showNoSelectionError, setShowNoSelectionError] = useState(false);
   const [selectedBank, setSelectedBank] = useState(null);
   const [step, setStep] = useState(1);
+  const [showNoSelectionError, setShowNoSelectionError] = useState(false);
 
   useEffect(() => {
     dispatch(fetchMembership());
@@ -128,178 +127,145 @@ const UpgradeMember = () => {
     : [];
 
   return (
-    <Box className="homePage">
-      <Box className="subscription-container">
-        <Typography variant="h4" gutterBottom>
-          Nâng Cấp Gói Thành Viên
-        </Typography>
-        <Typography variant="body2" color="textSecondary" gutterBottom>
-          Chọn gói thành viên phù hợp với nhu cầu của bạn
-        </Typography>
-        <Box sx={{ width: "100%" }}>
-          <Tabs value={value} onChange={handleChange} centered className="tabs">
-            <Tab label="Gói thành viên" />
-            <Tab label="So sánh tính năng" />
-          </Tabs>
+    <Box className="upgrade-root">
+      {/* Banner đầu trang */}
+      <Box className="main-banner">
+        <Box className="banner-icon-wrap">
+          <img src="https://cdn-icons-png.flaticon.com/512/833/833472.png" alt="Heart" className="main-banner-icon" />
         </Box>
-
-        {isLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-            <CircularProgress />
+        <Typography className="main-banner-title" variant="h2">Hành Trình Cai Thuốc Lá</Typography>
+        <Typography className="main-banner-desc" variant="h5">
+          Bắt đầu cuộc sống khỏe mạnh với sự hỗ trợ chuyên nghiệp và công nghệ tiên tiến
+        </Typography>
+        <Box className="main-banner-benefits">
+          <Box className="benefit-item"><span className="benefit-icon">✔</span> Tỷ lệ thành công 85%</Box>
+          <Box className="benefit-item"><span className="benefit-icon">🛡️</span> Phương pháp khoa học</Box>
+          <Box className="benefit-item"><span className="benefit-icon">📈</span> Theo dõi sức khỏe 24/7</Box>
+        </Box>
+      </Box>
+      {/* Section: Tại Sao Chọn Chúng Tôi */}
+      <Box className="why-choose-section">
+        <Typography className="why-choose-title" variant="h4">Tại Sao Chọn Chúng Tôi?</Typography>
+        <Typography className="why-choose-desc">Phương pháp cai thuốc lá khoa học, an toàn và hiệu quả được hàng nghìn người tin tưởng</Typography>
+        <Box className="why-choose-cards">
+          <Box className="why-card">
+            <div className="why-card-icon"><img src="https://cdn-icons-png.flaticon.com/512/3208/3208720.png" alt="Tâm lý học" /></div>
+            <div className="why-card-title">Tâm Lý Học Ứng Dụng</div>
+            <div className="why-card-desc">Phương pháp dựa trên nghiên cứu tâm lý học để thay đổi thói quen</div>
           </Box>
-        ) : isError ? (
-          <Typography color="error" align="center" sx={{ mt: 4 }}>
-            Lỗi:{" "}
-            {errorMessage?.message ||
-              errorMessage ||
-              "Không thể tải dữ liệu gói thành viên."}
-          </Typography>
-        ) : (
-          <>
-            {showNoSelectionError && (
-              <Alert severity="warning" sx={{ mt: 2 }}>
-                Vui lòng chọn một gói trước khi tiếp tục thanh toán.
-              </Alert>
-            )}
-            {value === 0 ? (
-              <div className="plans-container">
-                {plans.length > 0 ? (
-                  plans.map((plan, index) => (
+          <Box className="why-card">
+            <div className="why-card-icon"><img src="https://cdn-icons-png.flaticon.com/512/2920/2920256.png" alt="Theo dõi sức khỏe" /></div>
+            <div className="why-card-title">Theo Dõi Sức Khỏe</div>
+            <div className="why-card-desc">Giám sát sự phục hồi của cơ thể theo thời gian thực</div>
+          </Box>
+          <Box className="why-card">
+            <div className="why-card-icon"><img src="https://cdn-icons-png.flaticon.com/512/1946/1946429.png" alt="Cộng đồng hỗ trợ" /></div>
+            <div className="why-card-title">Cộng Đồng Hỗ Trợ</div>
+            <div className="why-card-desc">Kết nối với những người cùng hành trình và chuyên gia</div>
+          </Box>
+        </Box>
+      </Box>
+      {/* Section: Gói thành viên */}
+      <Box className="subscription-container">
+        <Tabs value={value} onChange={handleChange} centered className="tabs">
+          <Tab label="Gói Hỗ Trợ" />
+          <Tab label="So Sánh" />
+        </Tabs>
+        {showNoSelectionError && (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            Vui lòng chọn một gói trước khi tiếp tục thanh toán.
+          </Alert>
+        )}
+        {value === 0 ? (
+          <Box className="plans-section">
+            <Grid container spacing={4} className="plans-container" justifyContent="center">
+              {plans.length > 0 ? (
+                plans.map((plan, index) => (
+                  <Grid  size={{xs:12 ,sm:6 ,md:4}}>
                     <Card
-                      key={index}
-                      className={`plan-card ${selectedCard === index ? "highlighted" : ""}`}
+                      className={`plan-card ${selectedCard === index ? "highlighted" : ""} ${index === 1 ? "popular" : ""}`}
                       onClick={() => handleCardSelect(index)}
-                      sx={{
-                        borderRadius: "10px",
-                        boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px",
-                      }}
                     >
+                      {index === 1 && <div className="popular-badge">🌟 Được Chọn Nhiều Nhất</div>}
                       <CardContent>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "flex-start",
-                            height: "100%",
-                          }}
-                        >
-                          <Typography
-                            variant="h6"
-                            gutterBottom
-                            sx={{ fontWeight: "bold" }}
-                          >
-                            {plan.title}
-                          </Typography>
-                          <Typography
-                            variant="h5"
-                            color="black"
-                            gutterBottom
-                            sx={{ fontWeight: "bold" }}
-                          >
-                            {plan.price}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color="textSecondary"
-                            gutterBottom
-                          >
-                            {plan.duration}
-                          </Typography>
+                        <Box className="plan-icon-wrap">
+                          <img src={index === 0 ? "https://cdn-icons-png.flaticon.com/512/2910/2910791.png" : index === 1 ? "https://cdn-icons-png.flaticon.com/512/2910/2910788.png" : "https://cdn-icons-png.flaticon.com/512/2910/2910782.png"} alt="icon" className="plan-icon" />
                         </Box>
-                        {selectedCard === index && (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              top: "0",
-                              left: "0",
-                              width: "80px",
-                              height: "20px",
-                              backgroundColor: "black",
-                              borderBottomRightRadius: "8px",
-                            }}
-                          >
-                            <Typography
-                              className="selected-text"
-                              variant="body2"
-                              color="white"
-                            >
-                              Đã chọn
-                            </Typography>
-                          </Box>
-                        )}
+                        <Typography className="plan-title">{plan.title}</Typography>
+                        <Typography className="plan-price">{plan.price}<span className="plan-duration"> /{plan.duration}</span></Typography>
                         <ul className="features-list">
                           {plan.features.map((feature, idx) => (
-                            <li key={idx}>
-                              <span className="check-mark">✓</span> {feature}
-                            </li>
+                            <li key={idx}><span className="check-mark">✓</span> {feature}</li>
                           ))}
                         </ul>
-                        <Button variant="contained" className="choose-button">
-                          Chọn
+                        <Button
+                          variant="contained"
+                          className={`choose-button ${selectedCard === index ? "chosen" : ""}`}
+                          disabled={selectedCard === index}
+                        >
+                          {selectedCard === index ? "✓ Đã Chọn" : "Chọn Gói Này"}
                         </Button>
                       </CardContent>
                     </Card>
-                  ))
-                ) : (
-                  <Typography align="center" sx={{ mt: 4 }}>
-                    Không có gói thành viên nào để hiển thị.
-                  </Typography>
-                )}
-              </div>
-            ) : (
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  So Sánh Tính Năng Các Gói
+                  </Grid>
+                ))
+              ) : (
+                <Typography align="center" sx={{ mt: 4 }}>
+                  Không có gói thành viên nào để hiển thị.
                 </Typography>
-                <Table sx={{ minWidth: 650 }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Tính năng</TableCell>
-                      {plans.map((plan, index) => (
-                        <TableCell key={index} align="center">
-                          {plan.title}
+              )}
+            </Grid>
+            <Button
+              variant="contained"
+              className="continue-button"
+              onClick={handleOpenModal}
+              disabled={plans.length === 0}
+            >
+              Bắt Đầu Hành Trình
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              So Sánh Tính Năng Các Gói
+            </Typography>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Tính năng</TableCell>
+                  {plans.map((plan, index) => (
+                    <TableCell key={index} align="center">
+                      {plan.title}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {comparisonData.length > 0 ? (
+                  comparisonData.map((info, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{info.feature}</TableCell>
+                      {plans.map((plan, idx) => (
+                        <TableCell key={idx} align="center">
+                          {info[plan.title] ? (
+                            <span className="check-mark">✓</span>
+                          ) : (
+                            "-"
+                          )}
                         </TableCell>
                       ))}
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {comparisonData.length > 0 ? (
-                      comparisonData.map((info, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{info.feature}</TableCell>
-                          {plans.map((plan, idx) => (
-                            <TableCell key={idx} align="center">
-                              {info[plan.title] ? (
-                                <span className="check-mark">✓</span>
-                              ) : (
-                                "-"
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={plans.length + 1} align="center">
-                          Không có tính năng nào để so sánh.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </Box>
-            )}
-
-            {value === 0 && plans.length > 0 && (
-              <Button
-                variant="contained"
-                className="continue-button"
-                onClick={handleOpenModal}
-              >
-                Tiếp tục thanh toán
-              </Button>
-            )}
-          </>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={plans.length + 1} align="center">
+                      Không có tính năng nào để so sánh.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Box>
         )}
 
         {/* Single Payment Modal */}
