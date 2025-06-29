@@ -20,26 +20,29 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMembership } from "../../../store/slices/membershipSlice";
+import { createPaymentUrl, clearPaymentState } from "../../../store/slices/paymentSlice";
 import "./UpgradeMember.css";
 import { fetchUser } from "../../../store/slices/userSlice";
+import PaymentService from "../../../services/paymentService";
 
 // Bank data with image URLs (using placeholder CDN images for demo)
 const bankOptions = [
   {
     value: "VNPay",
     name: "VNPay",
-    logo: "https://cdn.pixabay.com/photo/2016/03/31/22/18/image-1298140_1280.png",
+    logo: "https://yt3.googleusercontent.com/JM1m2wng0JQUgSg9ZSEvz7G4Rwo7pYb4QBYip4PAhvGRyf1D_YTbL2DdDjOy0qOXssJPdz2r7Q=s900-c-k-c0x00ffffff-no-rj",
   },
   {
     value: "MoMo",
     name: "MoMo",
-    logo: "https://cdn.pixabay.com/photo/2016/03/31/22/18/image-1298140_1280.png",
+    logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnV4cUM7jBauINof35Yn_unOz976Iz5okV8A&s",
   },
 ];
 
 const UpgradeMember = () => {
   const dispatch = useDispatch();
   const { membershipData } = useSelector((state) => state.membership);
+  const { isLoading: paymentLoading, isError: paymentError, errorMessage: paymentErrorMessage } = useSelector((state) => state.payment);
 
   const user = useSelector((state) => state.user);
   const info = user.user;
@@ -54,6 +57,13 @@ const UpgradeMember = () => {
   useEffect(() => {
     dispatch(fetchMembership());
     dispatch(fetchUser());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Clear payment state khi component unmount
+    return () => {
+      dispatch(clearPaymentState());
+    };
   }, [dispatch]);
 
   const handleChange = (event, newValue) => {
@@ -77,6 +87,8 @@ const UpgradeMember = () => {
   const handleCloseModal = () => {
     setOpenModal(false);
     setSelectedBank(null);
+    setStep(1);
+    dispatch(clearPaymentState()); // Clear payment state khi đóng modal
   };
 
   const handleSelectBank = (bank) => {
@@ -91,14 +103,26 @@ const UpgradeMember = () => {
     setStep((prev) => prev - 1);
   };
 
-  const handleConfirm = () => {
-    if (selectedCard !== null && plans[selectedCard] && selectedBank) {
-      console.log("Xác nhận thanh toán:", {
-        user,
-        plan: plans[selectedCard],
-        paymentMethod: selectedBank.name,
-      });
-      // TODO: Thêm logic gọi API để xử lý thanh toán
+  const handleConfirm = async () => {
+    if (selectedCard !== null && plans[selectedCard] && selectedBank && membershipData) {
+      try {
+        const selectedPlan = membershipData[selectedCard];
+
+        // Dispatch action để tạo payment URL
+        const result = await dispatch(createPaymentUrl({
+          memberShipPlanId: selectedPlan._id,
+          paymentMethod: selectedBank.value, // "VNPay" hoặc "MoMo"
+          amount: selectedPlan.price
+        })).unwrap();
+
+        // Nếu thành công, redirect đến payment gateway
+        if (result.paymentUrl) {
+          PaymentService.redirectToPayment(result.paymentUrl);
+        }
+      } catch (error) {
+        console.error("Payment error:", error);
+        // Error sẽ được hiển thị thông qua Redux state
+      }
     }
     setOpenModal(false);
     setSelectedBank(null);
@@ -176,12 +200,17 @@ const UpgradeMember = () => {
             Vui lòng chọn một gói trước khi tiếp tục thanh toán.
           </Alert>
         )}
+        {paymentError && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {paymentErrorMessage || "Có lỗi xảy ra khi xử lý thanh toán"}
+          </Alert>
+        )}
         {value === 0 ? (
           <Box className="plans-section">
             <Grid container spacing={4} className="plans-container" justifyContent="center">
               {plans.length > 0 ? (
                 plans.map((plan, index) => (
-                  <Grid  size={{xs:12 ,sm:6 ,md:4}}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <Card
                       className={`plan-card ${selectedCard === index ? "highlighted" : ""} ${index === 1 ? "popular" : ""}`}
                       onClick={() => handleCardSelect(index)}
@@ -338,8 +367,8 @@ const UpgradeMember = () => {
                     <div
                       key={bank.value}
                       className={`bank-option ${selectedBank?.value === bank.value
-                          ? "bank-option-selected"
-                          : ""
+                        ? "bank-option-selected"
+                        : ""
                         }`}
                       onClick={() => handleSelectBank(bank)}
                     >
@@ -443,9 +472,16 @@ const UpgradeMember = () => {
                 <Button
                   className="modal-confirm-button"
                   onClick={handleConfirm}
-                  disabled={!selectedBank}
+                  disabled={!selectedBank || paymentLoading}
                 >
-                  Xác nhận
+                  {paymentLoading ? (
+                    <>
+                      <CircularProgress size={20} sx={{ mr: 1 }} />
+                      Đang xử lý...
+                    </>
+                  ) : (
+                    "Xác nhận"
+                  )}
                 </Button>
               )}
             </Box>
