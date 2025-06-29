@@ -28,11 +28,11 @@ export const PATH = {
   ROADMAP: "/roadmap",
   SUCCESSPLANRESULT: "/successPlanResult",
   FAILEDPLANRESULT: "/failedPlanResult",
-  HISTORYPLAN:"/historyPlan",
+  HISTORYPLAN: "/historyPlan",
 
   FOLLOWPAGE: "/follow/:userId",
-  PAYMENTSUCCESS: "/payment-success",
-  PAYMENTFAILED: "/payment-failed",
+  PAYMENTSUCCESS: "/payment/success",
+  PAYMENTFAILED: "/payment/failed",
 
   // COACH
   COACH: "/coach",

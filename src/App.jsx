@@ -1,12 +1,33 @@
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import useRouterElement from "./routes/useRouterElement";
 import { useGoogleCallback } from "./hooks/useGoogleCallback";
 
 function App() {
-  //  nơi chứa các route
   const routerElement = useRouterElement();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Xử lý Google login callback
   useGoogleCallback();
+
+  // Xử lý Payment callback (VNPay & MoMo)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+
+    const vnpTxnRef = searchParams.get('vnp_TxnRef');
+    const vnpResponseCode = searchParams.get('vnp_ResponseCode');
+
+    const momoPartnerCode = searchParams.get('partnerCode');
+    const momoResultCode = searchParams.get('resultCode');
+
+    if (vnpTxnRef && vnpResponseCode && location.pathname === '/') {
+
+      navigate(`/payment/success${location.search}`, { replace: true });
+    }
+    else if (momoPartnerCode && momoResultCode && location.pathname === '/') {
+      navigate(`/payment/success${location.search}`, { replace: true });
+    }
+  }, [location, navigate]);
 
   return <>{routerElement}</>;
 }
