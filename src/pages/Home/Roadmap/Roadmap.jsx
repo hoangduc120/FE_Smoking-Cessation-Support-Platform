@@ -81,11 +81,11 @@ const Roadmap = () => {
   ); // YYYY-MM-DD
 
   const [isDayUpdated, setIsDayUpdated] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState({});
   const dispatch = useDispatch();
   const { plan, stages, progress, isLoading, isError, errorMessage } =
     useSelector((state) => state.plan);
 
-console.log("plan ne", plan)
 
   const {
     control,
@@ -135,6 +135,9 @@ console.log("plan ne", plan)
       return;
     }
   
+    // Set loading state cho stage cụ thể
+    setIsSubmitting(prev => ({ ...prev, [stageId]: true }));
+  
     const payload = {
       stageId,
       date: new Date().toISOString(),
@@ -144,7 +147,13 @@ console.log("plan ne", plan)
     };
   
     try {
+      console.log("Submitting progress update:", payload);
       await dispatch(createQuitProgree(payload)).unwrap();
+      
+      // Thêm delay nhỏ để đảm bảo dữ liệu được cập nhật trên server
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log("Fetching updated plan data...");
       await dispatch(fetchPlanCurrent()).unwrap();
   
       const lastStage = stages[stages.length - 1];
@@ -166,8 +175,13 @@ console.log("plan ne", plan)
       reset();
       setUpdateFormOpen((prev) => ({ ...prev, [stageId]: false }));
       setIsDayUpdated(true); // Đánh dấu ngày đã cập nhật
+      toast.success("Cập nhật tình trạng thành công!");
     } catch (error) {
       console.error("Lỗi khi gửi cập nhật:", error);
+      toast.error("Có lỗi xảy ra khi cập nhật tình trạng!");
+    } finally {
+      // Reset loading state
+      setIsSubmitting(prev => ({ ...prev, [stageId]: false }));
     }
   };
 
@@ -244,11 +258,14 @@ console.log("plan ne", plan)
 
     const fetchData = async () => {
       try {
+     
         const result = await dispatch(fetchPlanCurrent()).unwrap();
+     
 
         if (!isMounted) return;
 
         if (result?.data?.plan) {
+         
           if (result.data.plan.status === "completed") {
             navigate(`/successPlanResult?status=success&planId=${result.data.plan._id}`);
             return;
@@ -257,6 +274,7 @@ console.log("plan ne", plan)
             return;
           }
         } else if (result?.data?.quitPlan) {
+        
           if (result.data.quitPlan.status === "completed") {
             navigate(`/successPlanResult?status=success&planId=${result.data.quitPlan._id}`);
             return;
@@ -265,9 +283,11 @@ console.log("plan ne", plan)
             return;
           }
         } else {
+        
           const lastPlanId = localStorage.getItem("lastPlanId");
           if (lastPlanId) {
             const completionInfo = await dispatch(infoCompleteQuitPlan({ planId: lastPlanId })).unwrap();
+           
 
             if (completionInfo?.data?.plan?.status === "completed") {
               navigate(`/successPlanResult?status=success&planId=${lastPlanId}`);
@@ -296,6 +316,8 @@ console.log("plan ne", plan)
       localStorage.setItem("lastPlanId", plan._id);
     }
   }, [plan?._id]);
+
+
 
   const handleOpenCancelDialog = () => {
     setCancelDialogOpen(true);
@@ -376,20 +398,42 @@ console.log("plan ne", plan)
 
   // Format dates
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    if (!dateString) {
+      return "N/A";
+    }
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "N/A";
+      }
+      return date.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch (error) {
+      console.error("Lỗi format date:", error);
+      return "N/A";
+    }
   };
 
   // Calculate remaining days
   const calculateRemainingDays = (endDate) => {
-    const end = new Date(endDate);
-    const today = new Date();
-    const diffTime = end - today;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (!endDate) {
+      return 0;
+    }
+    try {
+      const end = new Date(endDate);
+      if (isNaN(end.getTime())) {
+        return 0;
+      }
+      const today = new Date();
+      const diffTime = end - today;
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    } catch (error) {
+      console.error("Lỗi tính ngày còn lại:", error);
+      return 0;
+    }
   };
 
 
@@ -440,7 +484,7 @@ console.log("plan ne", plan)
             <div className="roadMap-card-header-content">
               <div>
                 <Typography variant="h5" className="roadMap-card-title">
-                  {plan?.title}
+                  {plan?.title || plan?.plan?.title || "Kế hoạch cai thuốc"}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -448,18 +492,18 @@ console.log("plan ne", plan)
                 >
                   <Users size={16} className="roadMap-icon" /> Coach:{" "}
                   <Typography className="roadMap-coach-link">
-                    {plan?.plan?.coachId?.userName}
+                    {plan?.plan?.coachId?.userName || plan?.coachId?.userName || "Không xác định"}
                   </Typography>
                 </Typography>
               </div>
               <div className="roadMap-card-badges">
                 <Badge color="secondary" className="roadMap-badge">
                   <CalendarDays size={12} className="roadMap-icon" />{" "}
-                  {formatDate(plan?.plan?.startDate)} - {formatDate(plan?.plan?.endDate)}
+                  {formatDate(plan?.plan?.startDate || plan?.startDate)} - {formatDate(plan?.plan?.endDate || plan?.endDate)}
                 </Badge>
                 <Badge color="secondary" className="roadMap-badge">
                   <Clock size={12} className="roadMap-icon" /> Còn lại:{" "}
-                  {calculateRemainingDays(plan?.plan?.endDate)} ngày
+                  {calculateRemainingDays(plan?.plan?.endDate || plan?.endDate)} ngày
                 </Badge>
               </div>
             </div>
@@ -751,9 +795,9 @@ console.log("plan ne", plan)
                           variant="contained"
                           fullWidth
                           sx={{ mt: 1, backgroundColor: "green" }}
-                          disabled={isDisabled}
+                          disabled={isDisabled || isSubmitting[stage._id]}
                         >
-                          Gửi cập nhật
+                          {isSubmitting[stage._id] ? "Đang gửi..." : "Gửi cập nhật"}
                         </Button>
                       </Box>
                     </Collapse>
@@ -764,7 +808,8 @@ console.log("plan ne", plan)
     fullWidth
     sx={{ backgroundColor: "black", color: "white" }}
     onClick={() => toggleUpdateForm(stage._id)}
-    disabled={isDisabled || isDayUpdated}
+    disabled={isDisabled || isDayUpdated || isSubmitting[stage._id]}
+    
   >
     {updateFormOpen[stage._id] ? "Ẩn biểu mẫu" : "Cập nhật tình trạng"}
   </Button>
