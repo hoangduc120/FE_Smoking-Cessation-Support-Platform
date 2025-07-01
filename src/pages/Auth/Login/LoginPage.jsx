@@ -9,7 +9,8 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { loginApi } from "../../../store/slices/authSlice";
 import toast from "react-hot-toast";
-import GoogleButton from 'react-google-button'
+import GoogleButton from 'react-google-button';
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -17,7 +18,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const BASE_URL = import.meta.env.VITE_API_URL;
-
 
   const loginGoogle = () => {
     window.location.href = `${BASE_URL}/auth/google`;
@@ -33,8 +33,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
-
 
   const onSubmit = async (data) => {
     dispatch(loginApi(data))
@@ -203,33 +201,58 @@ export default function LoginPage() {
               alignItems: "center",
               textAlign: "center",
               p: 3,
+              // backgroundColor: "rgba(255, 255, 255, 0.7)", 
+              position: "relative",
+              zIndex: 1,
+              width: "100%",
+              objectFit: "contain",
+            }}
+            style={{
+              backgroundImage: "url('https://png.pngtree.com/background/20250601/original/pngtree-heartshaped-cigarettes-and-their-control-over-humans-picture-image_15487415.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
             }}
           >
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                background: "inherit",
+                filter: "blur(10px)",
+                zIndex: 0,
+              }}
+            />
             <Typography
               variant="h4"
-              sx={{ fontWeight: "bold", color: "#2e7d32", mb: 4 }}
+              sx={{ fontWeight: "bold", color: "#2e7d32", mb: 4, zIndex: 1 }}
             >
               Bắt đầu hành trình từ bỏ thuốc lá của bạn
             </Typography>
-            <Typography variant="body1" sx={{ color: "#757575", mb: 4 }}>
+            <Typography variant="body1" sx={{ color: "#757575", mb: 4, zIndex: 1 }}>
               Theo dõi tiến trình, nâng cao sức khỏe và cải thiện chất lượng
               cuộc sống của bạn.
             </Typography>
             <Box
+              className="image-card"
               sx={{
                 width: "200px",
                 height: "200px",
-                backgroundColor: "#f5f5f5",
                 borderRadius: "16px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+                overflow: "hidden",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
                 mb: 4,
+                zIndex: 1,
               }}
             >
-              <Typography variant="body2" color="text.secondary">
-                Hình ảnh
-              </Typography>
+              <img
+                src="https://png.pngtree.com/png-clipart/20220430/original/pngtree-no-smoking-prohibition-sign-quit-png-image_7613411.png"
+                alt="Healthy lifestyle"
+                style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }}
+              />
             </Box>
             <Box
               sx={{
@@ -237,6 +260,7 @@ export default function LoginPage() {
                 justifyContent: "space-between",
                 width: "80%",
                 mb: 2,
+                zIndex: 1,
               }}
             >
               <Box
@@ -279,7 +303,7 @@ export default function LoginPage() {
               </Box>
               <Box
                 sx={{
-                  backgroundColor: "# nadie f5f5f5",
+                  backgroundColor: "#f5f5f5",
                   p: 2,
                   borderRadius: "12px",
                   flex: 1,

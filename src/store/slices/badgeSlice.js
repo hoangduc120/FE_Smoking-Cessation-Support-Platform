@@ -81,6 +81,19 @@ export const getAllBadge = createAsyncThunk(
   }
 )
 
+export const getMyBadge = createAsyncThunk(
+  "badge/getMyBadge",
+  async(_, {rejectWithValue}) => {
+    try {
+      const response = await fetcher.get("/badges/my")
+      return response.data
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+)
 const badgeSlice = createSlice({
   name: "badge",
   initialState: {
@@ -145,6 +158,19 @@ const badgeSlice = createSlice({
         state.isLoading = false;
         state.isError = payload;
         state.badges = [];
+      })
+      .addCase(getMyBadge.pending, (state) => {
+        state.isLoading = true;
+        state.isError = null;
+      })
+      .addCase(getMyBadge.fulfilled, (state, {payload}) => {
+        state.isLoading = false;
+        state.isError = null;
+        state.badges = payload.data; 
+      })
+      .addCase(getMyBadge.rejected, (state, {payload}) => {
+        state.isLoading = false;
+        state.isError = payload;
       })
   },
 });

@@ -42,7 +42,7 @@ export default function HomePage() {
 
   const { plans } = useSelector((state) => state.plan);
 
-  const plan = plans?.data;
+  const plan = plans?.data?.filter((item) => item.status === "template");
 
   const [currentUser, setCurrentUser] = useState(
     JSON.parse(localStorage.getItem("currentUser"))
