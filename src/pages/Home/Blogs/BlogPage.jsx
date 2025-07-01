@@ -37,7 +37,9 @@ import {
 } from "../../../store/slices/blogSlice";
 import { PATH } from "../../../routes/path";
 
-const BlogItem = memo(({ blog, onTagClick, onLike, onNavigate }) => {
+const BlogItem = memo(({ blog, onTagClick, onLike, onNavigate, user }) => {
+  const isLikedByCurrentUser = blog.likes?.includes(user?._id);
+
   return (
     <Grid item size={{ xs: 12, sm: 6, md: 3 }} key={blog.id}>
       <Card
@@ -183,15 +185,19 @@ const BlogItem = memo(({ blog, onTagClick, onLike, onNavigate }) => {
                   onLike(blog.id);
                 }}
                 sx={{
-                  color: blog.isLiked ? "#E53E3E" : "#4CAF50",
+                  color: isLikedByCurrentUser ? "#E53E3E" : "#4CAF50",
                   "&:hover": {
-                    bgcolor: blog.isLiked
+                    bgcolor: isLikedByCurrentUser
                       ? alpha("#E53E3E", 0.1)
                       : alpha("#4CAF50", 0.1),
                   },
                 }}
               >
-                {blog.isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                {isLikedByCurrentUser ? (
+                  <FavoriteIcon />
+                ) : (
+                  <FavoriteBorderIcon />
+                )}
               </IconButton>
               <Typography
                 variant="body2"
@@ -246,7 +252,7 @@ const BlogPage = () => {
   const [page, setPage] = useState(1);
   const [isFetching, setIsFetching] = useState(false);
   const isMounted = useRef(true);
-
+  const user = useSelector((state) => state.user.user);
   // Sync state with URL params
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -550,6 +556,7 @@ const BlogPage = () => {
                   onTagClick={handleTagClick}
                   onLike={handleLike}
                   onNavigate={navigateToBlog}
+                  user={user}
                 />
               ))}
             </Grid>

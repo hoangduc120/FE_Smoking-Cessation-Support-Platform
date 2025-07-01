@@ -21,8 +21,8 @@ import {
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
 import SendIcon from "@mui/icons-material/Send";
-import ThumbUpIcon from "@mui/icons-material/ThumbUp";
-import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -55,11 +55,17 @@ export default function AuthorProfile() {
     isError,
     errorMessage,
   } = useSelector((state) => state.user);
-  const {
-    blogs,
-    isLoading: blogsLoading,
-    isError: blogsError,
-  } = useSelector((state) => state.blogs);
+  // const {
+  //   blogs,
+  //   isLoading: blogsLoading,
+  //   isError: blogsError,
+  // } = useSelector((state) => state.blogs);
+
+  const blogState = useSelector((state) => state.blogs);
+  const blogs = blogState.blogs;
+  const blogsLoading = blogState.isLoading;
+  const blogsError = blogState.isError;
+
   const [isFollowProcessing, setIsFollowProcessing] = useState(false);
   const [expandedPostId, setExpandedPostId] = useState(null);
   const [showAllComments, setShowAllComments] = useState({});
@@ -82,7 +88,6 @@ export default function AuthorProfile() {
 
   const isFollowing =
     localFollowState ?? viewerFollowing.some((f) => f._id === userId);
-
   useEffect(() => {
     if (userId) {
       dispatch(fetchAuthorById(userId));
@@ -177,8 +182,15 @@ export default function AuthorProfile() {
     navigate(`/chat`);
   };
 
-  const handleToggleLike = (blogId) => {
-    dispatch(toggleLikeBlogApi(blogId));
+  // const handleToggleLike = (blogId) => {
+  //   dispatch(toggleLikeBlogApi(blogId));
+  // };
+  const handleToggleLike = async (blogId) => {
+    try {
+      await dispatch(toggleLikeBlogApi(blogId));
+    } catch (error) {
+      console.error("Lỗi khi cập nhật like:", error);
+    }
   };
 
   const handleSubmitComment = (blogId) => (e) => {
@@ -480,6 +492,8 @@ export default function AuthorProfile() {
             {authorPosts.length > 0 ? (
               authorPosts.map((post) => {
                 const isExpanded = expandedPostId === post.id;
+                const isLikedByCurrentUser = post.likes?.includes(user?._id);
+
                 // Kết hợp comments từ server và localComments
                 const mergedComments = [
                   ...(post.comments || []),
@@ -596,20 +610,20 @@ export default function AuthorProfile() {
                           <IconButton
                             onClick={() => handleToggleLike(post.id)}
                             sx={{
-                              color: post.isLiked
-                                ? "#1976d2"
-                                : "rgba(0, 0, 0, 0.54)", // blue nếu liked, xám nếu không
-                              transition: "color 0.3s ease",
+                              color: isLikedByCurrentUser
+                                ? "#E53E3E"
+                                : "#4CAF50",
                               "&:hover": {
-                                color: post.isLiked ? "#115293" : "#1976d2", // hover đổi nhẹ
-                                backgroundColor: "transparent", // tránh bị MUI hover background làm mờ
+                                bgcolor: isLikedByCurrentUser
+                                  ? alpha("#E53E3E", 0.1)
+                                  : alpha("#4CAF50", 0.1),
                               },
                             }}
                           >
-                            {post.isLiked ? (
-                              <ThumbUpIcon />
+                            {isLikedByCurrentUser ? (
+                              <FavoriteIcon />
                             ) : (
-                              <ThumbUpOutlinedIcon />
+                              <FavoriteBorderIcon />
                             )}
                           </IconButton>
 
@@ -618,9 +632,6 @@ export default function AuthorProfile() {
                             sx={{
                               ml: 1,
                               fontWeight: 500,
-                              color: post.isLiked
-                                ? "#1976d2"
-                                : "text.secondary",
                             }}
                           >
                             {post.likeCount} lượt thích
