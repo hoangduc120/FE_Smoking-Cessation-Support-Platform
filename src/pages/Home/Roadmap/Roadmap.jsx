@@ -45,14 +45,7 @@ import Loading from "../../../components/Loading/Loading";
 import { infoCompleteQuitPlan } from "../../../store/slices/planeSlice";
 import toast from "react-hot-toast";
 import { FaTrophy } from "react-icons/fa";
-
-// Hardcode data for recent achievements
-const hardcodedData = {
-  recentAchievements: [
-    { id: 1, title: "Hoàn thành 1 tuần giảm dần", date: "24/05/2025" },
-    { id: 2, title: "Tiết kiệm 350.000đ", date: "25/05/2025" },
-  ],
-};
+import { getMyBadge } from '../../../store/slices/badgeSlice';
 
 // Validation schema using Yup
 const validationSchema = Yup.object().shape({
@@ -80,6 +73,8 @@ const Roadmap = () => {
   const dispatch = useDispatch();
   const { plan, stages, progress, isLoading, isError, errorMessage } =
     useSelector((state) => state.plan);
+  const badgeState = useSelector((state) => state.badge);
+  const { badges: myBadges = [] } = badgeState;
 
   const {
     control,
@@ -310,6 +305,10 @@ const Roadmap = () => {
     const todayProgress = filterTodayProgress(progress);
     setIsDayUpdated(todayProgress.length > 0);
   }, [progress, currentDate]);
+
+  useEffect(() => {
+    dispatch(getMyBadge());
+  }, [dispatch]);
 
   if (isLoading) {
     return <Typography><Loading /></Typography>;
@@ -801,24 +800,27 @@ const Roadmap = () => {
                 }
               />
               <CardContent>
-                {hardcodedData.recentAchievements.map((achievement) => (
-                  <div
-                    key={achievement.id}
-                    className="roadMap-achievement-item"
-                  >
-                    <div className="roadMap-achievement-content">
-                      <Medal
-                        size={16}
-                        color="#eab308"
-                        className="roadMap-icon"
+                {Array.isArray(myBadges) && myBadges.length > 0 ? (
+                  myBadges.slice(0, 5).map((badge) => (
+                    <div
+                      key={badge._id}
+                      className="roadMap-achievement-item"
+                      style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}
+                    >
+                      <img
+                        src={badge.icon_url || '/default-badge.png'}
+                        alt={badge.name}
+                        style={{ width: 32, height: 32, marginRight: 12, borderRadius: 8, objectFit: 'cover', background: '#f5f5f5' }}
                       />
-                      <span>{achievement.title}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600 }}>{badge.name}</div>
+                        <div style={{ fontSize: 13, color: '#888' }}>{badge.awardedAt ? (new Date(badge.awardedAt).toLocaleDateString('vi-VN')) : ''}</div>
+                      </div>
                     </div>
-                    <span className="roadMap-achievement-date">
-                      {achievement.date}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">Chưa có thành tựu nào.</Typography>
+                )}
               </CardContent>
               <CardActions>
                 <Button variant="text" size="small" fullWidth>

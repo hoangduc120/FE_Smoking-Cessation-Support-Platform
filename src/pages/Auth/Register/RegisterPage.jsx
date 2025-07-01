@@ -1,15 +1,14 @@
 import { Box, Button, Grid, TextField, Typography } from "@mui/material";
-import "../Login/LoginPage";
-import { Link, useNavigate } from "react-router-dom";
-import { use, useEffect, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import "../Login/LoginPage.css"; // Reusing the same CSS file
+import { Link, useNavigate } from "react-router-dom";
 import { PATH } from "../../../routes/path";
-
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { registerApi } from "../../../store/slices/authSlice";
 import toast from "react-hot-toast";
 
@@ -23,7 +22,6 @@ const schema = yup.object({
     .string()
     .required("Mật khẩu không được để trống")
     .min(6, "Mật khẩu phải dài hơn 6 ký tự"),
-
   confirmPassword: yup
     .string()
     .required("Xác nhận mật khẩu không được để trống")
@@ -42,7 +40,6 @@ export default function RegisterPage() {
     resolver: yupResolver(schema),
   });
 
-  // handle form submit
   const onSubmit = async (data) => {
     try {
       dispatch(registerApi(data));
@@ -70,11 +67,6 @@ export default function RegisterPage() {
         <Grid item size={6} className="login-left">
           <Box className="login-container">
             <Box className="login-logo">
-              {/* <img
-                src={logo}
-                alt="QuitSmoke Logo"
-                style={{ width: "20%", height: "20%", borderRadius: "50%" }}
-              /> */}
               🌿
               <Typography
                 variant="h4"
@@ -175,16 +167,11 @@ export default function RegisterPage() {
                         onClick={handleClickShowConfirmPassword}
                         edge="end"
                       >
-                        {showConfirmPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     ),
                   }}
                 />
-
                 <Button
                   variant="contained"
                   type="submit"
@@ -202,7 +189,7 @@ export default function RegisterPage() {
                   variant="body2"
                   sx={{ textAlign: "center", mb: 2, color: "#757575" }}
                 >
-                  Đã có tài khoảng?{" "}
+                  Đã có tài khoản?{" "}
                   <Link to={PATH.LOGIN} className="login-link">
                     Đăng nhập ngay
                   </Link>
@@ -216,7 +203,7 @@ export default function RegisterPage() {
                 <Box
                   sx={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    justifyContent: "center",
                     mb: 2,
                     mt: 2,
                   }}
@@ -241,6 +228,7 @@ export default function RegisterPage() {
         <Grid item size={6} className="login-right">
           <Box
             sx={{
+              width: "100%",
               height: "100%",
               display: "flex",
               flexDirection: "column",
@@ -248,33 +236,55 @@ export default function RegisterPage() {
               alignItems: "center",
               textAlign: "center",
               p: 3,
+              position: "relative",
+              zIndex: 1,
+            }}
+            style={{
+              backgroundImage: "url('https://png.pngtree.com/background/20250601/original/pngtree-heartshaped-cigarettes-and-their-control-over-humans-picture-image_15487415.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
             }}
           >
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                background: "inherit",
+                filter: "blur(10px)",
+                zIndex: 0,
+              }}
+            />
             <Typography
               variant="h4"
-              sx={{ fontWeight: "bold", color: "#2e7d32", mb: 4 }}
+              sx={{ fontWeight: "bold", color: "#2e7d32", mb: 4, zIndex: 1 }}
             >
               Bắt đầu hành trình từ bỏ thuốc lá của bạn
             </Typography>
-            <Typography variant="body1" sx={{ color: "#757575", mb: 4 }}>
+            <Typography variant="body1" sx={{ color: "#757575", mb: 4, zIndex: 1 }}>
               Theo dõi tiến trình, nâng cao sức khỏe và cải thiện chất lượng
               cuộc sống của bạn.
             </Typography>
             <Box
+              className="image-card"
               sx={{
                 width: "200px",
                 height: "200px",
-                backgroundColor: "#f5f5f5",
                 borderRadius: "16px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+                overflow: "hidden",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
                 mb: 4,
+                zIndex: 1,
               }}
             >
-              <Typography variant="body2" color="text.secondary">
-                Hình ảnh
-              </Typography>
+              <img
+                src="https://png.pngtree.com/png-clipart/20220430/original/pngtree-no-smoking-prohibition-sign-quit-png-image_7613411.png"
+                alt="Healthy lifestyle"
+                style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }}
+              />
             </Box>
             <Box
               sx={{
@@ -282,6 +292,7 @@ export default function RegisterPage() {
                 justifyContent: "space-between",
                 width: "80%",
                 mb: 2,
+                zIndex: 1,
               }}
             >
               <Box
