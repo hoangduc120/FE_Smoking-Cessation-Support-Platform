@@ -40,6 +40,7 @@ import {
   toggleLikeBlogApi,
   addCommentApi,
 } from "../../../store/slices/blogSlice";
+import { selectUser, fetchMessages } from "../../../store/slices/chatSlice";
 import toast from "react-hot-toast";
 
 export default function AuthorProfile() {
@@ -178,13 +179,18 @@ export default function AuthorProfile() {
     [isFollowProcessing, userId, user?._id, isFollowing, dispatch, stats]
   );
 
-  const handleMessage = () => {
-    navigate(`/chat`);
-  };
+  const handleMessage = async () => {
+    if (!author?._id) return;
 
-  // const handleToggleLike = (blogId) => {
-  //   dispatch(toggleLikeBlogApi(blogId));
-  // };
+    // Đặt người được chọn
+    await dispatch(selectUser(author._id));
+
+    // Tải tin nhắn nếu chưa có
+    dispatch(fetchMessages(author._id));
+
+    // Điều hướng đến trang chat
+    navigate("/chat");
+  };
   const handleToggleLike = async (blogId) => {
     try {
       await dispatch(toggleLikeBlogApi(blogId));
