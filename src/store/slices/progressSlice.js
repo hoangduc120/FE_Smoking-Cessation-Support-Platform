@@ -15,7 +15,20 @@ export const createQuitProgree = createAsyncThunk(
   }
 );
 
-
+// get details stage 
+export const fetchProgressRecord = createAsyncThunk(
+  "progress/fetchProgressRecord",
+  async (stageId , { rejectWithValue }) => {
+    try {
+      const response = await fetcher.get(`/quitprogress/by-stage/${stageId}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+);
 export const progressSlice = createSlice({
   name: "progress",
   initialState: {
@@ -37,6 +50,19 @@ export const progressSlice = createSlice({
       state.isLoading = false;
       state.isError = true;
       state.errorMessage = payload?.message || "Failed to select quit plan";
+    })
+    builder.addCase(fetchProgressRecord.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(fetchProgressRecord.fulfilled, (state, { payload }) => {
+      state.isLoading = false;
+      state.isError = null;
+      state.progress = payload;
+    });
+    builder.addCase(fetchProgressRecord.rejected, (state, { payload }) => {
+      state.isLoading = false;
+      state.isError = true;
+      state.errorMessage = payload?.message || "Failed to fetch progress record";
     });
   },
 });

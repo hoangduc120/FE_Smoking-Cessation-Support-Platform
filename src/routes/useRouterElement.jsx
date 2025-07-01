@@ -25,6 +25,7 @@ import PlanManagementPage from "../pages/Coacher/PlanManagementPage/PlanManageme
 import MessagingPage from "../pages/Coacher/MessagingPage/MessagingPage";
 import CreateBlog from "../pages/Home/Blogs/CreateBlog";
 import Roadmap from "../pages/Home/Roadmap/Roadmap";
+import StageDetail from "../pages/Home/StageDetail/StageDetail";
 import ChatApp from "../pages/Home/ChatMessages/ChatPage";
 import AboutUs from "../pages/Home/AboutUs/AboutUs";
 import Benefits from "../pages/Home/Benefit/Benefit";
@@ -173,6 +174,14 @@ export default function useRouterElement() {
           element: (
             <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
               <Roadmap />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: PATH.STAGEDETAIL,
+          element: (
+            <ProtectedRoute allowedRoles={["user", "coach", "admin"]}>
+              <StageDetail />
             </ProtectedRoute>
           ),
         },
