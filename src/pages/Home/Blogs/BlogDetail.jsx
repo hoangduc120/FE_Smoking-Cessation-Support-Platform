@@ -38,6 +38,9 @@ const BlogDetail = () => {
   const navigate = useNavigate();
   const { selectedBlog, isLoading } = useSelector((state) => state.blogs);
   const { currentUser } = useSelector((state) => state.auth);
+  const currentUserId = currentUser?.user?.id;
+  const isLikedByCurrentUser = selectedBlog?.likes?.includes(currentUserId);
+
   const [comment, setComment] = useState("");
   const [isLikeProcessing, setIsLikeProcessing] = useState(false);
   const [visibleComments, setVisibleComments] = useState(5);
@@ -375,15 +378,15 @@ const BlogDetail = () => {
                     onClick={handleLike}
                     disabled={isLikeProcessing}
                     sx={{
-                      color: selectedBlog.isLiked ? "#E53E3E" : "#4CAF50",
+                      color: isLikedByCurrentUser ? "#E53E3E" : "#4CAF50",
                       "&:hover": {
-                        bgcolor: selectedBlog.isLiked
+                        bgcolor: isLikedByCurrentUser
                           ? alpha("#E53E3E", 0.1)
                           : alpha("#4CAF50", 0.1),
                       },
                     }}
                   >
-                    {selectedBlog.isLiked ? (
+                    {isLikedByCurrentUser ? (
                       <FavoriteIcon />
                     ) : (
                       <FavoriteBorderIcon />

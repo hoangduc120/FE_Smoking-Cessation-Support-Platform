@@ -13,6 +13,7 @@ const normalizeBlog = (blog, currentUserId) => ({
   userId: blog.user?._id || "unknown",
   authorName: blog.user?.email?.split("@")[0] || "Người dùng ẩn danh",
   avatar: "/placeholder.svg?height=40&width=40",
+  likes: blog.likes,
   likeCount: blog.likes?.length || 0,
   isLiked: currentUserId ? blog.likes?.includes(currentUserId) : false,
   comments: (blog.comments || []).map((comment, index) => ({
@@ -78,7 +79,7 @@ export const fetchBlogsApi = createAsyncThunk(
     }
   }
 );
-  
+
 export const fetchBlogsByUserApi = createAsyncThunk(
   "blogs/fetchByUser",
   async ({ userId, page = 1, limit = 10 }, { getState, rejectWithValue }) => {
@@ -164,10 +165,16 @@ export const toggleLikeBlogApi = createAsyncThunk(
       const currentUserId = getState().auth.currentUser?.userId;
       const blog = response.data.data;
 
+      // Tính toán trạng thái like và số lượng like từ API response
+      const isLiked = blog.likes?.includes(currentUserId) || false;
+      const likeCount = blog.likes?.length || 0;
+      const likes = blog.likes;
+
       return {
         id: blog._id,
-        isLiked: blog.likes?.includes(currentUserId) || false,
-        likeCount: blog.likes?.length || 0,
+        likes,
+        isLiked,
+        likeCount,
       };
     } catch (error) {
       console.error("Lỗi khi like blog:", error);
@@ -235,25 +242,34 @@ const blogSlice = createSlice({
       state.error = null;
     },
     updateLike: (state, { payload }) => {
-      const { blogId, isLiked, likeCount } = payload;
+      const { blogId, isLiked, likeCount, likes } = payload;
 
-      const blogInList = state.blogs.find(
+      // Cập nhật trong danh sách blogs
+      const blogIndex = state.blogs.findIndex(
         (b) => b.id === blogId || b._id === blogId
       );
-
-      if (blogInList) {
-        blogInList.isLiked = isLiked;
-        blogInList.likeCount = likeCount;
+      if (blogIndex !== -1) {
+        state.blogs[blogIndex] = {
+          ...state.blogs[blogIndex],
+          likes,
+          isLiked,
+          likeCount,
+        };
       }
 
+      // Cập nhật selectedBlog nếu có
       if (
         state.selectedBlog &&
         (state.selectedBlog.id === blogId || state.selectedBlog._id === blogId)
       ) {
-        state.selectedBlog.isLiked = isLiked;
-        state.selectedBlog.likeCount = likeCount;
+        state.selectedBlog = {
+          ...state.selectedBlog,
+          isLiked,
+          likeCount,
+        };
       }
     },
+
     addComment: (state, { payload }) => {
       if (state.selectedBlog && state.selectedBlog.id === payload.blogId) {
         state.selectedBlog.comments = [
@@ -323,24 +339,35 @@ const blogSlice = createSlice({
       toast.error(payload?.message || "Không thể tạo bài viết");
     });
 
-    builder.addCase(toggleLikeBlogApi.pending, (state) => {});
+    builder.addCase(toggleLikeBlogApi.pending, (state) => {
+      // Không cần loading cho like action
+    });
     builder.addCase(toggleLikeBlogApi.fulfilled, (state, { payload }) => {
-      const blog = state.blogs.find(
+      // Cập nhật trong danh sách blogs
+      const blogIndex = state.blogs.findIndex(
         (b) => b.id === payload.id || b._id === payload.id
       );
-
-      if (blog) {
-        blog.isLiked = payload.isLiked;
-        blog.likeCount = payload.likeCount;
+      if (blogIndex !== -1) {
+        state.blogs[blogIndex] = {
+          ...state.blogs[blogIndex],
+          likes: payload.likes,
+          isLiked: payload.isLiked,
+          likeCount: payload.likeCount,
+        };
       }
 
+      // Cập nhật selectedBlog nếu có
       if (
         state.selectedBlog &&
         (state.selectedBlog.id === payload.id ||
           state.selectedBlog._id === payload.id)
       ) {
-        state.selectedBlog.isLiked = payload.isLiked;
-        state.selectedBlog.likeCount = payload.likeCount;
+        state.selectedBlog = {
+          ...state.selectedBlog,
+          likes: payload.likes,
+          isLiked: payload.isLiked,
+          likeCount: payload.likeCount,
+        };
       }
 
       state.error = null;
