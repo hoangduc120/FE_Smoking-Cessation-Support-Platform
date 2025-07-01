@@ -1,5 +1,3 @@
-
-
 export const PATH = {
   // AUTH
   AUTH: "/auth",
@@ -26,6 +24,7 @@ export const PATH = {
   RESOURCES: "/resources",
   CHATPAGE: "/chat",
   ROADMAP: "/roadmap",
+  STAGEDETAIL: "/member/my-roadmap/stage/:stageId",
   SUCCESSPLANRESULT: "/successPlanResult",
   FAILEDPLANRESULT: "/failedPlanResult",
   HISTORYPLAN: "/historyPlan",

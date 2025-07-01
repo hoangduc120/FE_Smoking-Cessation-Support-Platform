@@ -31,7 +31,6 @@ import {
   Clock,
   FileText,
   Medal,
-  Trophy,
   Users,
 } from "lucide-react";
 import "./Roadmap.css";
@@ -39,24 +38,20 @@ import { useDispatch, useSelector } from "react-redux";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
-
 import { fetchPlanCurrent, completeQuitPlan, failQuitPlan, cancelPlan } from "../../../store/slices/planeSlice";
 import { createQuitProgree } from "../../../store/slices/progressSlice";
 import { completeStageApi } from "../../../store/slices/stagesSlice";
 import Loading from "../../../components/Loading/Loading";
 import { infoCompleteQuitPlan } from "../../../store/slices/planeSlice";
 import toast from "react-hot-toast";
+import { FaTrophy } from "react-icons/fa";
 
-// Hardcode data for sections not provided by API
+// Hardcode data for recent achievements
 const hardcodedData = {
   recentAchievements: [
     { id: 1, title: "Hoàn thành 1 tuần giảm dần", date: "24/05/2025" },
     { id: 2, title: "Tiết kiệm 350.000đ", date: "25/05/2025" },
   ],
-  savings: 350000,
-  healthImprovement: 15,
-  daysWithoutSmoking: 0,
-  cravingsManaged: 24,
 };
 
 // Validation schema using Yup
@@ -86,7 +81,6 @@ const Roadmap = () => {
   const { plan, stages, progress, isLoading, isError, errorMessage } =
     useSelector((state) => state.plan);
 
-
   const {
     control,
     handleSubmit,
@@ -105,13 +99,13 @@ const Roadmap = () => {
   const [cancelReason, setCancelReason] = useState("");
   const [cancelError, setCancelError] = useState("");
 
-    // Lọc progress chỉ hiển thị của ngày hiện tại
-    const filterTodayProgress = (progressItems) => {
-      return progressItems.filter((p) => {
-        const progressDate = new Date(p.date).toISOString().split("T")[0];
-        return progressDate === currentDate;
-      });
-    };
+  // Filter progress to show only today's updates
+  const filterTodayProgress = (progressItems) => {
+    return progressItems.filter((p) => {
+      const progressDate = new Date(p.date).toISOString().split("T")[0];
+      return progressDate === currentDate;
+    });
+  };
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -135,7 +129,6 @@ const Roadmap = () => {
       return;
     }
   
-    // Set loading state cho stage cụ thể
     setIsSubmitting(prev => ({ ...prev, [stageId]: true }));
   
     const payload = {
@@ -147,13 +140,8 @@ const Roadmap = () => {
     };
   
     try {
-      console.log("Submitting progress update:", payload);
       await dispatch(createQuitProgree(payload)).unwrap();
-      
-      // Thêm delay nhỏ để đảm bảo dữ liệu được cập nhật trên server
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      console.log("Fetching updated plan data...");
       await dispatch(fetchPlanCurrent()).unwrap();
   
       const lastStage = stages[stages.length - 1];
@@ -168,24 +156,20 @@ const Roadmap = () => {
         }
   
         await checkPlanStatus();
-      } else {
-        console.log("Không phải stage cuối, không cần kiểm tra kế hoạch");
       }
   
       reset();
       setUpdateFormOpen((prev) => ({ ...prev, [stageId]: false }));
-      setIsDayUpdated(true); // Đánh dấu ngày đã cập nhật
+      setIsDayUpdated(true);
       toast.success("Cập nhật tình trạng thành công!");
     } catch (error) {
       console.error("Lỗi khi gửi cập nhật:", error);
       toast.error("Có lỗi xảy ra khi cập nhật tình trạng!");
     } finally {
-      // Reset loading state
       setIsSubmitting(prev => ({ ...prev, [stageId]: false }));
     }
   };
 
-  // Kiểm tra ngày mới để reset form và đóng form mở
   useEffect(() => {
     const interval = setInterval(() => {
       const newDate = new Date().toISOString().split("T")[0];
@@ -193,13 +177,12 @@ const Roadmap = () => {
         setCurrentDate(newDate);
         reset();
         setUpdateFormOpen({});
-        setIsDayUpdated(false); // Reset khi sang ngày mới
+        setIsDayUpdated(false);
       }
     }, 60000);
     return () => clearInterval(interval);
   }, [currentDate, reset]);
 
-  // Kiểm tra và cập nhật trạng thái stage
   useEffect(() => {
     const checkAndUpdateStages = async () => {
       if (plan && stages && stages.length > 0) {
@@ -211,8 +194,6 @@ const Roadmap = () => {
               hasUpdates = true;
             }
           }
-
-          // Nếu có cập nhật stage, kiểm tra trạng thái kế hoạch
           if (hasUpdates) {
             await checkPlanStatus();
           }
@@ -221,7 +202,6 @@ const Roadmap = () => {
         }
       }
     };
-
     checkAndUpdateStages();
   }, [plan, stages, dispatch]);
 
@@ -229,43 +209,30 @@ const Roadmap = () => {
     try {
       let planIdToCheck = plan?._id;
       if (!planIdToCheck) {
-       
         planIdToCheck = localStorage.getItem("lastPlanId");
         if (!planIdToCheck) {
           console.log("Không tìm thấy planId, bỏ qua checkPlanStatus");
           return;
         }
       }
-
       const completionInfo = await dispatch(infoCompleteQuitPlan({ planId: planIdToCheck })).unwrap();
- 
-
       if (completionInfo?.data?.plan?.status === "completed") {
         navigate(`/successPlanResult?status=success&planId=${planIdToCheck}`);
       } else if (completionInfo?.data?.plan?.status === "failed") {
         navigate(`/failedPlanResult?status=failed&planId=${planIdToCheck}`);
-      } else {
-        console.log("Trạng thái kế hoạch không phải completed hoặc failed:", completionInfo?.data?.plan?.status);
       }
     } catch (error) {
       console.error("Lỗi khi kiểm tra trạng thái kế hoạch:", error);
     }
   };
 
-  // useEffect để fetch dữ liệu ban đầu
   useEffect(() => {
     let isMounted = true;
-
     const fetchData = async () => {
       try {
-     
         const result = await dispatch(fetchPlanCurrent()).unwrap();
-     
-
         if (!isMounted) return;
-
         if (result?.data?.plan) {
-         
           if (result.data.plan.status === "completed") {
             navigate(`/successPlanResult?status=success&planId=${result.data.plan._id}`);
             return;
@@ -274,7 +241,6 @@ const Roadmap = () => {
             return;
           }
         } else if (result?.data?.quitPlan) {
-        
           if (result.data.quitPlan.status === "completed") {
             navigate(`/successPlanResult?status=success&planId=${result.data.quitPlan._id}`);
             return;
@@ -283,12 +249,9 @@ const Roadmap = () => {
             return;
           }
         } else {
-        
           const lastPlanId = localStorage.getItem("lastPlanId");
           if (lastPlanId) {
             const completionInfo = await dispatch(infoCompleteQuitPlan({ planId: lastPlanId })).unwrap();
-           
-
             if (completionInfo?.data?.plan?.status === "completed") {
               navigate(`/successPlanResult?status=success&planId=${lastPlanId}`);
               return;
@@ -302,33 +265,30 @@ const Roadmap = () => {
         console.error("Lỗi khi fetch dữ liệu:", error);
       }
     };
-
     fetchData();
-
     return () => {
       isMounted = false;
     };
   }, [dispatch, navigate]);
 
-  // useEffect để lưu planId vào localStorage
   useEffect(() => {
     if (plan?._id) {
       localStorage.setItem("lastPlanId", plan._id);
     }
   }, [plan?._id]);
 
-
-
   const handleOpenCancelDialog = () => {
     setCancelDialogOpen(true);
     setCancelReason("");
     setCancelError("");
   };
+
   const handleCloseCancelDialog = () => {
     setCancelDialogOpen(false);
     setCancelReason("");
     setCancelError("");
   };
+
   const handleCancelPlan = async () => {
     const reason = cancelReason.trim() || null;
     if (!reason && cancelReason.trim() === "") {
@@ -339,20 +299,17 @@ const Roadmap = () => {
       await dispatch(cancelPlan({ reason })).unwrap();
       setCancelDialogOpen(false);
       localStorage.removeItem("lastPlanId");
-      toast.success("Huỷ kế hoạch thành công ")
+      toast.success("Huỷ kế hoạch thành công ");
       navigate("/coachPlan");
     } catch {
       setCancelError("Có lỗi xảy ra khi huỷ kế hoạch. Vui lòng thử lại.");
     }
   };
 
-  // Kiểm tra xem ngày đã có cập nhật chưa
   useEffect(() => {
     const todayProgress = filterTodayProgress(progress);
-    setIsDayUpdated(todayProgress.length > 0); 
-  }, [progress, currentDate])
-
-  
+    setIsDayUpdated(todayProgress.length > 0);
+  }, [progress, currentDate]);
 
   if (isLoading) {
     return <Typography><Loading /></Typography>;
@@ -364,7 +321,7 @@ const Roadmap = () => {
 
   if (!plan && !plan?.quitPlan) {
     return (
-      <Typography sx={{display:"flex", flexDirection:"column", alignItems:"center", padding:"200px", height:"20vh"}}>
+      <Typography sx={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "200px", height: "20vh" }}>
         Bạn chưa có kế hoạch nào. Hãy bắt đầu hành trình cai thuốc lá!
         <Button
           component={Link}
@@ -378,14 +335,12 @@ const Roadmap = () => {
     );
   }
 
-  // Calculate progress based on completed stages
   const totalStages = Array.isArray(stages) ? stages.length : 0;
   const completedStages = Array.isArray(stages)
     ? stages.filter((stage) => stage?.completed)?.length
     : 0;
   const overallProgress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
 
-  // Determine current stage
   const currentStage = Array.isArray(stages) && stages.length > 0
     ? stages.find((stage) => !stage.completed) || stages[0]
     : null;
@@ -393,10 +348,8 @@ const Roadmap = () => {
     ? stages.findIndex((stage) => stage._id === currentStage._id) + 1
     : 1;
 
-  // Check if stage 1 is completed
   const isStage1Completed = Array.isArray(stages) && stages.length > 0 && stages[0]?.completed || false;
 
-  // Format dates
   const formatDate = (dateString) => {
     if (!dateString) {
       return "N/A";
@@ -417,7 +370,6 @@ const Roadmap = () => {
     }
   };
 
-  // Calculate remaining days
   const calculateRemainingDays = (endDate) => {
     if (!endDate) {
       return 0;
@@ -436,7 +388,11 @@ const Roadmap = () => {
     }
   };
 
-
+  const isStageAvailable = (stage) => {
+    const today = new Date();
+    const start = new Date(stage.start_date);
+    return today >= start;
+  };
 
   return (
     <div className="roadMap-container">
@@ -461,7 +417,7 @@ const Roadmap = () => {
                 color: "white",
                 border: "none",
               }}
-              to={`/member/my-roadmap/stage/${currentStageIndex}`}
+              to={`/member/my-roadmap/stage/${currentStage?._id}`}
             >
               Giai đoạn hiện tại
             </Link>
@@ -554,10 +510,10 @@ const Roadmap = () => {
               style={{ width: `${overallProgress}%` }}
             ></div>
             <div className="roadMap-timeline-labels">
-              {stages.map((stage, index) => (
+              {stages.map((stage) => (
                 <div key={stage._id} className="roadMap-timeline-label">
                   <Link
-                    to={`/member/my-roadmap/stage/${index + 1}`}
+                    to={`/member/my-roadmap/stage/${stage._id}`}
                     className={`roadMap-timeline-link ${
                       stage._id === currentStage._id
                         ? "roadMap-timeline-current"
@@ -614,7 +570,7 @@ const Roadmap = () => {
                   alignItems: "center",
                 }}
               >
-                <Trophy size={16} className="roadMap-icon-btn" /> Thành tựu
+                <FaTrophy size={16} className="roadMap-icon-btn" /> Thành tựu
               </Link>
             </Button>
           </div>
@@ -626,7 +582,6 @@ const Roadmap = () => {
           <Grid size={{ xs: 12, md: 8 }} sx={{ lineHeight: "66px" }}>
             {stages.map((stage, index) => {
               const isDisabled = index > 0 && !isStage1Completed;
-              // Lọc progress chỉ cho ngày hiện tại
               const stageProgress = filterTodayProgress(
                 progress?.filter((p) => p.stageId === stage._id) || []
               );
@@ -647,7 +602,16 @@ const Roadmap = () => {
                         : {stage.description}
                       </Typography>
                     }
-                    subheader="Hoàn thành các nhiệm vụ để tiến gần hơn đến mục tiêu"
+                    subheader={
+                      <>
+                        <Typography variant="body2" color="text.secondary">
+                          Thời lượng: {stage.duration} ngày
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {formatDate(stage.start_date)} - {formatDate(stage.end_date)}
+                        </Typography>
+                      </>
+                    }
                   />
                   <CardContent>
                     {stageProgress.length > 0 && (
@@ -803,17 +767,26 @@ const Roadmap = () => {
                     </Collapse>
                   </CardContent>
                   <CardActions>
-  <Button
-    variant="contained"
-    fullWidth
-    sx={{ backgroundColor: "black", color: "white" }}
-    onClick={() => toggleUpdateForm(stage._id)}
-    disabled={isDisabled || isDayUpdated || isSubmitting[stage._id]}
-    
-  >
-    {updateFormOpen[stage._id] ? "Ẩn biểu mẫu" : "Cập nhật tình trạng"}
-  </Button>
-</CardActions>
+                    {!isStageAvailable(stage) ? (
+                      <Typography color="warning.main" sx={{ width: "100%", textAlign: "center" }}>
+                        Giai đoạn chưa tới ngày
+                      </Typography>
+                    ) : stage.completed ? (
+                      <Typography color="success.main" sx={{ width: "100%", textAlign: "center" }}>
+                        Đã hoàn thành giai đoạn này
+                      </Typography>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        sx={{ backgroundColor: "black", color: "white" }}
+                        onClick={() => toggleUpdateForm(stage._id)}
+                        disabled={isDisabled || isDayUpdated || isSubmitting[stage._id]}
+                      >
+                        {updateFormOpen[stage._id] ? "Ẩn biểu mẫu" : "Cập nhật tình trạng"}
+                      </Button>
+                    )}
+                  </CardActions>
                 </Card>
               );
             })}
@@ -823,11 +796,6 @@ const Roadmap = () => {
               <CardHeader
                 title={
                   <Typography variant="h6" className="roadMap-card-title-small">
-                    <Trophy
-                      size={16}
-                      color="#eab308"
-                      className="roadMap-icon"
-                    />{" "}
                     Thành tựu gần đây
                   </Typography>
                 }
@@ -873,167 +841,95 @@ const Roadmap = () => {
               <CardHeader
                 title={
                   <Typography variant="h6" className="roadMap-card-title-small">
-                    Thống kê nhanh
+                    Hỗ trợ & Tài nguyên
                   </Typography>
                 }
               />
               <CardContent>
-                <Grid container spacing={2}>
-                  {[
-                    {
-                      value: hardcodedData.savings.toLocaleString() + "đ",
-                      label: "Tiết kiệm",
-                      color: "#3d7433",
-                      bg: "#e6f4e4",
-                    },
-                    {
-                      value: `+${hardcodedData.healthImprovement}%`,
-                      label: "Sức khỏe",
-                      color: "#3d7433",
-                      bg: "#e6f4e4",
-                    },
-                    {
-                      value: hardcodedData.daysWithoutSmoking,
-                      label: "Ngày không hút",
-                      color: "#3d7433",
-                      bg: "#e6f4e4",
-                    },
-                    {
-                      value: hardcodedData.cravingsManaged,
-                      label: "Cơn thèm đã vượt qua",
-                      color: "#3d7433",
-                      bg: "#e6f4e4",
-                    },
-                  ].map((stat, index) => (
-                    <Grid item xs={6} key={index}>
-                      <div
-                        className="roadMap-stat-item"
-                        style={{
-                          backgroundColor: stat.bg,
-                          borderColor: stat.bg,
-                        }}
-                      >
-                        <Typography
-                          variant="h5"
-                          style={{ color: stat.color }}
+                <Tabs
+                  value={tabValue}
+                  onChange={handleTabChange}
+                  className="roadMap-tabs"
+                >
+                  <Tab
+                    value="community"
+                    label="Cộng đồng"
+                    className="roadMap-tab"
+                  />
+                  <Tab
+                    value="emergency"
+                    label="Hỗ trợ khẩn cấp"
+                    className="roadMap-tab"
+                  />
+                </Tabs>
+                {tabValue === "community" && (
+                  <Box className="roadMap-tab-content">
+                    <div className="roadMap-community-card">
+                      <Typography variant="h6">Cộng đồng hỗ trợ</Typography>
+                      <Typography variant="body2">
+                        Kết nối với những người khác đang trong hành trình cai thuốc lá
+                      </Typography>
+                      <div className="roadMap-community-actions">
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            color: "black",
+                            border: "1px solid #e7e7e7",
+                            textTransform: "none",
+                          }}
                         >
-                          {stat.value}
-                        </Typography>
-                        <Typography variant="caption">{stat.label}</Typography>
+                          Tham gia nhóm chat
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            color: "black",
+                            border: "1px solid #e7e7e7",
+                            textTransform: "none",
+                          }}
+                        >
+                          Diễn đàn
+                        </Button>
                       </div>
-                    </Grid>
-                  ))}
-                </Grid>
+                    </div>
+                  </Box>
+                )}
+                {tabValue === "emergency" && (
+                  <Box className="roadMap-tab-content">
+                    <div className="roadMap-emergency-card">
+                      <Typography variant="h6" color="error">
+                        Hỗ trợ khẩn cấp
+                      </Typography>
+                      <Typography variant="body2">
+                        Khi bạn cảm thấy không thể kiểm soát cơn thèm thuốc
+                      </Typography>
+                      <div className="roadMap-emergency-actions">
+                        <Button variant="contained" color="error">
+                          Gọi hỗ trợ ngay
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            color: "black",
+                            border: "1px solid #e7e7e7",
+                            textTransform: "none",
+                          }}
+                        >
+                          Nhắn với huấn luyện viên
+                        </Button>
+                      </div>
+                    </div>
+                  </Box>
+                )}
               </CardContent>
-              <CardActions>
-                <Button variant="text" size="small" fullWidth>
-                  <Link
-                    to="/stats"
-                    style={{
-                      textDecoration: "none",
-                      display: "flex",
-                      alignItems: "center",
-                      color: "#6f7583",
-                    }}
-                  >
-                    Xem chi tiết
-                    <ChevronRight size={16} className="roadMap-icon" />
-                  </Link>
-                </Button>
-              </CardActions>
             </Card>
           </Grid>
         </Grid>
       </Box>
 
-      <Box sx={{ marginTop: "40px" }}>
-        <Card className="roadMap-card" sx={{ width: "100%" }}>
-          <CardHeader title="Hỗ trợ & Tài nguyên" />
-          <CardContent>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              className="roadMap-tabs"
-            >
-              <Tab
-                value="community"
-                label="Cộng đồng"
-                className="roadMap-tab"
-              />
-              <Tab
-                value="emergency"
-                label="Hỗ trợ khẩn cấp"
-                className="roadMap-tab"
-              />
-            </Tabs>
-            {tabValue === "community" && (
-              <Box className="roadMap-tab-content">
-                <div className="roadMap-community-card">
-                  <Typography variant="h6">Cộng đồng hỗ trợ</Typography>
-                  <Typography variant="body2">
-                    Kết nối với những người khác đang trong hành trình cai thuốc
-                    lá
-                  </Typography>
-                  <div className="roadMap-community-actions">
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        color: "black",
-                        border: "1px solid #e7e7e7",
-                        textTransform: "none",
-                      }}
-                    >
-                      Tham gia nhóm chat
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        color: "black",
-                        border: "1px solid #e7e7e7",
-                        textTransform: "none",
-                      }}
-                    >
-                      Diễn đàn
-                    </Button>
-                  </div>
-                </div>
-              </Box>
-            )}
-            {tabValue === "emergency" && (
-              <Box className="roadMap-tab-content">
-                <div className="roadMap-emergency-card">
-                  <Typography variant="h6" color="error">
-                    Hỗ trợ khẩn cấp
-                  </Typography>
-                  <Typography variant="body2">
-                    Khi bạn cảm thấy không thể kiểm soát cơn thèm thuốc
-                  </Typography>
-                  <div className="roadMap-emergency-actions">
-                    <Button variant="contained" color="error">
-                      Gọi hỗ trợ ngay
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        color: "black",
-                        border: "1px solid #e7e7e7",
-                        textTransform: "none",
-                      }}
-                    >
-                      Nhắn với huấn luyện viên
-                    </Button>
-                  </div>
-                </div>
-              </Box>
-            )}
-          </CardContent>
-        </Card>
-      </Box>
-
-      {/* Dialog huỷ kế hoạch */}
       <Dialog open={cancelDialogOpen} onClose={handleCloseCancelDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#d32f2f', fontWeight: 700, fontSize: 22 }}>
           <span style={{ display: 'flex', alignItems: 'center' }}>

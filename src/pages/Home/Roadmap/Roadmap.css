@@ -1,8 +1,10 @@
 /* General container */
 .roadMap-container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 32px;
+  background: linear-gradient(180deg, #f8fafc 0%, #e6f0e9 100%);
+  min-height: 100vh;
 }
 
 /* Header */
@@ -10,7 +12,25 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  background: linear-gradient(to right, #50b975 0%, #50b975 100%);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.roadMap-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent);
+  pointer-events: none;
 }
 
 @media (min-width: 768px) {
@@ -22,38 +42,68 @@
 }
 
 .roadMap-title {
-  font-weight: 700;
+  font-weight: 800 !important;
+  font-size: 2.25rem !important;
+  background: linear-gradient(135deg, #ffffff, #d1d5db);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
 }
 
 .roadMap-subtitle {
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem !important;
+  font-weight: 400;
 }
 
 .roadMap-header-actions {
   display: flex;
-  gap: 8px;
+  gap: 16px;
 }
 
 button.roadMap-action-button {
-  border: 1px solid #e7e7e5;
-  font-size: 14px !important;
-  text-decoration-line: none !important;
-  color: black !important;
+  border: none !important;
+  font-size: 1rem !important;
+  text-decoration: none !important;
+  color: #ffffff !important;
   text-transform: none !important;
+  background: linear-gradient(to right, #2e7d32, #388e3c);
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button.roadMap-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+button.roadMap-action-button[aria-label="cancel"] {
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
 }
 
 /* Overview Card */
 .roadMap-overview-card {
   width: 100%;
-  padding: 20px;
-  border: 1px solid #dedede;
-  border-radius: 10px;
+  padding: 32px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transition: transform 0.3s ease;
+}
+
+.roadMap-overview-card:hover {
+  transform: translateY(-5px);
 }
 
 .roadMap-card-header-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 
 @media (min-width: 768px) {
@@ -65,111 +115,137 @@ button.roadMap-action-button {
 }
 
 .roadMap-card-title {
-  font-size: 1.5rem !important;
-  font-weight: 700 !important;
+  font-size: 1.875rem !important;
+  font-weight: 800 !important;
+  color: #1e293b;
+  letter-spacing: -0.5px;
 }
 
 .roadMap-card-description {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 5px;
-  color: #939393;
+  gap: 10px;
+  margin-top: 10px;
+  color: #64748b;
   font-weight: 500;
-  font-size: 15px !important;
+  font-size: 1rem !important;
 }
 
 .roadMap-coach-link {
-  color: black;
-  font-weight: 500;
+  color: #50b975;
+  font-weight: 600;
   text-decoration: none;
-  font-size: 15px !important;
+  font-size: 1rem !important;
+  transition: color 0.3s ease;
+}
+
+.roadMap-coach-link:hover {
+  color: #2e7d32;
 }
 
 .roadMap-card-badges {
   display: flex;
-  gap: 8px;
+  gap: 16px;
 }
 
 .roadMap-badge {
-  background-color: #d1cdcf;
-  width: auto;
-  font-size: 11px !important;
-  padding: 5px;
-  border-radius: 10px;
+  background: linear-gradient(to right, #50b975 0%, #50b975 100%);
+  color: #ffffff;
+  font-size: 0.85rem !important;
+  padding: 8px 16px;
+  border-radius: 20px;
   font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .roadMap-icon {
-  margin-right: 4px;
-  color: #939393;
-  font-size: 15px !important;
+  margin-right: 8px;
+  color: #ffffff;
+  font-size: 0.9rem !important;
 }
 
 .roadMap-icon-btn {
-  margin-right: 4px;
-  color: black;
-  font-size: 15px !important;
+  margin-right: 8px;
+  color: #50b975;
+  font-size: 1rem !important;
 }
 
-/* roadMap-card-container */
-
+/* Card Container */
 .roadMap-card-container {
-  margin-top: 40px;
-  width: 104%;
+  margin-top: 48px;
+  width: 100%;
 }
 
 .roadMap-card-content {
-  padding-top: 24px;
+  padding-top: 32px;
 }
 
 .roadMap-card {
-  border: 1px solid #dedede;
-  padding: 20px;
+  border: none;
+  padding: 32px;
   display: flex;
   flex-direction: column;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.roadMap-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
 }
 
 .roadMap-progress-section {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .roadMap-progress-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
-  font-size: 15px;
-  font-weight: 500;
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .roadMap-progress-bar {
-  height: 8px !important;
-  background-color: #f4f4f4 !important;
+  height: 12px !important;
+  background-color: #e6f0e9 !important;
   border-radius: 10px;
 }
+
 .roadMap-progress-bar.MuiLinearProgress-determinate .MuiLinearProgress-bar {
-  background-color: #4caf50 !important;
+  background: linear-gradient(to right, #50b975 0%, #50b975 100%) !important;
+  border-radius: 10px;
 }
 
 .roadMap-timeline {
   position: relative;
-  padding: 13px 0 8px;
+  padding: 24px 0;
 }
 
 .roadMap-timeline-line {
   position: absolute;
-  top: 20px;
+  top: 28px;
   left: 0;
   width: 100%;
-  height: 4px;
-  background-color: #d1d5db;
+  height: 6px;
+  background: #e6f0e9;
+  border-radius: 3px;
   z-index: 5;
 }
 
 .roadMap-timeline-progress {
-  height: 100%;
-  background-color: #000000 !important;
-  transition: width 0.3s ease;
+  position: absolute;
+  top: 28px;
+  left: 0;
+  height: 6px;
+  background: linear-gradient(to right, #50b975 0%, #50b975 100%) !important;
+  border-radius: 3px;
+  transition: width 0.5s ease-in-out;
+  z-index: 6;
 }
 
 .roadMap-timeline-markers {
@@ -186,52 +262,44 @@ button.roadMap-action-button {
 }
 
 .roadMap-timeline-circle {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: transform 0.3s ease;
+}
+
+.roadMap-timeline-circle:hover {
+  transform: scale(1.1);
 }
 
 .roadMap-timeline-completed {
-  background-color: #000000;
-  color: white;
+  background: linear-gradient(to right, #50b975 0%, #50b975 100%);
+  color: #ffffff;
 }
 
 .roadMap-timeline-current {
-  background-color: #cad0d5;
-  border: 2px solid black;
-  color: #4db053 !important;
+  background: #ffffff;
+  border: 4px solid #50b975;
+  color: #50b975 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .roadMap-timeline-pending {
-  background-color: #f3f4f6;
-  border: 1px solid #d1d5db;
-}
-
-.roadMap-timeline-line {
-  position: absolute;
-  top: 27px;
-  left: 12px;
-  right: 12px;
-  height: 1px;
-  background-color: rgba(107, 114, 128, 0.2);
-}
-
-.roadMap-timeline-progress {
-  position: absolute;
-  top: 27px;
-  left: 0;
-  height: 1px;
-  background-color: #3b82f6;
+  background: #f1f5f9;
+  border: 2px solid #d1d5db;
+  color: #64748b;
 }
 
 .roadMap-timeline-labels {
   display: flex;
   justify-content: space-between;
-  padding-top: 32px;
+  padding-top: 40px;
 }
 
 .roadMap-timeline-label {
@@ -239,32 +307,40 @@ button.roadMap-action-button {
   flex-direction: column;
   align-items: center;
   width: 20%;
-  padding: 0 4px;
+  padding: 0 8px;
 }
 
 .roadMap-timeline-link {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 600;
   text-align: center;
   text-decoration: none;
-  color: #111827;
+  color: #1e293b;
+  transition: color 0.3s ease;
+}
+
+.roadMap-timeline-link:hover {
+  color: #50b975;
 }
 
 .roadMap-timeline-current {
-  color: black !important;
+  color: #50b975 !important;
 }
 
 .roadMap-timeline-duration {
-  font-size: 10px;
-  color: #6b7280;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 400;
 }
 
 .roadMap-card-footer {
-  background-color: #f9fafb;
+  background: #f8fafc;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px;
+  padding: 20px;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 
 @media (min-width: 768px) {
@@ -278,117 +354,160 @@ button.roadMap-action-button {
 .roadMap-footer-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .roadMap-footer-left span {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 /* Tasks */
 .roadMap-task-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  gap: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
   margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .roadMap-task-label {
-  font-size: 14px;
+  font-size: 0.95rem;
   font-weight: 500;
-  color: #000000;
+  color: #1e293b;
 }
 
 .roadMap-task-completed {
   text-decoration: line-through;
-  color: #6b7280;
+  color: #64748b;
 }
 
 /* Achievements and Stats */
 .roadMap-card-title-small {
-  font-size: 1.125rem;
+  font-size: 1.375rem;
   display: flex;
   align-items: center;
+  color: #1e293b;
+  font-weight: 700;
 }
 
 .roadMap-achievement-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
-  background-color: #f3f4f6;
-  border-radius: 4px;
-  margin-bottom: 8px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f1f5f9, #e6f0e9);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease;
+}
+
+.roadMap-achievement-item:hover {
+  transform: translateY(-3px);
 }
 
 .roadMap-achievement-content {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .roadMap-achievement-content span {
-  font-size: 14px;
+  font-size: 1rem;
+  color: #1e293b;
 }
 
 .roadMap-achievement-date {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.roadMap-stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  border: 1px solid;
-  border-radius: 8px;
-  text-align: center;
-}
-
-.roadMap-stat-item p:first-child {
-  margin-bottom: 4px;
-}
-
-.roadMap-progress-content{
-box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;
+  font-size: 0.85rem;
+  color: #64748b;
 }
 
 /* Support Section */
 .roadMap-tabs-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .roadMap-tab {
   text-transform: none !important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  background: #f1f5f9;
+  border-radius: 10px;
+  margin: 0 6px;
+  padding: 12px !important;
+  transition: all 0.3s ease;
+}
+
+.roadMap-tab.Mui-selected {
+  background: linear-gradient(to right, #50b975 0%, #50b975 100%);
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .roadMap-tab-content {
-  padding-top: 16px;
+  padding-top: 20px;
 }
 
 .roadMap-community-card,
 .roadMap-emergency-card {
-  padding: 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  padding: 24px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
 .roadMap-community-card h6,
 .roadMap-emergency-card h6 {
-  margin-bottom: 8px;
+  margin-bottom: 16px;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1e293b;
 }
 
 .roadMap-community-actions,
 .roadMap-emergency-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.roadMap-community-actions button,
+.roadMap-emergency-actions button {
+  border: none;
+  color: #ffffff;
+  text-transform: none;
+  font-weight: 600;
+  background: linear-gradient(to right, #50b975 0%, #50b975 100%);
+  border-radius: 10px;
+  padding: 10px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.roadMap-community-actions button:hover,
+.roadMap-emergency-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.roadMap-emergency-actions button.MuiButton-containedError {
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+}
+
+/* Dialog */
+.MuiDialog-paper {
+  border-radius: 16px !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
 }
