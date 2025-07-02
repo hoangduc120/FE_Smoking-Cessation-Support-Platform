@@ -42,6 +42,7 @@ import FollowPage from "../pages/Home/FollowPage/FollowPage";
 import HistoryPlan from "../pages/Home/HistoryPlan/HistoryPlan";
 import PaymentSuccessPage from "../pages/Home/Checkout/PaymentSuccessPage";
 import PaymentFailedPage from "../pages/Home/Checkout/PaymentFailedPage";
+import CustomQuitPlan from "../pages/Home/CustomQuitPlan/CustomQuitPlan";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -218,6 +219,14 @@ export default function useRouterElement() {
         {
           path: PATH.PAYMENTFAILED,
           element: <PaymentFailedPage />,
+        },
+        {
+          path: PATH.CUSTOMQUITPLAN,
+          element: (
+            <ProtectedRoute allowedRoles={["user"]}>
+              <CustomQuitPlan />
+            </ProtectedRoute>
+          ),
         },
       ],
     },

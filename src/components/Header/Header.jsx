@@ -108,14 +108,15 @@ const Header = () => {
         <Link to={PATH.UPGRADEMEMBER} className="nav-link">
           Gói Thành Viên
         </Link>
-   
+        <Link to={PATH.CUSTOMQUITPLAN} className="nav-link">
+          Kế hoạch cá nhân
+        </Link>
         <Link to={PATH.BENEFIT} className="nav-link">
           Lợi ích cai thuốc
         </Link>
         <Link to={PATH.ABOUTUS} className="nav-link">
           Về chúng tôi
         </Link>
-     
       </Box>
       <Box
         className="header-actions"
