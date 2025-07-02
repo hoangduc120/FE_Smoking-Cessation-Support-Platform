@@ -208,7 +208,7 @@ export default function LoginPage() {
               objectFit: "contain",
             }}
             style={{
-              backgroundImage: "url('https://png.pngtree.com/background/20250601/original/pngtree-heartshaped-cigarettes-and-their-control-over-humans-picture-image_15487415.jpg')",
+              backgroundImage: "url('https://png.pngtree.com/thumb_back/fh260/background/20210911/pngtree-world-quit-day-cigarette-quit-smoking-photography-picture-image_863095.jpg')",
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
