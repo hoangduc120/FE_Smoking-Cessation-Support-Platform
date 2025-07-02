@@ -32,7 +32,7 @@ export const PATH = {
   FOLLOWPAGE: "/follow/:userId",
   PAYMENTSUCCESS: "/payment/success",
   PAYMENTFAILED: "/payment/failed",
-
+  CUSTOMQUITPLAN: "/customPlan",
   // COACH
   COACH: "/coach",
   PLANMANAGEMEMTPAGE: "/coach/plan-management",
