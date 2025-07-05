@@ -40,6 +40,7 @@ export const PATH = {
   COACH_PLAN_BADGE: "/coach/badge",
   COACH_SETTINGS: "/coach/settings",
   PROFILECOACH: "/coach/profileCoach",
+  COACHQUITPLANS: "/coach/quitPlan",
 
   // ADMIN
   ADMIN: "/admin",

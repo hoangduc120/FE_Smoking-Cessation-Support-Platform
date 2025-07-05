@@ -43,6 +43,7 @@ import HistoryPlan from "../pages/Home/HistoryPlan/HistoryPlan";
 import PaymentSuccessPage from "../pages/Home/Checkout/PaymentSuccessPage";
 import PaymentFailedPage from "../pages/Home/Checkout/PaymentFailedPage";
 import CustomQuitPlan from "../pages/Home/CustomQuitPlan/CustomQuitPlan";
+import CoachQuitPlans from "../pages/Coacher/CoachQuitPlan/CoachQuitPlans";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -253,6 +254,7 @@ export default function useRouterElement() {
         { path: PATH.COACH_MESSAGING, element: <MessagingPage /> },
         { path: PATH.COACH_PLAN_BADGE, element: <BadgeTable /> },
         { path: PATH.PROFILECOACH, element: <ProfileCoach /> },
+        { path: PATH.COACHQUITPLANS, element: <CoachQuitPlans /> },
       ],
     },
     // ADMIN
