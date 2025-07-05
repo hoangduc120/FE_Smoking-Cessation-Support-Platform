@@ -16,6 +16,7 @@ import { PATH } from "../../routes/path";
 import { logoutApi } from "../../store/slices/authSlice";
 import toast from "react-hot-toast";
 import { fetchUser } from "../../store/slices/userSlice";
+import { fetchUserMembership } from "../../store/slices/userMembershipSlice";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -23,11 +24,17 @@ const Header = () => {
   const { user } = useSelector((state) => state.user);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const { userMembershipData } = useSelector((state) => state.userMembership);
 
   useEffect(() => {
     dispatch(fetchUser());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (user?._id) {
+      dispatch(fetchUserMembership(user._id));
+    }
+  }, [dispatch, user?._id]);
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -83,7 +90,7 @@ const Header = () => {
     handleClose();
     navigate(PATH.HISTORYPLAN);
   };
-
+  const isPremiumUser = userMembershipData?.currentPlan?.name === "Premium";
   return (
     <Box className="header">
       <Box className="header-logo">
@@ -108,9 +115,11 @@ const Header = () => {
         <Link to={PATH.UPGRADEMEMBER} className="nav-link">
           Gói Thành Viên
         </Link>
-        <Link to={PATH.CUSTOMQUITPLAN} className="nav-link">
-          Kế hoạch cá nhân
-        </Link>
+        {isPremiumUser && (
+          <Link to={PATH.CUSTOMQUITPLAN} className="nav-link">
+            Kế hoạch cá nhân
+          </Link>
+        )}
         <Link to={PATH.BENEFIT} className="nav-link">
           Lợi ích cai thuốc
         </Link>

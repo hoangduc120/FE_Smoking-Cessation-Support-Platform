@@ -29,6 +29,12 @@ const SIDEBAR_ITEMS = [
     color: "#10B981",
     href: "/coach/badge",
   },
+  {
+    name: "View Quit Plan",
+    icon: Menu,
+    color: "#0000DD",
+    href: "/coach/quitPlan",
+  },
   // {
   //   name: "Settings",
   //   icon: Settings,
@@ -104,7 +110,7 @@ const SidebarCoach = () => {
             <Link key={item.href} to={item.href}>
               <motion.div
                 className="sidebar__nav-item"
-                style={{ borderRight: `4px solid ${item.color}` }} 
+                style={{ borderRight: `4px solid ${item.color}` }}
               >
                 <item.icon
                   size={20}
