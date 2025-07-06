@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
@@ -17,6 +17,11 @@ import {
   Snackbar,
   Paper,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -25,14 +30,18 @@ import {
   SmokingRooms as SmokingIcon,
 } from "@mui/icons-material";
 import { createCustomQuitPlan } from "../../../store/slices/customPlanSlice";
+import { fetchPlanCurrent } from "../../../store/slices/planeSlice";
+import { useNavigate } from "react-router-dom";
 
 const CustomQuitPlan = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
     isLoading = false,
     isError = false,
     errorMessage = null,
-  } = useSelector((state) => state.customPlan || {});
+    plan = null,
+  } = useSelector((state) => state.plan || {}); // Changed to use 'plan' slice
 
   const [planData, setPlanData] = useState({
     title: "",
@@ -52,6 +61,8 @@ const CustomQuitPlan = () => {
     severity: "success",
   });
 
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
   const ruleTypes = [
     { value: "daily", label: "Giảm hàng ngày", unit: "điếu/ngày" },
     { value: "duration", label: "Thời gian hoàn thành", unit: "ngày" },
@@ -64,6 +75,10 @@ const CustomQuitPlan = () => {
     { value: "reduce_75", label: "Giảm 75%" },
     { value: "weekend_only", label: "Chỉ hút cuối tuần" },
   ];
+
+  useEffect(() => {
+    dispatch(fetchPlanCurrent());
+  }, [dispatch]);
 
   const handleInputChange = (field, value) => {
     setPlanData((prev) => ({
@@ -112,7 +127,9 @@ const CustomQuitPlan = () => {
     }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent page refresh
+
     if (
       !planData.title ||
       !planData.description ||
@@ -126,6 +143,13 @@ const CustomQuitPlan = () => {
       return;
     }
 
+    // Check if user has an active plan
+    if (plan?._id) {
+      setConfirmDialogOpen(true);
+      return;
+    }
+
+    // Proceed with plan creation
     try {
       const resultAction = await dispatch(createCustomQuitPlan(planData));
       if (createCustomQuitPlan.fulfilled.match(resultAction)) {
@@ -134,21 +158,28 @@ const CustomQuitPlan = () => {
           message: "Kế hoạch cai thuốc đã được tạo thành công!",
           severity: "success",
         });
-
-        // Reset form
         setPlanData({ title: "", description: "", rules: [] });
       } else {
         throw new Error(
-          resultAction.payload || "Có lỗi xảy ra khi tạo kế hoạch"
+          resultAction.payload?.message || "Có lỗi xảy ra khi tạo kế hoạch"
         );
       }
     } catch (error) {
       setNotification({
         open: true,
-        message: error.message || "Có lỗi xảy ra khi tạo kế hoạch",
+        message:
+          error.message || "Có lỗi xảy ra khi tạo kế hoạch. Vui lòng thử lại.",
         severity: "error",
       });
     }
+  };
+
+  const handleCancelPlan = async () => {
+    navigate("/roadmap");
+  };
+
+  const handleKeepPlan = () => {
+    setConfirmDialogOpen(false);
   };
 
   const getRuleTypeLabel = (ruleType) => {
@@ -277,7 +308,7 @@ const CustomQuitPlan = () => {
               ) : (
                 <TextField
                   fullWidth
-                  label="Giá trị"
+                  label="Số ngày"
                   type="number"
                   value={newRule.value}
                   onChange={(e) => handleNewRuleChange("value", e.target.value)}
@@ -346,7 +377,7 @@ const CustomQuitPlan = () => {
                           sx={{ mr: 1 }}
                         />
                         <Typography variant="body2" color="text.secondary">
-                          Giá trị:{" "}
+                          Số ngày:{" "}
                           {rule.rule === "specificGoal"
                             ? getSpecificGoalLabel(rule.value)
                             : rule.value}
@@ -409,6 +440,31 @@ const CustomQuitPlan = () => {
           {isError ? errorMessage : notification.message}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={handleKeepPlan}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Bạn đã có một kế hoạch đang thực hiện
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Bạn đã tham gia 1 kế hoạch, nếu muốn tiếp tục tạo kế hoạch thì bạn
+            cần hủy kế hoạch hiện tại. Bạn có muốn hủy không?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleKeepPlan} color="primary">
+            Không hủy
+          </Button>
+          <Button onClick={handleCancelPlan} color="error" autoFocus>
+            Tiếp tục hủy
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

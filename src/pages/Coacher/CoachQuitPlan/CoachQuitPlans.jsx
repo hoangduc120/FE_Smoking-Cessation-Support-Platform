@@ -1,672 +1,3 @@
-// "use client";
-
-// import { useState, useEffect } from "react";
-// import {
-//   Box,
-//   Card,
-//   CardContent,
-//   Typography,
-//   Button,
-//   Grid,
-//   Chip,
-//   Dialog,
-//   DialogTitle,
-//   DialogContent,
-//   DialogActions,
-//   Alert,
-//   Snackbar,
-//   Paper,
-//   Tabs,
-//   Tab,
-//   CircularProgress,
-//   Divider,
-//   List,
-//   ListItem,
-//   ListItemText,
-//   IconButton,
-//   Tooltip,
-// } from "@mui/material";
-// import {
-//   CheckCircle as ApproveIcon,
-//   Cancel as RejectIcon,
-//   Person as PersonIcon,
-//   Schedule as ScheduleIcon,
-//   Rule as RuleIcon,
-//   Refresh as RefreshIcon,
-//   Email as EmailIcon,
-// } from "@mui/icons-material";
-// import React from "react";
-
-// // A no-op transition that simply renders its children
-// const NoTransition = React.forwardRef(function NoTransition(props, ref) {
-//   const { children } = props;
-//   return <div ref={ref}>{children}</div>;
-// });
-
-// const CoachQuitPlans = () => {
-//   // Hardcoded data for display
-//   const hardcodedPlans = [
-//     {
-//       _id: "68693099d4f943a0d10c050e",
-//       userId: {
-//         _id: "6835967c9a0dc287ff72ae9f",
-//         userName: "truongdoan25",
-//         email: "doandinhquangtruong@gmail.com",
-//       },
-//       coachId: null,
-//       title: "Kế hoạch cai thuốc lá cá nhân",
-//       description: "Tôi muốn một kế hoạch phù hợp với lịch làm việc của mình",
-//       rules: [
-//         {
-//           rule: "daily",
-//           value: 10,
-//           description: "Giảm 10 điếu mỗi ngày",
-//           _id: "68693099d4f943a0d10c050f",
-//         },
-//         {
-//           rule: "duration",
-//           value: 60,
-//           description: "Hoàn thành trong 60 ngày",
-//           _id: "68693099d4f943a0d10c0510",
-//         },
-//         {
-//           rule: "specificGoal",
-//           value: "quit_completely",
-//           description: "Mục tiêu: Bỏ thuốc hoàn toàn triệt để",
-//           _id: "68693099d4f943a0d10c0511",
-//         },
-//       ],
-//       status: "pending",
-//       quitPlanId: null,
-//       createdAt: "2025-01-05T14:03:05.714Z",
-//       updatedAt: "2025-01-05T14:03:05.714Z",
-//       __v: 0,
-//     },
-//     {
-//       _id: "68693099d4f943a0d10c051a",
-//       userId: {
-//         _id: "6835967c9a0dc287ff72ae8f",
-//         userName: "nguyenvan123",
-//         email: "nguyenvan@gmail.com",
-//       },
-//       coachId: null,
-//       title: "Kế hoạch giảm dần thuốc lá",
-//       description: "Muốn giảm từ từ để không bị shock",
-//       rules: [
-//         {
-//           rule: "daily",
-//           value: 5,
-//           description: "Giảm 5 điếu mỗi ngày",
-//           _id: "68693099d4f943a0d10c051b",
-//         },
-//         {
-//           rule: "duration",
-//           value: 30,
-//           description: "Hoàn thành trong 30 ngày",
-//           _id: "68693099d4f943a0d10c051c",
-//         },
-//       ],
-//       status: "approved",
-//       quitPlanId: null,
-//       createdAt: "2025-01-04T10:15:20.714Z",
-//       updatedAt: "2025-01-04T15:30:45.714Z",
-//       __v: 0,
-//     },
-//     {
-//       _id: "68693099d4f943a0d10c052a",
-//       userId: {
-//         _id: "6835967c9a0dc287ff72ae7f",
-//         userName: "lethimai",
-//         email: "lethimai@gmail.com",
-//       },
-//       coachId: null,
-//       title: "Kế hoạch cai thuốc cuối tuần",
-//       description: "Chỉ muốn hút thuốc vào cuối tuần thôi",
-//       rules: [
-//         {
-//           rule: "specificGoal",
-//           value: "weekend_only",
-//           description: "Chỉ hút cuối tuần",
-//           _id: "68693099d4f943a0d10c052b",
-//         },
-//       ],
-//       status: "rejected",
-//       quitPlanId: null,
-//       createdAt: "2025-01-03T08:20:15.714Z",
-//       updatedAt: "2025-01-03T16:45:30.714Z",
-//       __v: 0,
-//     },
-//     {
-//       _id: "68693099d4f943a0d10c053a",
-//       userId: {
-//         _id: "6835967c9a0dc287ff72ae6f",
-//         userName: "phamhoang",
-//         email: "phamhoang@gmail.com",
-//       },
-//       coachId: null,
-//       title: "Kế hoạch cai thuốc nhanh",
-//       description: "Muốn bỏ thuốc trong thời gian ngắn nhất",
-//       rules: [
-//         {
-//           rule: "daily",
-//           value: 15,
-//           description: "Giảm 15 điếu mỗi ngày",
-//           _id: "68693099d4f943a0d10c053b",
-//         },
-//         {
-//           rule: "duration",
-//           value: 14,
-//           description: "Hoàn thành trong 2 tuần",
-//           _id: "68693099d4f943a0d10c053c",
-//         },
-//         {
-//           rule: "specificGoal",
-//           value: "quit_completely",
-//           description: "Bỏ thuốc hoàn toàn",
-//           _id: "68693099d4f943a0d10c053d",
-//         },
-//       ],
-//       status: "pending",
-//       quitPlanId: null,
-//       createdAt: "2025-01-05T09:30:10.714Z",
-//       updatedAt: "2025-01-05T09:30:10.714Z",
-//       __v: 0,
-//     },
-//     {
-//       _id: "68693099d4f943a0d10c054a",
-//       userId: {
-//         _id: "6835967c9a0dc287ff72ae5f",
-//         userName: "tranminh",
-//         email: "tranminh@gmail.com",
-//       },
-//       coachId: null,
-//       title: "Kế hoạch giảm 75%",
-//       description: "Không muốn bỏ hoàn toàn, chỉ giảm 75%",
-//       rules: [
-//         {
-//           rule: "specificGoal",
-//           value: "reduce_75",
-//           description: "Giảm 75% lượng thuốc",
-//           _id: "68693099d4f943a0d10c054b",
-//         },
-//         {
-//           rule: "duration",
-//           value: 45,
-//           description: "Thực hiện trong 45 ngày",
-//           _id: "68693099d4f943a0d10c054c",
-//         },
-//       ],
-//       status: "approved",
-//       quitPlanId: null,
-//       createdAt: "2025-01-02T14:25:35.714Z",
-//       updatedAt: "2025-01-02T18:40:20.714Z",
-//       __v: 0,
-//     },
-//   ];
-
-//   const [plans, setPlans] = useState(hardcodedPlans);
-//   const [filteredPlans, setFilteredPlans] = useState(hardcodedPlans);
-//   const [loading, setLoading] = useState(false); // Set to false since we're using hardcoded data
-//   const [selectedTab, setSelectedTab] = useState(0);
-//   const [confirmDialog, setConfirmDialog] = useState({
-//     open: false,
-//     planId: null,
-//     action: null,
-//     planTitle: "",
-//   });
-//   const [notification, setNotification] = useState({
-//     open: false,
-//     message: "",
-//     severity: "success",
-//   });
-//   const [actionLoading, setActionLoading] = useState(null);
-
-//   const statusTabs = [
-//     { label: "Tất cả", value: "all", color: "default" },
-//     { label: "Chờ duyệt", value: "pending", color: "warning" },
-//     { label: "Đã duyệt", value: "approved", color: "success" },
-//     { label: "Đã từ chối", value: "rejected", color: "error" },
-//   ];
-
-//   const fetchPlans = async () => {
-//     // Simulate loading for demo purposes
-//     setLoading(true);
-//     setTimeout(() => {
-//       setPlans(hardcodedPlans);
-//       setLoading(false);
-//       setNotification({
-//         open: true,
-//         message: "Dữ liệu đã được làm mới!",
-//         severity: "success",
-//       });
-//     }, 1000);
-//   };
-
-//   useEffect(() => {
-//     const currentTab = statusTabs[selectedTab];
-//     if (currentTab.value === "all") {
-//       setFilteredPlans(plans);
-//     } else {
-//       setFilteredPlans(
-//         plans.filter((plan) => plan.status === currentTab.value)
-//       );
-//     }
-//   }, [plans, selectedTab]);
-
-//   const handleAction = async (planId, action) => {
-//     setActionLoading(planId);
-
-//     // Simulate API call
-//     setTimeout(() => {
-//       // Update the plan status in hardcoded data
-//       const updatedPlans = plans.map((plan) =>
-//         plan._id === planId
-//           ? { ...plan, status: action === "approve" ? "approved" : "rejected" }
-//           : plan
-//       );
-//       setPlans(updatedPlans);
-
-//       setNotification({
-//         open: true,
-//         message: `Kế hoạch đã được ${action === "approve" ? "duyệt" : "từ chối"} thành công!`,
-//         severity: "success",
-//       });
-
-//       setActionLoading(null);
-//       setConfirmDialog({
-//         open: false,
-//         planId: null,
-//         action: null,
-//         planTitle: "",
-//       });
-//     }, 1500);
-//   };
-
-//   const openConfirmDialog = (planId, action, planTitle) => {
-//     setConfirmDialog({
-//       open: true,
-//       planId,
-//       action,
-//       planTitle,
-//     });
-//   };
-
-//   const getStatusColor = (status) => {
-//     switch (status) {
-//       case "pending":
-//         return "warning";
-//       case "approved":
-//         return "success";
-//       case "rejected":
-//         return "error";
-//       default:
-//         return "default";
-//     }
-//   };
-
-//   const getStatusText = (status) => {
-//     switch (status) {
-//       case "pending":
-//         return "Chờ duyệt";
-//       case "approved":
-//         return "Đã duyệt";
-//       case "rejected":
-//         return "Đã từ chối";
-//       default:
-//         return status;
-//     }
-//   };
-
-//   const getRuleTypeLabel = (ruleType) => {
-//     switch (ruleType) {
-//       case "daily":
-//         return "Giảm hàng ngày";
-//       case "duration":
-//         return "Thời gian hoàn thành";
-//       case "specificGoal":
-//         return "Mục tiêu cụ thể";
-//       default:
-//         return ruleType;
-//     }
-//   };
-
-//   const getSpecificGoalLabel = (value) => {
-//     switch (value) {
-//       case "quit_completely":
-//         return "Bỏ thuốc hoàn toàn";
-//       case "reduce_half":
-//         return "Giảm một nửa";
-//       case "reduce_75":
-//         return "Giảm 75%";
-//       case "weekend_only":
-//         return "Chỉ hút cuối tuần";
-//       default:
-//         return value;
-//     }
-//   };
-
-//   const formatDate = (dateString) => {
-//     return new Date(dateString).toLocaleDateString("vi-VN", {
-//       year: "numeric",
-//       month: "long",
-//       day: "numeric",
-//       hour: "2-digit",
-//       minute: "2-digit",
-//     });
-//   };
-
-//   if (loading) {
-//     return (
-//       <Box
-//         sx={{
-//           display: "flex",
-//           justifyContent: "center",
-//           alignItems: "center",
-//           minHeight: "400px",
-//         }}
-//       >
-//         <CircularProgress size={60} />
-//       </Box>
-//     );
-//   }
-
-//   return (
-//     <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
-//       <Paper
-//         elevation={0}
-//         sx={{
-//           p: 3,
-//           mb: 3,
-//           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-//           color: "white",
-//         }}
-//       >
-//         <Box
-//           sx={{
-//             display: "flex",
-//             justifyContent: "space-between",
-//             alignItems: "center",
-//           }}
-//         >
-//           <Box>
-//             <Typography
-//               variant="h4"
-//               component="h1"
-//               fontWeight="bold"
-//               gutterBottom
-//             >
-//               Quản Lý Kế Hoạch Cai Thuốc
-//             </Typography>
-//             <Typography variant="body1" sx={{ opacity: 0.9 }}>
-//               Xem xét và phê duyệt các kế hoạch cai thuốc của người dùng
-//             </Typography>
-//           </Box>
-//           <Tooltip title="Làm mới dữ liệu">
-//             <IconButton onClick={fetchPlans} sx={{ color: "white" }}>
-//               <RefreshIcon />
-//             </IconButton>
-//           </Tooltip>
-//         </Box>
-//       </Paper>
-
-//       <Paper sx={{ mb: 3 }}>
-//         <Tabs
-//           value={selectedTab}
-//           onChange={(e, newValue) => setSelectedTab(newValue)}
-//           variant="fullWidth"
-//           sx={{ borderBottom: 1, borderColor: "divider" }}
-//         >
-//           {statusTabs.map((tab, index) => (
-//             <Tab
-//               key={tab.value}
-//               label={
-//                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-//                   {tab.label}
-//                   <Chip
-//                     size="small"
-//                     label={
-//                       tab.value === "all"
-//                         ? plans.length
-//                         : plans.filter((p) => p.status === tab.value).length
-//                     }
-//                     color={tab.color}
-//                   />
-//                 </Box>
-//               }
-//             />
-//           ))}
-//         </Tabs>
-//       </Paper>
-
-//       {filteredPlans.length === 0 ? (
-//         <Paper sx={{ p: 4, textAlign: "center" }}>
-//           <Typography variant="h6" color="text.secondary">
-//             Không có kế hoạch nào trong danh mục này
-//           </Typography>
-//         </Paper>
-//       ) : (
-//         <Grid container spacing={3}>
-//           {filteredPlans.map((plan) => (
-//             <Grid item szie={{ xs: 12, md: 6, lg: 4 }} key={plan._id}>
-//               <Card
-//                 elevation={3}
-//                 sx={{
-//                   height: "100%",
-//                   display: "flex",
-//                   flexDirection: "column",
-//                 }}
-//               >
-//                 <CardContent sx={{ flexGrow: 1 }}>
-//                   <Box
-//                     sx={{
-//                       display: "flex",
-//                       justifyContent: "space-between",
-//                       alignItems: "flex-start",
-//                       mb: 2,
-//                     }}
-//                   >
-//                     <Typography
-//                       variant="h6"
-//                       component="h2"
-//                       fontWeight="bold"
-//                       sx={{ flexGrow: 1, mr: 1 }}
-//                     >
-//                       {plan.title}
-//                     </Typography>
-//                     <Chip
-//                       label={getStatusText(plan.status)}
-//                       color={getStatusColor(plan.status)}
-//                       size="small"
-//                     />
-//                   </Box>
-
-//                   <Typography
-//                     variant="body2"
-//                     color="text.secondary"
-//                     sx={{ mb: 2 }}
-//                   >
-//                     {plan.description}
-//                   </Typography>
-
-//                   <Divider sx={{ my: 2 }} />
-
-//                   <Box sx={{ mb: 2 }}>
-//                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-//                       <PersonIcon
-//                         sx={{ mr: 1, fontSize: 20, color: "primary.main" }}
-//                       />
-//                       <Typography variant="body2" fontWeight="medium">
-//                         {plan.userId.userName}
-//                       </Typography>
-//                     </Box>
-//                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-//                       <EmailIcon
-//                         sx={{ mr: 1, fontSize: 20, color: "primary.main" }}
-//                       />
-//                       <Typography variant="body2" color="text.secondary">
-//                         {plan.userId.email}
-//                       </Typography>
-//                     </Box>
-//                     <Box sx={{ display: "flex", alignItems: "center" }}>
-//                       <ScheduleIcon
-//                         sx={{ mr: 1, fontSize: 20, color: "primary.main" }}
-//                       />
-//                       <Typography variant="body2" color="text.secondary">
-//                         {formatDate(plan.createdAt)}
-//                       </Typography>
-//                     </Box>
-//                   </Box>
-
-//                   <Divider sx={{ my: 2 }} />
-
-//                   <Box>
-//                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-//                       <RuleIcon
-//                         sx={{ mr: 1, fontSize: 20, color: "primary.main" }}
-//                       />
-//                       <Typography variant="body2" fontWeight="medium">
-//                         Quy tắc ({plan.rules.length})
-//                       </Typography>
-//                     </Box>
-//                     <List dense sx={{ py: 0 }}>
-//                       {plan.rules.map((rule, index) => (
-//                         <ListItem key={rule._id} sx={{ px: 0, py: 0.5 }}>
-//                           <ListItemText
-//                             primary={
-//                               <Box
-//                                 sx={{
-//                                   display: "flex",
-//                                   alignItems: "center",
-//                                   gap: 1,
-//                                 }}
-//                               >
-//                                 <Chip
-//                                   label={getRuleTypeLabel(rule.rule)}
-//                                   size="small"
-//                                   variant="outlined"
-//                                 />
-//                                 <Typography variant="body2">
-//                                   Giá trị:{" "}
-//                                   {rule.rule === "specificGoal"
-//                                     ? getSpecificGoalLabel(rule.value)
-//                                     : rule.value}
-//                                 </Typography>
-//                               </Box>
-//                             }
-//                             secondary={rule.description}
-//                           />
-//                         </ListItem>
-//                       ))}
-//                     </List>
-//                   </Box>
-//                 </CardContent>
-
-//                 {plan.status === "pending" && (
-//                   <Box sx={{ p: 2, pt: 0 }}>
-//                     <Grid container spacing={1}>
-//                       <Grid item xs={6}>
-//                         <Button
-//                           fullWidth
-//                           variant="contained"
-//                           color="success"
-//                           startIcon={<ApproveIcon />}
-//                           onClick={() =>
-//                             openConfirmDialog(plan._id, "approve", plan.title)
-//                           }
-//                           disabled={actionLoading === plan._id}
-//                           size="small"
-//                         >
-//                           {actionLoading === plan._id ? (
-//                             <CircularProgress size={20} />
-//                           ) : (
-//                             "Duyệt"
-//                           )}
-//                         </Button>
-//                       </Grid>
-//                       <Grid item size={{ xs: 6 }}>
-//                         <Button
-//                           fullWidth
-//                           variant="contained"
-//                           color="error"
-//                           startIcon={<RejectIcon />}
-//                           onClick={() =>
-//                             openConfirmDialog(plan._id, "reject", plan.title)
-//                           }
-//                           disabled={actionLoading === plan._id}
-//                           size="small"
-//                         >
-//                           {actionLoading === plan._id ? (
-//                             <CircularProgress size={20} />
-//                           ) : (
-//                             "Từ chối"
-//                           )}
-//                         </Button>
-//                       </Grid>
-//                     </Grid>
-//                   </Box>
-//                 )}
-//               </Card>
-//             </Grid>
-//           ))}
-//         </Grid>
-//       )}
-
-//       <Dialog
-//         open={confirmDialog.open}
-//         onClose={() => setConfirmDialog({ ...confirmDialog, open: false })}
-//         disableScrollLock
-//         TransitionComponent={NoTransition}
-//       >
-//         <DialogTitle>
-//           Xác nhận {confirmDialog.action === "approve" ? "duyệt" : "từ chối"} kế
-//           hoạch
-//         </DialogTitle>
-//         <DialogContent>
-//           <Typography>
-//             Bạn có chắc chắn muốn{" "}
-//             {confirmDialog.action === "approve" ? "duyệt" : "từ chối"} kế hoạch
-//             "{confirmDialog.planTitle}"?
-//           </Typography>
-//         </DialogContent>
-//         <DialogActions>
-//           <Button
-//             onClick={() => setConfirmDialog({ ...confirmDialog, open: false })}
-//           >
-//             Hủy
-//           </Button>
-//           <Button
-//             onClick={() =>
-//               handleAction(confirmDialog.planId, confirmDialog.action)
-//             }
-//             color={confirmDialog.action === "approve" ? "success" : "error"}
-//             variant="contained"
-//           >
-//             {confirmDialog.action === "approve" ? "Duyệt" : "Từ chối"}
-//           </Button>
-//         </DialogActions>
-//       </Dialog>
-
-//       <Snackbar
-//         open={notification.open}
-//         autoHideDuration={6000}
-//         onClose={() => setNotification((prev) => ({ ...prev, open: false }))}
-//       >
-//         <Alert
-//           onClose={() => setNotification((prev) => ({ ...prev, open: false }))}
-//           severity={notification.severity}
-//           sx={{ width: "100%" }}
-//         >
-//           {notification.message}
-//         </Alert>
-//       </Snackbar>
-//     </Box>
-//   );
-// };
-
-// export default CoachQuitPlans;
-
-"use client";
-
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -694,6 +25,9 @@ import {
   IconButton,
   Tooltip,
   TextField,
+  FormControl,
+  FormLabel,
+  Stack,
 } from "@mui/material";
 import {
   CheckCircle as ApproveIcon,
@@ -703,6 +37,8 @@ import {
   Rule as RuleIcon,
   Refresh as RefreshIcon,
   Email as EmailIcon,
+  Add as AddIcon,
+  Remove as RemoveIcon,
 } from "@mui/icons-material";
 import React from "react";
 import {
@@ -729,6 +65,25 @@ const CoachQuitPlans = () => {
     planId: null,
     action: null,
     planTitle: "",
+  });
+  const [approvalDialog, setApprovalDialog] = useState({
+    open: false,
+    planId: null,
+    planData: null,
+    quitPlanData: {
+      title: "",
+      reason: "",
+      duration: "",
+      image: "",
+    },
+    stagesData: [
+      {
+        stage_name: "",
+        description: "",
+        order_index: 1,
+        duration: "",
+      },
+    ],
   });
   const [rejectReasonDialog, setRejectReasonDialog] = useState({
     open: false,
@@ -765,36 +120,40 @@ const CoachQuitPlans = () => {
   }, [customPlansList]);
 
   const handleAction = async (planId, action, rejectionReason = "") => {
-    setRejectReasonDialog((prev) => ({ ...prev, open: false }));
     setActionLoading(planId);
+
+    // Đóng tất cả dialog trước khi thực hiện action
+    setConfirmDialog({
+      open: false,
+      planId: null,
+      action: null,
+      planTitle: "",
+    });
+    setRejectReasonDialog({
+      open: false,
+      planId: null,
+      planTitle: "",
+      rejectionReason: "",
+    });
+
     try {
       if (action === "approve") {
         await dispatch(
           approveCustomQuitPlan({
-            // gửi lên request body vì bắt buộc
             requestId: planId,
             quitPlanData: {
-              title: "Kế hoạch cá nhân cho User",
-              reason: "Kế hoạch được tùy chỉnh theo yêu cầu",
-              duration: 30,
-              image: "https://example.com/custom-plan.jpg",
+              ...approvalDialog.quitPlanData,
+              duration: parseInt(approvalDialog.quitPlanData.duration) || 0,
             },
-            stagesData: [
-              {
-                stage_name: "Giai đoạn 1: Giảm dần",
-                description: "Giảm 50% lượng thuốc lá",
-                order_index: 1,
-                duration: 15,
-              },
-              {
-                stage_name: "Giai đoạn 2: Bỏ hoàn toàn",
-                description: "Ngừng hút thuốc hoàn toàn",
-                order_index: 2,
-                duration: 15,
-              },
-            ],
+            stagesData: approvalDialog.stagesData.map((stage) => ({
+              ...stage,
+              order_index: parseInt(stage.order_index) || 0,
+              duration: parseInt(stage.duration) || 0,
+            })),
           })
         ).unwrap();
+        // Update filteredPlans to remove the approved plan
+        setFilteredPlans((prev) => prev.filter((plan) => plan._id !== planId));
       } else {
         if (!rejectionReason.trim()) {
           setNotification({
@@ -822,35 +181,65 @@ const CoachQuitPlans = () => {
       });
     } finally {
       setActionLoading(null);
-      setConfirmDialog({
-        open: false,
-        planId: null,
-        action: null,
-        planTitle: "",
-      });
-      setRejectReasonDialog({
-        open: false,
-        planId: null,
-        planTitle: "",
-        rejectionReason: "",
-      });
     }
   };
 
   const openConfirmDialog = (planId, action, planTitle) => {
-    setConfirmDialog({
-      open: true,
-      planId,
-      action,
-      planTitle,
+    // Reset tất cả dialog state trước khi mở dialog mới
+    setRejectReasonDialog({
+      open: false,
+      planId: null,
+      planTitle: "",
+      rejectionReason: "",
     });
-    // ❗Chỉ reset rejectReasonDialog nếu action là "reject"
-    if (action === "reject") {
-      setRejectReasonDialog({
-        open: false,
-        planId: null,
-        planTitle: "",
-        rejectionReason: "",
+    setApprovalDialog({
+      open: false,
+      planId: null,
+      planData: null,
+      quitPlanData: {
+        title: "",
+        reason: "",
+        duration: "",
+        image: "",
+      },
+      stagesData: [
+        {
+          stage_name: "",
+          description: "",
+          order_index: 1,
+          duration: "",
+        },
+      ],
+    });
+
+    if (action === "approve") {
+      // Mở dialog approval với form
+      const selectedPlan = filteredPlans.find((plan) => plan._id === planId);
+      setApprovalDialog({
+        open: true,
+        planId,
+        planData: selectedPlan,
+        quitPlanData: {
+          title: "",
+          reason: "",
+          duration: "",
+          image: "",
+        },
+        stagesData: [
+          {
+            stage_name: "",
+            description: "",
+            order_index: 1,
+            duration: "",
+          },
+        ],
+      });
+    } else {
+      setConfirmDialog({
+        open: true,
+        planId,
+        action,
+        planTitle,
       });
     }
   };
@@ -870,6 +259,37 @@ const CoachQuitPlans = () => {
     });
   };
 
+  const closeConfirmDialog = () => {
+    setConfirmDialog({
+      open: false,
+      planId: null,
+      action: null,
+      planTitle: "",
+    });
+  };
+
+  const closeApprovalDialog = () => {
+    setApprovalDialog({
+      open: false,
+      planId: null,
+      planData: null,
+      quitPlanData: {
+        title: "",
+        reason: "",
+        duration: "",
+        image: "",
+      },
+      stagesData: [
+        {
+          stage_name: "",
+          description: "",
+          order_index: 1,
+          duration: "",
+        },
+      ],
+    });
+  };
+
   const closeRejectReasonDialog = () => {
     setRejectReasonDialog({
       open: false,
@@ -884,6 +304,122 @@ const CoachQuitPlans = () => {
       ...prev,
       rejectionReason: e.target.value,
     }));
+  };
+
+  const handleQuitPlanDataChange = (field, value) => {
+    setApprovalDialog((prev) => ({
+      ...prev,
+      quitPlanData: {
+        ...prev.quitPlanData,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleStageDataChange = (index, field, value) => {
+    setApprovalDialog((prev) => ({
+      ...prev,
+      stagesData: prev.stagesData.map((stage, i) =>
+        i === index
+          ? {
+              ...stage,
+              [field]: value,
+            }
+          : stage
+      ),
+    }));
+  };
+
+  const addStage = () => {
+    setApprovalDialog((prev) => ({
+      ...prev,
+      stagesData: [
+        ...prev.stagesData,
+        {
+          stage_name: "",
+          description: "",
+          order_index: prev.stagesData.length + 1,
+          duration: "",
+        },
+      ],
+    }));
+  };
+
+  const removeStage = (index) => {
+    if (approvalDialog.stagesData.length > 1) {
+      setApprovalDialog((prev) => ({
+        ...prev,
+        stagesData: prev.stagesData
+          .filter((_, i) => i !== index)
+          .map((stage, i) => ({
+            ...stage,
+            order_index: i + 1,
+          })),
+      }));
+    }
+  };
+
+  const handleApprovalSubmit = () => {
+    // Validate form
+    if (!approvalDialog.quitPlanData.title.trim()) {
+      setNotification({
+        open: true,
+        message: "Vui lòng nhập tiêu đề kế hoạch!",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (!approvalDialog.quitPlanData.reason.trim()) {
+      setNotification({
+        open: true,
+        message: "Vui lòng nhập lý do kế hoạch!",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (!approvalDialog.quitPlanData.duration) {
+      setNotification({
+        open: true,
+        message: "Vui lòng nhập thời gian hoàn thành!",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (
+      approvalDialog.stagesData.some(
+        (stage) =>
+          !stage.stage_name.trim() ||
+          !stage.description.trim() ||
+          !stage.duration
+      )
+    ) {
+      setNotification({
+        open: true,
+        message: "Vui lòng điền đầy đủ thông tin cho tất cả các giai đoạn!",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (
+      approvalDialog.stagesData.some(
+        (stage, index, arr) =>
+          arr.findIndex((s) => s.order_index === stage.order_index) !== index
+      )
+    ) {
+      setNotification({
+        open: true,
+        message: "Thứ tự giai đoạn không được trùng lặp!",
+        severity: "error",
+      });
+      return;
+    }
+
+    handleAction(approvalDialog.planId, "approve");
+    closeApprovalDialog();
   };
 
   const getStatusColor = (status) => {
@@ -1021,7 +557,7 @@ const CoachQuitPlans = () => {
       ) : (
         <Grid container spacing={3}>
           {filteredPlans.map((plan) => (
-            <Grid item xs={12} md={6} lg={4} key={plan._id}>
+            <Grid item size={{ xs: 12, md: 6, lg: 4 }} key={plan._id}>
               <Card
                 elevation={3}
                 sx={{
@@ -1120,7 +656,6 @@ const CoachQuitPlans = () => {
                                   variant="outlined"
                                 />
                                 <Typography variant="body2">
-                                  Giá trị:{" "}
                                   {rule.rule === "specificGoal"
                                     ? getSpecificGoalLabel(rule.value)
                                     : rule.value}
@@ -1137,7 +672,7 @@ const CoachQuitPlans = () => {
 
                 <Box sx={{ p: 2, pt: 0 }}>
                   <Grid container spacing={1}>
-                    <Grid item xs={6}>
+                    <Grid item size={{ xs: 6 }}>
                       <Button
                         fullWidth
                         variant="contained"
@@ -1156,7 +691,7 @@ const CoachQuitPlans = () => {
                         )}
                       </Button>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid item size={{ xs: 6 }}>
                       <Button
                         fullWidth
                         variant="contained"
@@ -1183,46 +718,322 @@ const CoachQuitPlans = () => {
         </Grid>
       )}
 
+      {/* Dialog duyệt kế hoạch với form */}
       <Dialog
-        open={confirmDialog.open}
-        onClose={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        open={approvalDialog.open}
+        onClose={closeApprovalDialog}
+        maxWidth="lg"
+        fullWidth
         disableScrollLock
         TransitionComponent={NoTransition}
       >
-        <DialogTitle>
-          Xác nhận {confirmDialog.action === "approve" ? "duyệt" : "từ chối"} kế
-          hoạch
-        </DialogTitle>
+        <DialogTitle>Duyệt kế hoạch cai thuốc</DialogTitle>
         <DialogContent>
-          <Typography>
-            Bạn có chắc chắn muốn{" "}
-            {confirmDialog.action === "approve" ? "duyệt" : "từ chối"} kế hoạch
-            "{confirmDialog.planTitle}"?
-          </Typography>
+          <Grid container spacing={3} sx={{ mt: 1 }}>
+            {/* Phần trái - Thông tin kế hoạch */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3, bgcolor: "grey.50" }}>
+                <Typography variant="h6" gutterBottom>
+                  Thông tin kế hoạch yêu cầu
+                </Typography>
+                {approvalDialog.planData && (
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      gutterBottom
+                    >
+                      {approvalDialog.planData.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 2 }}
+                    >
+                      {approvalDialog.planData.description}
+                    </Typography>
+
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        Người yêu cầu:
+                      </Typography>
+                      <Typography variant="body2">
+                        {approvalDialog.planData.userId.userName} (
+                        {approvalDialog.planData.userId.email})
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        Ngày tạo:
+                      </Typography>
+                      <Typography variant="body2">
+                        {formatDate(approvalDialog.planData.createdAt)}
+                      </Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        fontWeight="bold"
+                        gutterBottom
+                      >
+                        Quy tắc yêu cầu:
+                      </Typography>
+                      {approvalDialog.planData.rules.map((rule) => (
+                        <Box key={rule._id} sx={{ mb: 1 }}>
+                          <Chip
+                            label={getRuleTypeLabel(rule.rule)}
+                            size="small"
+                            variant="outlined"
+                            sx={{ mr: 1 }}
+                          />
+                          <Typography variant="body2" component="span">
+                            {rule.description}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+              </Paper>
+            </Grid>
+
+            {/* Phần phải - Form tạo kế hoạch */}
+            <Grid item xs={12} md={6}>
+              <Box sx={{ maxHeight: "70vh", overflowY: "auto", pr: 1 }}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Tạo kế hoạch cai thuốc
+                  </Typography>
+
+                  <Stack spacing={3}>
+                    {/* Thông tin kế hoạch */}
+                    <Box>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="bold"
+                        gutterBottom
+                      >
+                        Thông tin chung
+                      </Typography>
+                      <Stack spacing={2}>
+                        <TextField
+                          label="Tiêu đề kế hoạch"
+                          value={approvalDialog.quitPlanData.title}
+                          onChange={(e) =>
+                            handleQuitPlanDataChange("title", e.target.value)
+                          }
+                          required
+                          fullWidth
+                        />
+                        <TextField
+                          label="Lý do/Mô tả"
+                          value={approvalDialog.quitPlanData.reason}
+                          onChange={(e) =>
+                            handleQuitPlanDataChange("reason", e.target.value)
+                          }
+                          multiline
+                          rows={3}
+                          required
+                          fullWidth
+                        />
+                        <TextField
+                          label="Thời gian hoàn thành (ngày)"
+                          type="number"
+                          value={approvalDialog.quitPlanData.duration}
+                          onChange={(e) =>
+                            handleQuitPlanDataChange("duration", e.target.value)
+                          }
+                          required
+                          fullWidth
+                        />
+                        <TextField
+                          label="Hình ảnh URL (tùy chọn)"
+                          value={approvalDialog.quitPlanData.image}
+                          onChange={(e) =>
+                            handleQuitPlanDataChange("image", e.target.value)
+                          }
+                          fullWidth
+                        />
+                      </Stack>
+                    </Box>
+
+                    {/* Giai đoạn */}
+                    <Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          mb: 2,
+                        }}
+                      >
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          Giai đoạn thực hiện
+                        </Typography>
+                        <Button
+                          size="small"
+                          startIcon={<AddIcon />}
+                          onClick={addStage}
+                          variant="outlined"
+                        >
+                          Thêm giai đoạn
+                        </Button>
+                      </Box>
+
+                      {approvalDialog.stagesData.map((stage, index) => (
+                        <Paper
+                          key={index}
+                          sx={{ p: 2, mb: 2, bgcolor: "grey.50" }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              mb: 2,
+                            }}
+                          >
+                            <Typography variant="subtitle2" fontWeight="bold">
+                              Giai đoạn {index + 1}
+                            </Typography>
+                            {approvalDialog.stagesData.length > 1 && (
+                              <IconButton
+                                size="small"
+                                onClick={() => removeStage(index)}
+                                color="error"
+                              >
+                                <RemoveIcon />
+                              </IconButton>
+                            )}
+                          </Box>
+
+                          <Stack spacing={2}>
+                            <TextField
+                              label="Tên giai đoạn"
+                              value={stage.stage_name}
+                              onChange={(e) =>
+                                handleStageDataChange(
+                                  index,
+                                  "stage_name",
+                                  e.target.value
+                                )
+                              }
+                              required
+                              fullWidth
+                              size="small"
+                            />
+                            <TextField
+                              label="Mô tả"
+                              value={stage.description}
+                              onChange={(e) =>
+                                handleStageDataChange(
+                                  index,
+                                  "description",
+                                  e.target.value
+                                )
+                              }
+                              multiline
+                              rows={2}
+                              required
+                              fullWidth
+                              size="small"
+                            />
+                            <Grid container spacing={1}>
+                              <Grid item size={{ xs: 6 }}>
+                                <TextField
+                                  label="Thứ tự"
+                                  type="number"
+                                  value={stage.order_index}
+                                  onChange={(e) =>
+                                    handleStageDataChange(
+                                      index,
+                                      "order_index",
+                                      e.target.value
+                                    )
+                                  }
+                                  required
+                                  fullWidth
+                                  size="small"
+                                />
+                              </Grid>
+                              <Grid item size={{ xs: 6 }}>
+                                <TextField
+                                  label="Thời gian (ngày)"
+                                  type="number"
+                                  value={stage.duration}
+                                  onChange={(e) =>
+                                    handleStageDataChange(
+                                      index,
+                                      "duration",
+                                      e.target.value
+                                    )
+                                  }
+                                  required
+                                  fullWidth
+                                  size="small"
+                                />
+                              </Grid>
+                            </Grid>
+                          </Stack>
+                        </Paper>
+                      ))}
+                    </Box>
+                  </Stack>
+                </Paper>
+              </Box>
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
+          <Button onClick={closeApprovalDialog}>Hủy</Button>
           <Button
-            onClick={() => setConfirmDialog({ ...confirmDialog, open: false })}
-          >
-            Hủy
-          </Button>
-          <Button
-            onClick={() =>
-              confirmDialog.action === "approve"
-                ? handleAction(confirmDialog.planId, confirmDialog.action)
-                : openRejectReasonDialog(
-                    confirmDialog.planId,
-                    confirmDialog.planTitle
-                  )
-            }
-            color={confirmDialog.action === "approve" ? "success" : "error"}
+            onClick={handleApprovalSubmit}
+            color="success"
             variant="contained"
+            disabled={actionLoading === approvalDialog.planId}
           >
-            {confirmDialog.action === "approve" ? "Duyệt" : "Tiếp tục"}
+            {actionLoading === approvalDialog.planId ? (
+              <CircularProgress size={20} />
+            ) : (
+              "Duyệt kế hoạch"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Dialog xác nhận từ chối */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={closeConfirmDialog}
+        disableScrollLock
+        TransitionComponent={NoTransition}
+      >
+        <DialogTitle>Xác nhận từ chối kế hoạch</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Bạn có chắc chắn muốn từ chối kế hoạch "{confirmDialog.planTitle}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeConfirmDialog}>Hủy</Button>
+          <Button
+            onClick={() => {
+              openRejectReasonDialog(
+                confirmDialog.planId,
+                confirmDialog.planTitle
+              );
+            }}
+            color="error"
+            variant="contained"
+          >
+            Tiếp tục
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog nhập lý do từ chối */}
       <Dialog
         open={rejectReasonDialog.open}
         onClose={closeRejectReasonDialog}
