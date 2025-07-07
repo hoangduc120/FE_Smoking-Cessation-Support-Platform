@@ -322,9 +322,9 @@ const CoachQuitPlans = () => {
       stagesData: prev.stagesData.map((stage, i) =>
         i === index
           ? {
-              ...stage,
-              [field]: value,
-            }
+            ...stage,
+            [field]: value,
+          }
           : stage
       ),
     }));
@@ -388,6 +388,16 @@ const CoachQuitPlans = () => {
       return;
     }
 
+    const planDuration = parseInt(approvalDialog.quitPlanData.duration);
+    if (isNaN(planDuration) || planDuration <= 0 || planDuration > 365) {
+      setNotification({
+        open: true,
+        message: "Thời gian hoàn thành phải là số từ 1 đến 365 ngày!",
+        severity: "error",
+      });
+      return;
+    }
+
     if (
       approvalDialog.stagesData.some(
         (stage) =>
@@ -399,6 +409,31 @@ const CoachQuitPlans = () => {
       setNotification({
         open: true,
         message: "Vui lòng điền đầy đủ thông tin cho tất cả các giai đoạn!",
+        severity: "error",
+      });
+      return;
+    }
+
+    for (let i = 0; i < approvalDialog.stagesData.length; i++) {
+      const stageDuration = parseInt(approvalDialog.stagesData[i].duration);
+      if (isNaN(stageDuration) || stageDuration <= 0 || stageDuration > 365) {
+        setNotification({
+          open: true,
+          message: `Giai đoạn ${i + 1}: Thời gian phải là số từ 1 đến 365 ngày!`,
+          severity: "error",
+        });
+        return;
+      }
+    }
+
+    const totalStageDuration = approvalDialog.stagesData.reduce(
+      (sum, stage) => sum + parseInt(stage.duration || 0),
+      0
+    );
+    if (totalStageDuration > planDuration) {
+      setNotification({
+        open: true,
+        message: `Tổng thời gian các giai đoạn (${totalStageDuration} ngày) không được vượt quá thời gian kế hoạch (${planDuration} ngày)!`,
         severity: "error",
       });
       return;
