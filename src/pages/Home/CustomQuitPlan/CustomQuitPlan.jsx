@@ -313,6 +313,7 @@ const CustomQuitPlan = () => {
                   value={newRule.value}
                   onChange={(e) => handleNewRuleChange("value", e.target.value)}
                   placeholder="Nhập số"
+                  inputProps={{ min: 1 }}
                 />
               )}
             </Grid>
@@ -367,26 +368,24 @@ const CustomQuitPlan = () => {
                     }}
                   >
                     <Box sx={{ flex: 1 }}>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", mb: 1 }}
-                      >
-                        <Chip
-                          label={getRuleTypeLabel(rule.rule)}
-                          color="primary"
-                          size="small"
-                          sx={{ mr: 1 }}
-                        />
-                        <Typography variant="body2" color="text.secondary">
-                          Số ngày:{" "}
-                          {rule.rule === "specificGoal"
-                            ? getSpecificGoalLabel(rule.value)
-                            : rule.value}
-                        </Typography>
-                      </Box>
-                      <Typography variant="body1">
-                        {rule.description}
+                      <Chip
+                        label={getRuleTypeLabel(rule.rule)}
+                        color="primary"
+                        sx={{ fontSize: "1rem", fontWeight: "bold", mb: 1 }}
+                      />
+
+                      <Typography variant="body2" sx={{ mb: 0.5 }}>
+                        <strong>Số ngày:</strong>{" "}
+                        {rule.rule === "specificGoal"
+                          ? getSpecificGoalLabel(rule.value)
+                          : `${rule.value} ngày`}
+                      </Typography>
+
+                      <Typography variant="body2">
+                        <strong>Mô tả:</strong> {rule.description}
                       </Typography>
                     </Box>
+
                     <IconButton
                       color="error"
                       onClick={() => removeRule(index)}
