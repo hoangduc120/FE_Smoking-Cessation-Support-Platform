@@ -446,20 +446,56 @@ const CustomQuitPlan = () => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">
+        <DialogTitle
+          id="alert-dialog-title"
+          sx={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white",
+            fontWeight: "bold",
+            fontSize: "1.2rem",
+            py: 2,
+            px: 3,
+          }}
+        >
           Bạn đã có một kế hoạch đang thực hiện
         </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
+
+        <DialogContent sx={{ px: 3, py: 2 }}>
+          <DialogContentText
+            id="alert-dialog-description"
+            sx={{ fontSize: "1rem" }}
+          >
             Bạn đã tham gia 1 kế hoạch, nếu muốn tiếp tục tạo kế hoạch thì bạn
             cần hủy kế hoạch hiện tại. Bạn có muốn hủy không?
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleKeepPlan} color="primary">
+
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={handleKeepPlan}
+            sx={{
+              backgroundColor: "#1976d2",
+              color: "#fff",
+              textTransform: "none",
+              ":hover": {
+                backgroundColor: "#1565c0",
+              },
+            }}
+          >
             Không hủy
           </Button>
-          <Button onClick={handleCancelPlan} color="error" autoFocus>
+          <Button
+            onClick={handleCancelPlan}
+            autoFocus
+            sx={{
+              backgroundColor: "#d32f2f",
+              color: "#fff",
+              textTransform: "none",
+              ":hover": {
+                backgroundColor: "#c62828",
+              },
+            }}
+          >
             Tiếp tục hủy
           </Button>
         </DialogActions>

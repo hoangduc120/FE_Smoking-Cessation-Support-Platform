@@ -38,7 +38,7 @@ import {
   Refresh as RefreshIcon,
   Email as EmailIcon,
   Add as AddIcon,
-  Remove as RemoveIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
 import React from "react";
 import {
@@ -162,6 +162,8 @@ const CoachQuitPlans = () => {
         await dispatch(
           rejectCustomQuitPlan({ requestId: planId, rejectionReason })
         ).unwrap();
+        // Update filteredPlans to remove the rejected plan
+        setFilteredPlans((prev) => prev.filter((plan) => plan._id !== planId));
       }
       setNotification({
         open: true,
@@ -770,14 +772,63 @@ const CoachQuitPlans = () => {
         disableScrollLock
         TransitionComponent={NoTransition}
       >
-        <DialogTitle>Duyệt kế hoạch cai thuốc</DialogTitle>
-        <DialogContent>
+        <DialogTitle
+          sx={{
+            color: "#fff",
+            fontWeight: "bold",
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
+            borderRadius: "3px 3px 0 0",
+          }}
+        >
+          Duyệt kế hoạch cai thuốc
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            bgcolor: "rgba(255, 255, 255, 0.9)",
+            p: 3,
+          }}
+        >
           <Grid container spacing={3} sx={{ mt: 1 }}>
             {/* Phần trái - Thông tin kế hoạch */}
             <Grid item size={{ xs: 12, md: 4 }}>
-              <Box sx={{ maxHeight: "70vh", overflowY: "auto", pr: 1 }}>
-                <Paper sx={{ p: 3, bgcolor: "grey.50" }}>
-                  <Typography variant="h6" gutterBottom>
+              <Box
+                sx={{
+                  maxHeight: "70vh",
+                  overflowY: "auto",
+                  pr: 1,
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "#667eea rgba(102, 126, 234, 0.1)",
+                  "&::-webkit-scrollbar": {
+                    width: "8px",
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    background: "rgba(102, 126, 234, 0.1)",
+                    borderRadius: "4px",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: "#667eea",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      background: "#764ba2",
+                    },
+                  },
+                }}
+              >
+                <Paper
+                  sx={{
+                    p: 3,
+                    bgcolor: "rgba(255, 255, 255, 0.85)",
+                    borderRadius: 2,
+                    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
+                    border: "1px solid rgba(102, 126, 234, 0.2)",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{ color: "#333", fontWeight: "bold" }}
+                  >
                     Thông tin kế hoạch yêu cầu
                   </Typography>
                   {approvalDialog.planData && (
@@ -786,41 +837,44 @@ const CoachQuitPlans = () => {
                         variant="subtitle1"
                         fontWeight="bold"
                         gutterBottom
+                        sx={{ color: "#764ba2" }}
                       >
                         {approvalDialog.planData.title}
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 2 }}
-                      >
+                      <Typography variant="body2" sx={{ mb: 2, color: "#555" }}>
                         {approvalDialog.planData.description}
                       </Typography>
-
                       <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" fontWeight="bold">
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="bold"
+                          sx={{ color: "#667eea" }}
+                        >
                           Người yêu cầu:
                         </Typography>
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{ color: "#555" }}>
                           {approvalDialog.planData.userId.userName} (
                           {approvalDialog.planData.userId.email})
                         </Typography>
                       </Box>
-
                       <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" fontWeight="bold">
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="bold"
+                          sx={{ color: "#667eea" }}
+                        >
                           Ngày tạo:
                         </Typography>
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{ color: "#555" }}>
                           {formatDate(approvalDialog.planData.createdAt)}
                         </Typography>
                       </Box>
-
                       <Box>
                         <Typography
                           variant="subtitle2"
                           fontWeight="bold"
                           gutterBottom
+                          sx={{ color: "#667eea" }}
                         >
                           Quy tắc yêu cầu:
                         </Typography>
@@ -834,8 +888,11 @@ const CoachQuitPlans = () => {
                               }}
                             >
                               <Typography
-                                variant="body2"
-                                sx={{ mr: 1, fontWeight: "bold" }}
+                                sx={{
+                                  mr: 1,
+                                  fontWeight: "bold",
+                                  color: "#764ba2",
+                                }}
                               >
                                 ●
                               </Typography>
@@ -843,21 +900,22 @@ const CoachQuitPlans = () => {
                                 label={getRuleTypeLabel(rule.rule)}
                                 size="small"
                                 variant="outlined"
+                                sx={{
+                                  borderColor: "#667eea",
+                                  color: "#667eea",
+                                  bgcolor: "rgba(102, 126, 234, 0.1)",
+                                }}
                               />
                             </Box>
                             <Typography
                               variant="body2"
-                              sx={{ display: "block", ml: 3 }}
+                              sx={{ display: "block", ml: 3, color: "#555" }}
                             >
                               Số ngày: {rule.value} ngày
                             </Typography>
                             <Typography
                               variant="body2"
-                              sx={{
-                                display: "block",
-                                ml: 3,
-                                color: "text.secondary",
-                              }}
+                              sx={{ display: "block", ml: 3, color: "#777" }}
                             >
                               Mô tả: {rule.description}
                             </Typography>
@@ -872,12 +930,45 @@ const CoachQuitPlans = () => {
 
             {/* Phần phải - Form tạo kế hoạch */}
             <Grid item size={{ xs: 12, md: 8 }}>
-              <Box sx={{ maxHeight: "70vh", overflowY: "auto", pr: 1 }}>
-                <Paper sx={{ p: 3 }}>
-                  <Typography variant="h6" gutterBottom>
+              <Box
+                sx={{
+                  maxHeight: "70vh",
+                  overflowY: "auto",
+                  pr: 1,
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "#667eea rgba(102, 126, 234, 0.1)",
+                  "&::-webkit-scrollbar": {
+                    width: "8px",
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    background: "rgba(102, 126, 234, 0.1)",
+                    borderRadius: "4px",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: "#667eea",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      background: "#764ba2",
+                    },
+                  },
+                }}
+              >
+                <Paper
+                  sx={{
+                    p: 3,
+                    bgcolor: "rgba(255, 255, 255, 0.85)",
+                    borderRadius: 2,
+                    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
+                    border: "1px solid rgba(102, 126, 234, 0.2)",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{ color: "#333", fontWeight: "bold" }}
+                  >
                     Tạo kế hoạch cai thuốc
                   </Typography>
-
                   <Stack spacing={3}>
                     {/* Thông tin kế hoạch */}
                     <Box>
@@ -885,6 +976,7 @@ const CoachQuitPlans = () => {
                         variant="subtitle1"
                         fontWeight="bold"
                         gutterBottom
+                        sx={{ color: "#764ba2" }}
                       >
                         Thông tin chung
                       </Typography>
@@ -897,6 +989,14 @@ const CoachQuitPlans = () => {
                           }
                           required
                           fullWidth
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              "& fieldset": { borderColor: "#667eea" },
+                              "&:hover fieldset": { borderColor: "#764ba2" },
+                            },
+                            "& .MuiInputLabel-root": { color: "#667eea" },
+                          }}
                         />
                         <TextField
                           label="Lý do/Mô tả"
@@ -908,6 +1008,14 @@ const CoachQuitPlans = () => {
                           rows={3}
                           required
                           fullWidth
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              "& fieldset": { borderColor: "#667eea" },
+                              "&:hover fieldset": { borderColor: "#764ba2" },
+                            },
+                            "& .MuiInputLabel-root": { color: "#667eea" },
+                          }}
                         />
                         <TextField
                           label="Thời gian hoàn thành (ngày)"
@@ -918,6 +1026,15 @@ const CoachQuitPlans = () => {
                           }
                           required
                           fullWidth
+                          inputProps={{ min: 1 }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              "& fieldset": { borderColor: "#667eea" },
+                              "&:hover fieldset": { borderColor: "#764ba2" },
+                            },
+                            "& .MuiInputLabel-root": { color: "#667eea" },
+                          }}
                         />
                         <TextField
                           label="Hình ảnh URL (tùy chọn)"
@@ -926,6 +1043,14 @@ const CoachQuitPlans = () => {
                             handleQuitPlanDataChange("image", e.target.value)
                           }
                           fullWidth
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              "& fieldset": { borderColor: "#667eea" },
+                              "&:hover fieldset": { borderColor: "#764ba2" },
+                            },
+                            "& .MuiInputLabel-root": { color: "#667eea" },
+                          }}
                         />
                       </Stack>
                     </Box>
@@ -940,23 +1065,38 @@ const CoachQuitPlans = () => {
                           mb: 2,
                         }}
                       >
-                        <Typography variant="subtitle1" fontWeight="bold">
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight="bold"
+                          sx={{ color: "#764ba2" }}
+                        >
                           Giai đoạn thực hiện
                         </Typography>
                         <Button
                           size="small"
                           startIcon={<AddIcon />}
                           onClick={addStage}
-                          variant="outlined"
+                          variant="contained"
+                          sx={{
+                            bgcolor: "#667eea",
+                            color: "#fff",
+                            "&:hover": { bgcolor: "#764ba2" },
+                            borderRadius: 2,
+                          }}
                         >
                           Thêm giai đoạn
                         </Button>
                       </Box>
-
                       {approvalDialog.stagesData.map((stage, index) => (
                         <Paper
                           key={index}
-                          sx={{ p: 2, mb: 2, bgcolor: "grey.50" }}
+                          sx={{
+                            p: 2,
+                            mb: 2,
+                            bgcolor: "rgba(102, 126, 234, 0.05)",
+                            borderRadius: 2,
+                            border: "1px solid rgba(102, 126, 234, 0.2)",
+                          }}
                         >
                           <Box
                             sx={{
@@ -966,20 +1106,23 @@ const CoachQuitPlans = () => {
                               mb: 2,
                             }}
                           >
-                            <Typography variant="subtitle2" fontWeight="bold">
+                            <Typography
+                              variant="subtitle2"
+                              fontWeight="bold"
+                              sx={{ color: "#667eea" }}
+                            >
                               Giai đoạn {index + 1}
                             </Typography>
                             {approvalDialog.stagesData.length > 1 && (
                               <IconButton
                                 size="small"
                                 onClick={() => removeStage(index)}
-                                color="error"
+                                sx={{ color: "#e57373" }}
                               >
-                                <RemoveIcon />
+                                <DeleteIcon />
                               </IconButton>
                             )}
                           </Box>
-
                           <Stack spacing={2}>
                             <TextField
                               label="Tên giai đoạn"
@@ -994,6 +1137,16 @@ const CoachQuitPlans = () => {
                               required
                               fullWidth
                               size="small"
+                              sx={{
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: 2,
+                                  "& fieldset": { borderColor: "#667eea" },
+                                  "&:hover fieldset": {
+                                    borderColor: "#764ba2",
+                                  },
+                                },
+                                "& .MuiInputLabel-root": { color: "#667eea" },
+                              }}
                             />
                             <TextField
                               label="Mô tả"
@@ -1010,6 +1163,16 @@ const CoachQuitPlans = () => {
                               required
                               fullWidth
                               size="small"
+                              sx={{
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: 2,
+                                  "& fieldset": { borderColor: "#667eea" },
+                                  "&:hover fieldset": {
+                                    borderColor: "#764ba2",
+                                  },
+                                },
+                                "& .MuiInputLabel-root": { color: "#667eea" },
+                              }}
                             />
                             <Grid container spacing={1}>
                               <Grid item size={{ xs: 6 }}>
@@ -1028,6 +1191,18 @@ const CoachQuitPlans = () => {
                                   fullWidth
                                   size="small"
                                   inputProps={{ min: 1 }}
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      borderRadius: 2,
+                                      "& fieldset": { borderColor: "#667eea" },
+                                      "&:hover fieldset": {
+                                        borderColor: "#764ba2",
+                                      },
+                                    },
+                                    "& .MuiInputLabel-root": {
+                                      color: "#667eea",
+                                    },
+                                  }}
                                 />
                               </Grid>
                               <Grid item size={{ xs: 6 }}>
@@ -1046,6 +1221,18 @@ const CoachQuitPlans = () => {
                                   fullWidth
                                   size="small"
                                   inputProps={{ min: 1 }}
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      borderRadius: 2,
+                                      "& fieldset": { borderColor: "#667eea" },
+                                      "&:hover fieldset": {
+                                        borderColor: "#764ba2",
+                                      },
+                                    },
+                                    "& .MuiInputLabel-root": {
+                                      color: "#667eea",
+                                    },
+                                  }}
                                 />
                               </Grid>
                             </Grid>
@@ -1059,16 +1246,43 @@ const CoachQuitPlans = () => {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeApprovalDialog}>Hủy</Button>
+        <DialogActions
+          sx={{
+            background: "rgba(255, 255, 255, 0.2)",
+            backdropFilter: "blur(5px)",
+            "@supports not (backdrop-filter: blur(5px))": {
+              background: "rgba(102, 126, 234, 0.5)",
+            },
+            p: 2,
+            borderRadius: "0 0 3px 3px",
+          }}
+        >
+          <Button
+            onClick={closeApprovalDialog}
+            sx={{
+              color: "#fff",
+              bgcolor: "#e57373",
+              "&:hover": { bgcolor: "#d32f2f" },
+              borderRadius: 2,
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            Hủy
+          </Button>
           <Button
             onClick={handleApprovalSubmit}
             color="success"
             variant="contained"
             disabled={actionLoading === approvalDialog.planId}
+            sx={{
+              bgcolor: "#4caf50",
+              "&:hover": { bgcolor: "#388e3c" },
+              borderRadius: 2,
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+            }}
           >
             {actionLoading === approvalDialog.planId ? (
-              <CircularProgress size={20} />
+              <CircularProgress size={20} sx={{ color: "#fff" }} />
             ) : (
               "Duyệt kế hoạch"
             )}
@@ -1112,13 +1326,34 @@ const CoachQuitPlans = () => {
         onClose={closeRejectReasonDialog}
         disableScrollLock
         TransitionComponent={NoTransition}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            border: "2px solid #9FD7F9",
+            boxShadow: 10,
+            backgroundColor: "#fdfefe", // màu nền nhẹ
+            width: 500,
+            maxWidth: "90%",
+          },
+        }}
       >
-        <DialogTitle>Lý do từ chối kế hoạch</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ mb: 2 }}>
-            Vui lòng nhập lý do từ chối kế hoạch "{rejectReasonDialog.planTitle}
-            ":
+        <DialogTitle
+          sx={{
+            fontWeight: "bold",
+            fontSize: "1.3rem",
+            color: "#1976d2", // màu xanh MUI
+            pb: 0,
+          }}
+        >
+          Lý do từ chối kế hoạch
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 1 }}>
+          <Typography sx={{ mb: 2, fontSize: "1rem" }}>
+            Vui lòng nhập lý do từ chối kế hoạch "
+            <strong>{rejectReasonDialog.planTitle}</strong>":
           </Typography>
+
           <TextField
             fullWidth
             label="Lý do từ chối"
@@ -1126,12 +1361,40 @@ const CoachQuitPlans = () => {
             onChange={handleRejectionReasonChange}
             multiline
             rows={3}
-            variant="outlined"
             required
+            variant="outlined"
+            sx={{
+              backgroundColor: "#fff",
+              borderRadius: 1,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#9FD7F9",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#42a5f5",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#1976d2",
+                },
+              },
+            }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeRejectReasonDialog}>Hủy</Button>
+
+        <DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2 }}>
+          <Button
+            onClick={closeRejectReasonDialog}
+            sx={{
+              color: "#1976d2",
+              borderColor: "#1976d2",
+              textTransform: "none",
+              ":hover": {
+                backgroundColor: "#e3f2fd",
+              },
+            }}
+          >
+            Hủy
+          </Button>
           <Button
             onClick={() =>
               handleAction(
@@ -1143,6 +1406,13 @@ const CoachQuitPlans = () => {
             color="error"
             variant="contained"
             disabled={!rejectReasonDialog.rejectionReason.trim()}
+            sx={{
+              textTransform: "none",
+              boxShadow: "none",
+              ":hover": {
+                backgroundColor: "#d32f2f",
+              },
+            }}
           >
             Từ chối
           </Button>
