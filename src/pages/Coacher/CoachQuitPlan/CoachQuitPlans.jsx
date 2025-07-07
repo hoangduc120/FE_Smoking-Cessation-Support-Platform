@@ -59,7 +59,6 @@ const CoachQuitPlans = () => {
     (state) => state.customPlan
   );
   const [filteredPlans, setFilteredPlans] = useState([]);
-  const [selectedTab, setSelectedTab] = useState(0);
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     planId: null,
@@ -97,10 +96,6 @@ const CoachQuitPlans = () => {
     severity: "success",
   });
   const [actionLoading, setActionLoading] = useState(null);
-
-  const statusTabs = [
-    { label: "Chờ duyệt", value: "pending", color: "warning" },
-  ];
 
   const fetchPlans = async () => {
     dispatch(fetchCustomQuitPlans());
@@ -322,9 +317,9 @@ const CoachQuitPlans = () => {
       stagesData: prev.stagesData.map((stage, i) =>
         i === index
           ? {
-            ...stage,
-            [field]: value,
-          }
+              ...stage,
+              [field]: value,
+            }
           : stage
       ),
     }));
@@ -675,30 +670,43 @@ const CoachQuitPlans = () => {
                     </Box>
                     <List dense sx={{ py: 0 }}>
                       {plan.rules.map((rule) => (
-                        <ListItem key={rule._id} sx={{ px: 0, py: 0.5 }}>
-                          <ListItemText
-                            primary={
-                              <Box
+                        <ListItem
+                          key={rule._id}
+                          sx={{ px: 0, py: 1, alignItems: "flex-start" }}
+                        >
+                          <Box sx={{ display: "flex" }}>
+                            {/* Dấu chấm tròn đậm */}
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: "bold", mr: 1 }}
+                            >
+                              ●
+                            </Typography>
+
+                            {/* Nội dung quy tắc */}
+                            <Box>
+                              <Chip
+                                label={getRuleTypeLabel(rule.rule)}
+                                color="primary"
                                 sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
+                                  fontSize: "0.8 rem",
+                                  mb: 0.5,
                                 }}
+                              />
+                              <Typography variant="body2">
+                                <strong>Số ngày:</strong>{" "}
+                                {rule.rule === "specificGoal"
+                                  ? getSpecificGoalLabel(rule.value)
+                                  : `${rule.value} ngày`}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{ color: "text.secondary" }}
                               >
-                                <Chip
-                                  label={getRuleTypeLabel(rule.rule)}
-                                  size="small"
-                                  variant="outlined"
-                                />
-                                <Typography variant="body2">
-                                  {rule.rule === "specificGoal"
-                                    ? getSpecificGoalLabel(rule.value)
-                                    : rule.value}
-                                </Typography>
-                              </Box>
-                            }
-                            secondary={rule.description}
-                          />
+                                <strong>Mô tả:</strong> {rule.description}
+                              </Typography>
+                            </Box>
+                          </Box>
                         </ListItem>
                       ))}
                     </List>
@@ -766,76 +774,104 @@ const CoachQuitPlans = () => {
         <DialogContent>
           <Grid container spacing={3} sx={{ mt: 1 }}>
             {/* Phần trái - Thông tin kế hoạch */}
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, bgcolor: "grey.50" }}>
-                <Typography variant="h6" gutterBottom>
-                  Thông tin kế hoạch yêu cầu
-                </Typography>
-                {approvalDialog.planData && (
-                  <Box>
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight="bold"
-                      gutterBottom
-                    >
-                      {approvalDialog.planData.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 2 }}
-                    >
-                      {approvalDialog.planData.description}
-                    </Typography>
-
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        Người yêu cầu:
-                      </Typography>
-                      <Typography variant="body2">
-                        {approvalDialog.planData.userId.userName} (
-                        {approvalDialog.planData.userId.email})
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        Ngày tạo:
-                      </Typography>
-                      <Typography variant="body2">
-                        {formatDate(approvalDialog.planData.createdAt)}
-                      </Typography>
-                    </Box>
-
+            <Grid item size={{ xs: 12, md: 4 }}>
+              <Box sx={{ maxHeight: "70vh", overflowY: "auto", pr: 1 }}>
+                <Paper sx={{ p: 3, bgcolor: "grey.50" }}>
+                  <Typography variant="h6" gutterBottom>
+                    Thông tin kế hoạch yêu cầu
+                  </Typography>
+                  {approvalDialog.planData && (
                     <Box>
                       <Typography
-                        variant="subtitle2"
+                        variant="subtitle1"
                         fontWeight="bold"
                         gutterBottom
                       >
-                        Quy tắc yêu cầu:
+                        {approvalDialog.planData.title}
                       </Typography>
-                      {approvalDialog.planData.rules.map((rule) => (
-                        <Box key={rule._id} sx={{ mb: 1 }}>
-                          <Chip
-                            label={getRuleTypeLabel(rule.rule)}
-                            size="small"
-                            variant="outlined"
-                            sx={{ mr: 1 }}
-                          />
-                          <Typography variant="body2" component="span">
-                            {rule.description}
-                          </Typography>
-                        </Box>
-                      ))}
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                      >
+                        {approvalDialog.planData.description}
+                      </Typography>
+
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" fontWeight="bold">
+                          Người yêu cầu:
+                        </Typography>
+                        <Typography variant="body2">
+                          {approvalDialog.planData.userId.userName} (
+                          {approvalDialog.planData.userId.email})
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" fontWeight="bold">
+                          Ngày tạo:
+                        </Typography>
+                        <Typography variant="body2">
+                          {formatDate(approvalDialog.planData.createdAt)}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="bold"
+                          gutterBottom
+                        >
+                          Quy tắc yêu cầu:
+                        </Typography>
+                        {approvalDialog.planData.rules.map((rule) => (
+                          <Box key={rule._id} sx={{ mb: 2 }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                mb: 0.5,
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{ mr: 1, fontWeight: "bold" }}
+                              >
+                                ●
+                              </Typography>
+                              <Chip
+                                label={getRuleTypeLabel(rule.rule)}
+                                size="small"
+                                variant="outlined"
+                              />
+                            </Box>
+                            <Typography
+                              variant="body2"
+                              sx={{ display: "block", ml: 3 }}
+                            >
+                              Số ngày: {rule.value} ngày
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                display: "block",
+                                ml: 3,
+                                color: "text.secondary",
+                              }}
+                            >
+                              Mô tả: {rule.description}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
                     </Box>
-                  </Box>
-                )}
-              </Paper>
+                  )}
+                </Paper>
+              </Box>
             </Grid>
 
             {/* Phần phải - Form tạo kế hoạch */}
-            <Grid item xs={12} md={6}>
+            <Grid item size={{ xs: 12, md: 8 }}>
               <Box sx={{ maxHeight: "70vh", overflowY: "auto", pr: 1 }}>
                 <Paper sx={{ p: 3 }}>
                   <Typography variant="h6" gutterBottom>
@@ -991,6 +1027,7 @@ const CoachQuitPlans = () => {
                                   required
                                   fullWidth
                                   size="small"
+                                  inputProps={{ min: 1 }}
                                 />
                               </Grid>
                               <Grid item size={{ xs: 6 }}>
@@ -1008,6 +1045,7 @@ const CoachQuitPlans = () => {
                                   required
                                   fullWidth
                                   size="small"
+                                  inputProps={{ min: 1 }}
                                 />
                               </Grid>
                             </Grid>
