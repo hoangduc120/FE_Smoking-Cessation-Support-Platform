@@ -245,9 +245,16 @@ export const planSlice = createSlice({
       .addCase(updatePlan.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.isError = null;
-        state.plan = state.plan.map((plan) =>
-          plan._id === payload._id ? payload : plan
-        );
+        // Cập nhật trong danh sách plans.data nếu có
+        if (state.plans && Array.isArray(state.plans.data)) {
+          state.plans.data = state.plans.data.map((plan) =>
+            plan._id === payload._id ? payload : plan
+          );
+        }
+        // Nếu đang xem chi tiết 1 plan, cập nhật luôn
+        if (state.plan && state.plan._id === payload._id) {
+          state.plan = payload;
+        }
       })
       .addCase(updatePlan.rejected, (state, { payload }) => {
         state.isLoading = false;
@@ -272,7 +279,10 @@ export const planSlice = createSlice({
       })
       .addCase(fetchAllPlan.fulfilled, (state, { payload }) => {
         state.isLoading = false;
-        state.plans = payload;
+        state.plans = {
+          ...payload,
+          data: Array.isArray(payload.data) ? payload.data : [],
+        };
       })
       .addCase(fetchAllPlan.rejected, (state, { payload }) => {
         state.isLoading = false;

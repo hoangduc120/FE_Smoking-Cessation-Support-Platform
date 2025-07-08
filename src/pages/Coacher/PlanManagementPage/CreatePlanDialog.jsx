@@ -20,6 +20,7 @@ import {
   fetchAllPlan,
   updatePlan,
 } from "../../../store/slices/planeSlice";
+import { CheckCircle } from "@mui/icons-material";
 
 // Define Yup schema for validation
 const schema = yup.object().shape({
@@ -150,11 +151,38 @@ export default function CreatePlanDialog({
 
   return (
     <>
-      <Dialog open={open} onClose={handleCloseDialog}>
-        <DialogTitle>
+      <Dialog open={open} onClose={handleCloseDialog} 
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: 6,
+            minWidth: 400,
+            background: '#f8fff9',
+            border: '2px solid #19a14c',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            background: '#19a14c',
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: 22,
+            pb: 1,
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            py: 2,
+            px: 3,
+            minHeight: 56,
+          }}
+        >
+          <CheckCircle sx={{ color: '#fff', mr: 1 }} />
           {isEditMode ? "Cập nhật kế hoạch" : "Tạo kế hoạch mới"}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 1, pb: 2 }}>
           {/* Title field */}
           <Controller
             name="title"
@@ -169,7 +197,17 @@ export default function CreatePlanDialog({
                 fullWidth
                 error={!!errors.title}
                 helperText={errors.title?.message}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, borderRadius: 2, background: '#fff',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  },
+                  '& label.Mui-focused': {
+                    color: '#19a14c',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#19a14c',
+                  },
+                }}
               />
             )}
           />
@@ -187,7 +225,17 @@ export default function CreatePlanDialog({
                 fullWidth
                 error={!!errors.reason}
                 helperText={errors.reason?.message}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, borderRadius: 2, background: '#fff',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  },
+                  '& label.Mui-focused': {
+                    color: '#19a14c',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#19a14c',
+                  },
+                }}
               />
             )}
           />
@@ -203,7 +251,17 @@ export default function CreatePlanDialog({
                 fullWidth
                 error={!!errors.duration}
                 helperText={errors.duration?.message}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, borderRadius: 2, background: '#fff',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  },
+                  '& label.Mui-focused': {
+                    color: '#19a14c',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#19a14c',
+                  },
+                }}
               />
             )}
           />
@@ -219,21 +277,56 @@ export default function CreatePlanDialog({
                 fullWidth
                 error={!!errors.image}
                 helperText={errors.image?.message}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, borderRadius: 2, background: '#fff',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  },
+                  '& label.Mui-focused': {
+                    color: '#19a14c',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#19a14c',
+                  },
+                }}
               />
             )}
           />
 
           {/* Status field */}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="inherit">
+        <DialogActions sx={{ px: 3, pb: 2, pt: 0 }}>
+          <Button onClick={handleCloseDialog} 
+            color="inherit"
+            sx={{
+              borderRadius: 2,
+              border: '1px solid #19a14c',
+              color: '#19a14c',
+              fontWeight: 600,
+              px: 3,
+              background: 'transparent',
+              '&:hover': {
+                background: '#e6f7ed',
+                borderColor: '#19a14c',
+              },
+            }}
+          >
             Hủy
           </Button>
           <Button
             onClick={handleSubmit(onSubmit)}
             color="primary"
             disabled={isLoading}
+            sx={{
+              borderRadius: 2,
+              background: '#19a14c',
+              color: '#fff',
+              fontWeight: 600,
+              px: 3,
+              boxShadow: '0 2px 8px rgba(25,161,76,0.12)',
+              '&:hover': {
+                background: '#168c41',
+              },
+            }}
           >
             {isEditMode ? "Cập nhật" : "Tạo"}
           </Button>
@@ -250,7 +343,8 @@ export default function CreatePlanDialog({
         <Alert
           onClose={handleCloseToast}
           severity="success"
-          sx={{ width: "100%" }}
+          sx={{ width: "100%", background: '#e6f7ed', color: '#19a14c', fontWeight: 600 }}
+          icon={<CheckCircle sx={{ color: '#19a14c' }} />}
         >
           {isEditMode
             ? "Cập nhật kế hoạch thành công!"
@@ -268,7 +362,7 @@ export default function CreatePlanDialog({
         <Alert
           onClose={handleCloseErrorToast}
           severity="error"
-          sx={{ width: "100%" }}
+          sx={{ width: "100%", background: '#fff0f0', color: '#d32f2f', fontWeight: 600 }}
         >
           {errorMessage}
         </Alert>

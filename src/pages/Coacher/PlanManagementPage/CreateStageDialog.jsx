@@ -14,6 +14,14 @@ import {
   Select,
   TextField,
   Typography,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import * as Yup from "yup";
@@ -22,6 +30,9 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { createStageApi, updateStageApi, getStageById } from "../../../store/slices/stagesSlice";
 import { useEffect, useState } from "react";
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import CloseIcon from '@mui/icons-material/Close';
+import SaveIcon from '@mui/icons-material/Save';
 
 // Yup validation schema for stages
 const stageSchema = Yup.object().shape({
@@ -38,9 +49,6 @@ const stageSchema = Yup.object().shape({
   duration: Yup.number()
     .required("Vui lòng nhập thời gian (ngày)")
     .min(1, "Thời gian phải lớn hơn 0"),
-  status: Yup.string()
-    .required("Vui lòng chọn trạng thái")
-    .oneOf(["template", "ongoing", ]) ,
 });
 
 export default function CreateStageDialog({
@@ -49,6 +57,7 @@ export default function CreateStageDialog({
   plans,
   isLoading,
   stageToEdit = null,
+  setStageToEdit = () => {}, // thêm dòng này
   onStageUpdated = () => {},
 }) {
   const dispatch = useDispatch();
@@ -56,6 +65,15 @@ export default function CreateStageDialog({
   const { stages } = useSelector((state) => state.stages);
 
   // React Hook Form setup
+  const getNextOrderIndex = (planId) => {
+    const filtered = stages?.filter(s => s.quitPlanId === planId) || [];
+    const maxOrderIndex = filtered.reduce((max, stage) => Math.max(max, stage.order_index || 0), 0);
+    return maxOrderIndex + 1;
+  };
+
+  const defaultPlanId = stageToEdit?.quitPlanId || plans?.data?.[0]?._id || "";
+  const defaultOrderIndex = stageToEdit?.order_index || getNextOrderIndex(defaultPlanId);
+
   const {
     control,
     handleSubmit,
@@ -66,12 +84,12 @@ export default function CreateStageDialog({
   } = useForm({
     resolver: yupResolver(stageSchema),
     defaultValues: {
-      quitPlanId: stageToEdit?.quitPlanId || plans?.data?.[0]?._id || "",
+      quitPlanId: defaultPlanId,
       stage_name: stageToEdit?.stage_name || "",
       description: stageToEdit?.description || "",
-      order_index: stageToEdit?.order_index || 1,
+      order_index: defaultOrderIndex,
       duration: stageToEdit?.duration || 1,
-      status: stageToEdit?.status || "template",
+    
     },
   });
 
@@ -85,7 +103,7 @@ export default function CreateStageDialog({
       description: stageToEdit?.description || "",
       order_index: stageToEdit?.order_index || 1,
       duration: stageToEdit?.duration || 1,
-      status: stageToEdit?.status || "template",
+      // status: stageToEdit?.status || "template",
     });
   }, [stageToEdit, plans, reset]);
 
@@ -118,13 +136,13 @@ export default function CreateStageDialog({
 
   // Reset form when dialog is closed
   const handleClose = () => {
+    const planId = plans?.data?.[0]?._id || "";
     reset({
-      quitPlanId: plans?.data?.[0]?._id || "",
+      quitPlanId: planId,
       stage_name: "",
       description: "",
-      order_index: 1,
+      order_index: getNextOrderIndex(planId),
       duration: 1,
-      status: "template",
     });
     setOpen(false);
   };
@@ -143,9 +161,16 @@ export default function CreateStageDialog({
     setIsStageLoading(true);
     try {
       const response = await dispatch(
-        createStageApi({ data, id: data.quitPlanId })
+        createStageApi({ data: { ...data, status: 'template' }, id: data.quitPlanId })
       ).unwrap();
-      handleClose();
+      // Reset form về mặc định sau khi tạo thành công
+      reset({
+        quitPlanId: plans?.data?.[0]?._id || "",
+        stage_name: "",
+        description: "",
+        order_index: getNextOrderIndex(watchQuitPlanId),
+        duration: 1,
+      });
       toast.success("Tạo giai đoạn thành công");
       onStageUpdated();
     } catch (error) {
@@ -177,11 +202,19 @@ export default function CreateStageDialog({
     setIsStageLoading(true);
     try {
       const response = await dispatch(
-        updateStageApi({ data, id: stageToEdit._id })
+        updateStageApi({ data: { ...data, status: 'template' }, id: stageToEdit._id })
       ).unwrap();
-      handleClose();
+      // Reset form về mặc định sau khi cập nhật thành công
+      reset({
+        quitPlanId: plans?.data?.[0]?._id || "",
+        stage_name: "",
+        description: "",
+        order_index: getNextOrderIndex(watchQuitPlanId),
+        duration: 1,
+      });
       toast.success("Cập nhật giai đoạn thành công");
       onStageUpdated();
+      setStageToEdit(null); // Thêm dòng này để reset về chế độ tạo mới
     } catch (error) {
       console.error("Error updating stage:", error);
       toast.error(
@@ -193,18 +226,65 @@ export default function CreateStageDialog({
     }
   };
 
+  const handleCreateAndContinue = async (data) => {
+    // Kiểm tra order_index trùng lặp
+    const isDuplicate = stages?.some(
+      stage => stage.order_index === data.order_index && stage.quitPlanId === data.quitPlanId
+    );
+    if (isDuplicate) {
+      toast.error("Thứ tự này đã tồn tại trong kế hoạch. Vui lòng chọn thứ tự khác.");
+      return;
+    }
+    setIsStageLoading(true);
+    try {
+      await dispatch(
+        createStageApi({ data: { ...data, status: 'template' }, id: data.quitPlanId })
+      ).unwrap();
+      // Fetch lại danh sách stage mới nhất
+      await dispatch(getStageById({ id: data.quitPlanId, page: 1, limit: 100 })).unwrap();
+      toast.success("Tạo giai đoạn thành công");
+      // Sau khi tạo xong, reset form với các trường giữ nguyên, chỉ tăng order_index
+      reset({
+        ...data,
+        order_index: undefined, // hoặc bỏ luôn order_index ra khỏi reset
+      });
+      // Nếu đang ở chế độ chỉnh sửa, chuyển sang chế độ tạo mới
+      if (stageToEdit) {
+        onStageUpdated();
+        setOpen(false); // Đóng popup chỉnh sửa
+        setTimeout(() => setOpen(true), 100); // Mở lại popup tạo mới
+      }
+      onStageUpdated();
+    } catch (error) {
+      console.error("Error creating stage:", error);
+      toast.error(
+        "Không thể tạo giai đoạn: " + (error.message || "Lỗi không xác định")
+      );
+    } finally {
+      setIsStageLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open && !stageToEdit) {
+      setValue("order_index", getNextOrderIndex(watchQuitPlanId));
+    }
+  }, [stages, open, stageToEdit, watchQuitPlanId, setValue]);
+
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>
+    <Dialog open={open} onClose={handleClose} PaperProps={{
+      sx: { borderRadius: 3, boxShadow: 8, border: '2px solid #19a14c', minWidth: 600 }
+    }}>
+      <DialogTitle sx={{ bgcolor: '#19a14c', color: '#fff', fontWeight: 700, fontSize: 22, letterSpacing: 1, textAlign: 'center', borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
         {stageToEdit ? "Chỉnh sửa giai đoạn" : "Tạo giai đoạn mới"}
       </DialogTitle>
-      <DialogContent>
-        <DialogContentText>
+      <DialogContent sx={{ bgcolor: '#f6fff9', p: 3 }}>
+        <DialogContentText sx={{ mb: 2, color: '#19a14c', fontWeight: 600, fontSize: 16 }}>
           {stageToEdit
             ? "Cập nhật thông tin giai đoạn"
             : "Thêm một giai đoạn mới vào kế hoạch cai thuốc"}
         </DialogContentText>
-        <Box component="form" className="planStage-form-grid">
+        <Box component="form" className="planStage-form-grid" sx={{ mb: 3 }}>
           <FormControl fullWidth margin="normal" error={!!errors.quitPlanId}>
             <InputLabel>Kế hoạch cai thuốc</InputLabel>
             <Controller
@@ -280,6 +360,7 @@ export default function CreateStageDialog({
                     inputProps={{ min: 1 }}
                     error={!!errors.order_index}
                     helperText={errors.order_index?.message}
+                    InputProps={{ readOnly: !stageToEdit }} // Thêm dòng này
                   />
                 )}
               />
@@ -302,43 +383,80 @@ export default function CreateStageDialog({
                 )}
               />
             </Grid>
-            <Grid item size={4}>
-              <FormControl fullWidth margin="normal" error={!!errors.status}>
-                <InputLabel>Trạng thái</InputLabel>
-                <Controller
-                  name="status"
-                  control={control}
-                  render={({ field }) => (
-                    <Select {...field} label="Trạng thái">
-                      <MenuItem value="template"> Bản nháp</MenuItem>
-                      <MenuItem value="ongoing">Đang hoạt động</MenuItem>
-                    </Select>
-                  )}
-                />
-                {errors.status && (
-                  <Typography color="error">{errors.status.message}</Typography>
-                )}
-              </FormControl>
-            </Grid>
+            {/* Bỏ trường status khỏi form nhập liệu */}
           </Grid>
         </Box>
+        {/* Bảng danh sách giai đoạn */}
+        <Box mt={2}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#19a14c', fontWeight: 700 }}>Danh sách các giai đoạn trong kế hoạch</Typography>
+          <Box sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 2, bgcolor: '#fff', p: 2, border: '1.5px solid #19a14c' }}>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                    <TableCell sx={{ color: '#19a14c', fontWeight: 700 }}><b>Tên giai đoạn</b></TableCell>
+                    <TableCell align="center" sx={{ color: '#19a14c', fontWeight: 700 }}><b>Thứ tự</b></TableCell>
+                    <TableCell align="center" sx={{ color: '#19a14c', fontWeight: 700 }}><b>Chi tiết</b></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Array.isArray(stages) && stages.length > 0 ? (
+                    [...stages]
+                      .filter(s => s.quitPlanId === watchQuitPlanId)
+                      .sort((a, b) => a.order_index - b.order_index)
+                      .map((stage) => (
+                        <TableRow key={stage._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                          <TableCell sx={{ fontWeight: 500 }}>{stage.stage_name}</TableCell>
+                          <TableCell align="center">{stage.order_index}</TableCell>
+                          <TableCell align="center">{stage.description}</TableCell>
+                        </TableRow>
+                      ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} align="center">
+                        Không có giai đoạn nào
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} variant="outlined">
+      <DialogActions sx={{ justifyContent: "space-between", p: 2, bgcolor: "#f6fff9" }}>
+        <Button
+          onClick={handleClose}
+          variant="outlined"
+          sx={{ borderColor: '#19a14c', color: '#19a14c', fontWeight: 600 }}
+          startIcon={<CloseIcon />}
+        >
           Hủy
         </Button>
-        <Button
-          onClick={handleSubmit(stageToEdit ? handleEditStage : handleCreateStage)}
-          disabled={isStageLoading || isLoading}
-        >
-          {isStageLoading
-            ? stageToEdit
-              ? "Đang cập nhật..."
-              : "Đang tạo..."
-            : stageToEdit
-            ? "Cập nhật"
-            : "Tạo giai đoạn"}
-        </Button>
+        <Box>
+          {!stageToEdit && (
+            <Tooltip title="Lưu và tạo mới">
+              <IconButton
+                color="success"
+                onClick={handleSubmit(handleCreateAndContinue)}
+                disabled={isStageLoading || isLoading}
+                sx={{ mr: 1 }}
+              >
+                <AddCircleIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+          <Button
+            onClick={handleSubmit(stageToEdit ? handleEditStage : handleCreateStage)}
+            disabled={isStageLoading || isLoading}
+            sx={{ bgcolor: '#19a14c', color: '#fff', fontWeight: 600, borderRadius: 2, '&:hover': { bgcolor: '#14813b' } }}
+            startIcon={<SaveIcon />}
+          >
+            {isStageLoading
+              ? (stageToEdit ? "Đang lưu..." : "Đang tạo...")
+              : (stageToEdit ? "Lưu" : "Tạo mới")}
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   );
