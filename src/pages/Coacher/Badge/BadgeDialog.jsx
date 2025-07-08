@@ -132,11 +132,13 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
                   Chọn kế hoạch
                 </MenuItem>
                 {Array.isArray(plans) && plans.length > 0 ? (
-                  plans.map((plan) => (
-                    <MenuItem key={plan._id} value={plan._id}>
-                      {plan.title}
-                    </MenuItem>
-                  ))
+                  plans
+                    .filter(plan => plan.status === "template")
+                    .map((plan) => (
+                      <MenuItem key={plan._id} value={plan._id}>
+                        {plan.title}
+                      </MenuItem>
+                    ))
                 ) : (
                   <MenuItem value="" disabled>
                     Không có kế hoạch nào

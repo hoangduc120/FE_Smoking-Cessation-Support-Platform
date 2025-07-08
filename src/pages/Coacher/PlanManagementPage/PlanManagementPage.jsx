@@ -31,7 +31,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
 import CreatePlanDialog from "./CreatePlanDialog";
 import CreateStageDialog from "./CreateStageDialog";
 import StageListDialog from "./StageListDialog";
@@ -136,6 +135,7 @@ export default function PlanManagementPage() {
 
   const filteredPlans = (plans?.data || []).filter(
     (plan) =>
+      plan.status === "template" &&
       (plan.title || "").toLowerCase().includes(searchTerm.toLowerCase()) &&
       (filterStatus === "tat-ca" || plan.status === filterStatus)
   );

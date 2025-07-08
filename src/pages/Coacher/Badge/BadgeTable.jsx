@@ -39,7 +39,6 @@ export default function BadgeTable() {
   const auth = useSelector((state) => state.auth);
   const coachId = auth?.currentUser?.user?.id;
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 3;
@@ -55,14 +54,12 @@ export default function BadgeTable() {
   }, [auth, coachId, dispatch, navigate]);
 
   const handleViewBadges = (planId) => {
-    setSelectedPlanId(planId);
     dispatch(fetchBadgesByPlan({ quitPlanId: planId }));
     setOpenModal(true);
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
-    setSelectedPlanId(null);
   };
 
   const handleOpenDialog = () => {
@@ -70,7 +67,7 @@ export default function BadgeTable() {
   };
 
   // Phân trang
-  const filteredPlans = plans?.data || [];
+  const filteredPlans = (plans?.data || []).filter(plan => plan.status === "template");
   const totalPlans = filteredPlans.length;
   const totalPages = Math.ceil(totalPlans / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
