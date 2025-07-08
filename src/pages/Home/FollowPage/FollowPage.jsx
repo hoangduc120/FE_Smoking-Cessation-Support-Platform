@@ -42,6 +42,7 @@ import {
   followUser,
   unfollowUser,
 } from "../../../store/slices/userSlice";
+import { getMyBadge } from "../../../store/slices/badgeSlice";
 import toast from "react-hot-toast";
 
 const FollowPage = () => {
@@ -54,10 +55,16 @@ const FollowPage = () => {
     author, // tác giả đang xem
     user, // người dùng đang đăng nhập
     stats,
-    isLoading,
-    isError,
-    errorMessage,
+    isLoading: userLoading,
+    isError: userError,
+    errorMessage: userErrorMessage,
   } = useSelector((state) => state.user);
+  const {
+    badges,
+    isLoading: badgeLoading,
+    isError: badgeError,
+    isError: badgeErrorMessage,
+  } = useSelector((state) => state.badge);
 
   const query = new URLSearchParams(location.search);
   const initialTab = query.get("tab") === "following" ? 1 : 0;
@@ -77,6 +84,7 @@ const FollowPage = () => {
       dispatch(fetchFollowing(userId)).then((res) => {
         setLocalFollowing(res.payload || []);
       });
+      dispatch(getMyBadge());
     }
     if (user?._id) {
       dispatch(fetchFollowing(user._id)).then((res) => {
@@ -185,10 +193,6 @@ const FollowPage = () => {
     navigate(`/author/${userId}`);
   };
 
-  const handleProfileClick = (profileUserId) => {
-    navigate(`/author/${profileUserId}`);
-  };
-
   const authorData = {
     name: author?.name || "Không xác định",
     username: author?.email?.split("@")[0] || "",
@@ -197,17 +201,7 @@ const FollowPage = () => {
       "https://upload.wikimedia.org/wikipedia/commons/a/ac/ac_default_pfp.jpg",
   };
 
-  // Mock achievements
-  const achievements = [
-    { icon: "🏆", count: 3, label: "Trophies" },
-    { icon: "🥇", count: 1, label: "Gold Medal" },
-    { icon: "💯", count: 1, label: "Perfect Score" },
-  ];
-
-  const followersCount = localFollowers.length;
-  const followingCount = localFollowing.length;
-
-  if (isLoading) {
+  if (userLoading || badgeLoading) {
     return (
       <Box
         sx={{
@@ -223,12 +217,12 @@ const FollowPage = () => {
     );
   }
 
-  if (isError) {
-    toast.error(errorMessage || "Lỗi tải thông tin");
+  if (userError || badgeError) {
+    toast.error(userErrorMessage || badgeErrorMessage || "Lỗi tải thông tin");
     return (
       <Box sx={{ py: 8, textAlign: "center" }}>
         <Typography variant="h5" color="#2E7D32">
-          {errorMessage || "Lỗi tải thông tin"}
+          {userErrorMessage || badgeErrorMessage || "Lỗi tải thông tin"}
         </Typography>
       </Box>
     );
@@ -244,23 +238,6 @@ const FollowPage = () => {
     >
       <CssBaseline />
       <Container maxWidth="lg">
-        {/* <Box sx={{ mb: 4 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={handleGoBack}
-            variant="text"
-            sx={{
-              color: "#4CAF50",
-              textTransform: "none",
-              "&:hover": {
-                bgcolor: alpha("#4CAF50", 0.1),
-                borderRadius: 2,
-              },
-            }}
-          >
-            Quay lại
-          </Button>
-        </Box> */}
         <Box sx={{ mb: 4, display: "flex", gap: 2 }}>
           <Button
             startIcon={<ArrowBackIcon />}
@@ -428,7 +405,7 @@ const FollowPage = () => {
                     }}
                   >
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {stats?.followersCount || followersCount}
+                      {stats?.followersCount || followersList.length}
                     </Typography>
                     <Typography variant="body2">Người theo dõi</Typography>
                   </Box>
@@ -451,7 +428,7 @@ const FollowPage = () => {
                     }}
                   >
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {stats?.followingCount || followingCount}
+                      {stats?.followingCount || followingList.length}
                     </Typography>
                     <Typography variant="body2">Đang theo dõi</Typography>
                   </Box>
@@ -482,34 +459,57 @@ const FollowPage = () => {
                     display: "flex",
                     justifyContent: "space-around",
                     mb: 2,
+                    flexWrap: "wrap",
+                    gap: 2,
                   }}
                 >
-                  {achievements.map((achievement, index) => (
-                    <Tooltip key={index} title={achievement.label}>
-                      <Box sx={{ textAlign: "center" }}>
-                        <Badge
-                          badgeContent={achievement.count}
-                          sx={{
-                            "& .MuiBadge-badge": {
-                              backgroundColor: "#4CAF50",
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: "0.8rem",
-                            },
-                          }}
-                        >
-                          <Box
+                  {badges && badges.length > 0 ? (
+                    badges.map((badge, index) => (
+                      <Tooltip key={badge._id} title={badge.description}>
+                        <Box sx={{ textAlign: "center" }}>
+                          <Badge
+                            badgeContent={1}
                             sx={{
-                              fontSize: "2.5rem",
-                              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
+                              "& .MuiBadge-badge": {
+                                backgroundColor: "#4CAF50",
+                                color: "white",
+                                fontWeight: "bold",
+                                fontSize: "0.8rem",
+                              },
                             }}
                           >
-                            {achievement.icon}
-                          </Box>
-                        </Badge>
-                      </Box>
-                    </Tooltip>
-                  ))}
+                            <Avatar
+                              src={badge.icon_url}
+                              sx={{
+                                width: 50,
+                                height: 50,
+                                border: `2px solid ${alpha("#4CAF50", 0.3)}`,
+                                filter:
+                                  "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
+                              }}
+                            />
+                          </Badge>
+                          <Typography
+                            variant="caption"
+                            sx={{ display: "block", mt: 1, color: "#263238" }}
+                          >
+                            {badge.name}
+                          </Typography>
+                        </Box>
+                      </Tooltip>
+                    ))
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "#546e7a",
+                        textAlign: "center",
+                        width: "100%",
+                      }}
+                    >
+                      Chưa có thành tựu
+                    </Typography>
+                  )}
                 </Box>
               </CardContent>
             </Card>
@@ -603,14 +603,14 @@ const FollowPage = () => {
                   }}
                 >
                   <Tab
-                    label={`Người theo dõi (${followersCount})`}
+                    label={`Người theo dõi (${followersList.length})`}
                     value={0}
                     icon={<Favorite fontSize="small" />}
                     iconPosition="start"
                     sx={{ padding: "0 8px" }}
                   />
                   <Tab
-                    label={`Đang theo dõi (${followingCount})`}
+                    label={`Đang theo dõi (${followingList.length})`}
                     value={1}
                     icon={<PersonAdd fontSize="small" />}
                     iconPosition="start"
