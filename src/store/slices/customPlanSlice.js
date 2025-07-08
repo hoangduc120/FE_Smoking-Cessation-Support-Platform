@@ -20,14 +20,47 @@ export const createCustomQuitPlan = createAsyncThunk(
 // Lấy danh sách yêu cầu kế hoạch cai thuốc lá tùy chỉnh (pending)
 export const fetchCustomQuitPlans = createAsyncThunk(
   "customPlan/fetchCustomQuitPlans",
-  async (_, { rejectWithValue }) => {
+  async (filters = {}, { rejectWithValue }) => {
     try {
-      const response = await fetcher.get("/plans/quitplans/custom");
+      const queryParams = new URLSearchParams();
+      if (filters.userId) queryParams.append("userId", filters.userId);
+      if (filters.coachId) queryParams.append("coachId", filters.coachId);
+      if (filters.status) queryParams.append("status", filters.status);
+
+      const response = await fetcher.get(
+        `/plans/quitplans/custom?${queryParams.toString()}`
+      );
       return response.data.data;
     } catch (error) {
       console.error("fetchCustomQuitPlans error:", error);
       return rejectWithValue(
-        error.response ? error.response.data : error.message
+        error.response?.data?.message ||
+        error.message ||
+        "Lỗi không xác định khi lấy danh sách kế hoạch."
+      );
+    }
+  }
+);
+
+// Lấy danh sách các custom quit plans đã được approve
+export const fetchApprovedCustomQuitPlans = createAsyncThunk(
+  "customPlan/fetchApprovedCustomQuitPlans",
+  async (filters = {}, { rejectWithValue }) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.userId) queryParams.append("userId", filters.userId);
+      if (filters.coachId) queryParams.append("coachId", filters.coachId);
+
+      const response = await fetcher.get(
+        `/plans/quitplans/custom/approved?${queryParams.toString()}`
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error("fetchApprovedCustomQuitPlans error:", error);
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.message ||
+        "Lỗi không xác định khi lấy danh sách kế hoạch đã duyệt."
       );
     }
   }
@@ -47,8 +80,8 @@ export const approveCustomQuitPlan = createAsyncThunk(
       console.error("approveCustomQuitPlan error:", error);
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Lỗi không xác định khi phê duyệt kế hoạch."
+        error.message ||
+        "Lỗi không xác định khi phê duyệt kế hoạch."
       );
     }
   }
@@ -68,29 +101,33 @@ export const rejectCustomQuitPlan = createAsyncThunk(
       console.error("rejectCustomQuitPlan error:", error);
       return rejectWithValue(
         error.response?.data?.message ||
-          error.message ||
-          "Lỗi không xác định khi từ chối kế hoạch."
+        error.message ||
+        "Lỗi không xác định khi từ chối kế hoạch."
       );
     }
   }
 );
 
+const initialState = {
+  customPlanData: null,
+  customPlansList: [],
+  approvedCustomPlans: [],
+  isLoading: false,
+  isError: false,
+  errorMessage: "",
+};
+
 export const customPlanSlice = createSlice({
   name: "customPlan",
-  initialState: {
-    customPlanData: null,
-    customPlansList: null,
-    isLoading: false,
-    isError: false,
-    errorMessage: null,
-  },
+  initialState: initialState,
   reducers: {
     resetCustomPlanData: (state) => {
       state.customPlanData = null;
-      state.customPlansList = null;
+      state.customPlansList = [];
+      state.approvedCustomPlans = [];
       state.isLoading = false;
       state.isError = false;
-      state.errorMessage = null;
+      state.errorMessage = "";
     },
   },
   extraReducers: (builder) => {
@@ -119,6 +156,20 @@ export const customPlanSlice = createSlice({
         state.customPlansList = action.payload;
       })
       .addCase(fetchCustomQuitPlans.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = action.payload;
+      })
+      .addCase(fetchApprovedCustomQuitPlans.pending, (state) => {
+        state.isLoading = true;
+        state.isError = false;
+      })
+      .addCase(fetchApprovedCustomQuitPlans.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isError = false;
+        state.approvedCustomPlans = action.payload;
+      })
+      .addCase(fetchApprovedCustomQuitPlans.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload;
@@ -165,4 +216,5 @@ export const customPlanSlice = createSlice({
 });
 
 export const { resetCustomPlanData } = customPlanSlice.actions;
+
 export default customPlanSlice.reducer;

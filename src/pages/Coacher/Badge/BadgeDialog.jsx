@@ -34,7 +34,7 @@ const schema = yup.object().shape({
     .string()
     .required("Kế hoạch là bắt buộc")
     .matches(/^[0-9a-fA-F]{24}$/, "Kế hoạch không hợp lệ"),
-    icon_url:yup.string().required("Hình ảnh là bắt buộc")
+  icon_url: yup.string().required("Hình ảnh là bắt buộc")
 });
 
 export default function BadgeDialog({ open, setOpen, plans = [] }) {
@@ -55,7 +55,7 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
       name: "",
       description: "",
       quitPlanId: "",
-      icon_url:""
+      icon_url: ""
     },
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -67,7 +67,7 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
       name: "",
       description: "",
       quitPlanId: "",
-      icon_url:"",
+      icon_url: "",
     });
   };
 
@@ -167,7 +167,7 @@ export default function BadgeDialog({ open, setOpen, plans = [] }) {
               />
             )}
           />
-           <Controller
+          <Controller
             name="icon_url"
             control={control}
             render={({ field }) => (
