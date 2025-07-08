@@ -81,6 +81,11 @@ export default function PlanManagementPage() {
     setOpenDialog(true);
   };
 
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setPlanToEdit(null); // Thêm dòng này
+  };
+
   const handleOpenConfirmDialog = (id) => {
     setPlanIdToDelete(id);
     setOpenConfirmDialog(true);
@@ -182,12 +187,15 @@ export default function PlanManagementPage() {
               Tạo kế hoạch mới
             </Button>
             <Button
-              className="planeManager-btn"
-              onClick={() => setOpenStageDialog(true)}
-              startIcon={<AddIcon />}
-            >
-              Thêm giai đoạn mới
-            </Button>
+  className="planeManager-btn"
+  onClick={() => {
+    setStageToEdit(null); 
+    setOpenStageDialog(true);
+  }}
+  startIcon={<AddIcon />}
+>
+  Thêm giai đoạn mới
+</Button>
           </Box>
         </Box>
         <Box className="planeManager-card">
@@ -424,7 +432,7 @@ export default function PlanManagementPage() {
       </Box>
       <CreatePlanDialog
         open={openDialog}
-        setOpen={setOpenDialog}
+        setOpen={handleCloseDialog} // truyền hàm mới
         coachId={coachId}
         planToEdit={planToEdit}
       />

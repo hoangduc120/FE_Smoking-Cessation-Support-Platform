@@ -97,11 +97,10 @@ export default function StageListDialog({
               <Table>
                 <TableHead>
                   <TableRow>
+                  <TableCell>Thứ tự</TableCell>
                     <TableCell>Tên giai đoạn</TableCell>
                     <TableCell>Mô tả</TableCell>
-                    <TableCell>Thứ tự</TableCell>
-                    <TableCell>Ngày bắt đầu</TableCell>
-                    <TableCell>Ngày kết thúc</TableCell>
+                    <TableCell>Thời gian giai đoạn</TableCell>
                     <TableCell>Trạng thái</TableCell>
                     <TableCell>Thao tác</TableCell>
                   </TableRow>
@@ -109,21 +108,11 @@ export default function StageListDialog({
                 <TableBody>
                   {stages.map((stage) => (
                     <TableRow key={stage._id}>
+                       <TableCell>{stage.order_index}</TableCell>
                       <TableCell>{stage.stage_name}</TableCell>
                       <TableCell>{stage.description}</TableCell>
-                      <TableCell>{stage.order_index}</TableCell>
-                      <TableCell>
-                        {stage.start_date &&
-                        !isNaN(new Date(stage.start_date).getTime())
-                          ? format(new Date(stage.start_date), "dd/MM/yyyy")
-                          : "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        {stage.end_date &&
-                        !isNaN(new Date(stage.end_date).getTime())
-                          ? format(new Date(stage.end_date), "dd/MM/yyyy")
-                          : "N/A"}
-                      </TableCell>
+                      <TableCell>{stage.duration}</TableCell>
+                    
                       <TableCell>
                         <Chip
                           label={
