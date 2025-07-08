@@ -45,6 +45,7 @@ import {
   fetchCustomQuitPlans,
   approveCustomQuitPlan,
   rejectCustomQuitPlan,
+  fetchApprovedCustomQuitPlans,
 } from "../../../store/slices/customPlanSlice";
 
 // A no-op transition that simply renders its children
@@ -55,10 +56,11 @@ const NoTransition = React.forwardRef(function NoTransition(props, ref) {
 
 const CoachQuitPlans = () => {
   const dispatch = useDispatch();
-  const { customPlansList, isLoading, isError, errorMessage } = useSelector(
+  const { customPlansList, approvedCustomPlans, isLoading, isError, errorMessage } = useSelector(
     (state) => state.customPlan
   );
   const [filteredPlans, setFilteredPlans] = useState([]);
+  const [selectedTab, setSelectedTab] = useState(0);
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     planId: null,
@@ -101,8 +103,13 @@ const CoachQuitPlans = () => {
     dispatch(fetchCustomQuitPlans());
   };
 
+  const fetchApprovedPlans = async () => {
+    dispatch(fetchApprovedCustomQuitPlans());
+  };
+
   useEffect(() => {
     fetchPlans();
+    fetchApprovedPlans();
   }, [dispatch]);
 
   useEffect(() => {
@@ -319,9 +326,9 @@ const CoachQuitPlans = () => {
       stagesData: prev.stagesData.map((stage, i) =>
         i === index
           ? {
-              ...stage,
-              [field]: value,
-            }
+            ...stage,
+            [field]: value,
+          }
           : stage
       ),
     }));
@@ -573,194 +580,367 @@ const CoachQuitPlans = () => {
             </Typography>
           </Box>
           <Tooltip title="Làm mới dữ liệu">
-            <IconButton onClick={fetchPlans} sx={{ color: "white" }}>
+            <IconButton onClick={() => { fetchPlans(); fetchApprovedPlans(); }} sx={{ color: "white" }}>
               <RefreshIcon />
             </IconButton>
           </Tooltip>
         </Box>
       </Paper>
 
-      {filteredPlans.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: "center" }}>
-          <Typography variant="h6" color="text.secondary">
-            Không có kế hoạch nào đang chờ duyệt
-          </Typography>
-        </Paper>
-      ) : (
-        <Grid container spacing={3}>
-          {filteredPlans.map((plan) => (
-            <Grid item size={{ xs: 12, md: 6, lg: 4 }} key={plan._id}>
-              <Card
-                elevation={3}
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box
+      {/* Tabs để chuyển đổi giữa Pending và Approved */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs
+          value={selectedTab}
+          onChange={(event, newValue) => setSelectedTab(newValue)}
+          sx={{
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontSize: "1rem",
+              fontWeight: "bold",
+            },
+          }}
+        >
+          <Tab
+            label={`Chờ duyệt (${filteredPlans.length})`}
+            sx={{ color: "#ff9800" }}
+          />
+          <Tab
+            label={`Đã duyệt (${approvedCustomPlans.length})`}
+            sx={{ color: "#4caf50" }}
+          />
+        </Tabs>
+      </Paper>
+
+      {selectedTab === 0 && (
+        <>
+          {filteredPlans.length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: "center" }}>
+              <Typography variant="h6" color="text.secondary">
+                Không có kế hoạch nào đang chờ duyệt
+              </Typography>
+            </Paper>
+          ) : (
+            <Grid container spacing={3}>
+              {filteredPlans.map((plan) => (
+                <Grid item size={{ xs: 12, md: 6, lg: 4 }} key={plan._id}>
+                  <Card
                     sx={{
+                      height: "100%",
                       display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      mb: 2,
+                      flexDirection: "column",
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: 4,
+                      },
                     }}
                   >
-                    <Typography
-                      variant="h6"
-                      component="h2"
-                      fontWeight="bold"
-                      sx={{ flexGrow: 1, mr: 1 }}
-                    >
-                      {plan.title}
-                    </Typography>
-                    <Chip
-                      label={getStatusText(plan.status)}
-                      color={getStatusColor(plan.status)}
-                      size="small"
-                    />
-                  </Box>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {plan.description}
-                  </Typography>
-
-                  <Divider sx={{ my: 2 }} />
-
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                      <PersonIcon
-                        sx={{ mr: 1, fontSize: 20, color: "primary.main" }}
-                      />
-                      <Typography variant="body2" fontWeight="medium">
-                        {plan.userId.userName}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                      <EmailIcon
-                        sx={{ mr: 1, fontSize: 20, color: "primary.main" }}
-                      />
-                      <Typography variant="body2" color="text.secondary">
-                        {plan.userId.email}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <ScheduleIcon
-                        sx={{ mr: 1, fontSize: 20, color: "primary.main" }}
-                      />
-                      <Typography variant="body2" color="text.secondary">
-                        {formatDate(plan.createdAt)}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Divider sx={{ my: 2 }} />
-
-                  <Box>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                      <RuleIcon
-                        sx={{ mr: 1, fontSize: 20, color: "primary.main" }}
-                      />
-                      <Typography variant="body2" fontWeight="medium">
-                        Quy tắc ({plan.rules.length})
-                      </Typography>
-                    </Box>
-                    <List dense sx={{ py: 0 }}>
-                      {plan.rules.map((rule) => (
-                        <ListItem
-                          key={rule._id}
-                          sx={{ px: 0, py: 1, alignItems: "flex-start" }}
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          mb: 2,
+                        }}
+                      >
+                        <Typography
+                          variant="h6"
+                          component="h2"
+                          fontWeight="bold"
+                          gutterBottom
+                          sx={{ flex: 1, pr: 1 }}
                         >
-                          <Box sx={{ display: "flex" }}>
-                            {/* Dấu chấm tròn đậm */}
-                            <Typography
-                              variant="body2"
-                              sx={{ fontWeight: "bold", mr: 1 }}
+                          {plan.title}
+                        </Typography>
+                        <Chip
+                          label={getStatusText(plan.status)}
+                          color={getStatusColor(plan.status)}
+                          size="small"
+                          sx={{ flexShrink: 0 }}
+                        />
+                      </Box>
+
+                      {plan.description && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 2 }}
+                        >
+                          {plan.description}
+                        </Typography>
+                      )}
+
+                      <Box sx={{ mb: 2 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 1,
+                          }}
+                        >
+                          <PersonIcon color="primary" fontSize="small" />
+                          <Typography variant="body2" fontWeight="medium">
+                            {plan.userId.userName}
+                          </Typography>
+                          <Tooltip title={plan.userId.email}>
+                            <EmailIcon
+                              color="action"
+                              fontSize="small"
+                              sx={{ cursor: "help" }}
+                            />
+                          </Tooltip>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          <ScheduleIcon color="action" fontSize="small" />
+                          <Typography variant="body2" color="text.secondary">
+                            {formatDate(plan.createdAt)}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                          Quy tắc yêu cầu:
+                        </Typography>
+                        <List dense sx={{ py: 0 }}>
+                          {plan.rules.map((rule) => (
+                            <ListItem
+                              key={rule._id}
+                              sx={{ px: 0, py: 1, alignItems: "flex-start" }}
                             >
-                              ●
-                            </Typography>
+                              <Box sx={{ display: "flex" }}>
+                                {/* Dấu chấm tròn đậm */}
+                                <Typography
+                                  variant="body2"
+                                  sx={{ fontWeight: "bold", mr: 1 }}
+                                >
+                                  ●
+                                </Typography>
 
-                            {/* Nội dung quy tắc */}
-                            <Box>
-                              <Chip
-                                label={getRuleTypeLabel(rule.rule)}
-                                color="primary"
-                                sx={{
-                                  fontSize: "0.8 rem",
-                                  mb: 0.5,
-                                }}
-                              />
-                              <Typography variant="body2">
-                                <strong>Số ngày:</strong>{" "}
-                                {rule.rule === "specificGoal"
-                                  ? getSpecificGoalLabel(rule.value)
-                                  : `${rule.value} ngày`}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                sx={{ color: "text.secondary" }}
-                              >
-                                <strong>Mô tả:</strong> {rule.description}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                </CardContent>
+                                {/* Nội dung quy tắc */}
+                                <Box>
+                                  <Chip
+                                    label={getRuleTypeLabel(rule.rule)}
+                                    color="primary"
+                                    sx={{
+                                      fontSize: "0.8 rem",
+                                      mb: 0.5,
+                                    }}
+                                  />
+                                  <Typography variant="body2">
+                                    <strong>Số ngày:</strong>{" "}
+                                    {rule.rule === "specificGoal"
+                                      ? getSpecificGoalLabel(rule.value)
+                                      : `${rule.value} ngày`}
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{ color: "text.secondary" }}
+                                  >
+                                    <strong>Mô tả:</strong> {rule.description}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Box>
+                    </CardContent>
 
-                <Box sx={{ p: 2, pt: 0 }}>
-                  <Grid container spacing={1}>
-                    <Grid item size={{ xs: 6 }}>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        color="success"
-                        startIcon={<ApproveIcon />}
-                        onClick={() =>
-                          openConfirmDialog(plan._id, "approve", plan.title)
-                        }
-                        disabled={actionLoading === plan._id}
-                        size="small"
+                    <Divider />
+
+                    <Box sx={{ p: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          justifyContent: "flex-end",
+                        }}
                       >
-                        {actionLoading === plan._id ? (
-                          <CircularProgress size={20} />
-                        ) : (
-                          "Duyệt"
-                        )}
-                      </Button>
-                    </Grid>
-                    <Grid item size={{ xs: 6 }}>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        color="error"
-                        startIcon={<RejectIcon />}
-                        onClick={() =>
-                          openConfirmDialog(plan._id, "reject", plan.title)
-                        }
-                        disabled={actionLoading === plan._id}
-                        size="small"
-                      >
-                        {actionLoading === plan._id ? (
-                          <CircularProgress size={20} />
-                        ) : (
-                          "Từ chối"
-                        )}
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </Box>
-              </Card>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          startIcon={<ApproveIcon />}
+                          onClick={() =>
+                            openConfirmDialog(plan._id, "approve", plan.title)
+                          }
+                          disabled={actionLoading === plan._id}
+                          sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                            textTransform: "none",
+                          }}
+                        >
+                          Duyệt
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          startIcon={<RejectIcon />}
+                          onClick={() =>
+                            openConfirmDialog(plan._id, "reject", plan.title)
+                          }
+                          disabled={actionLoading === plan._id}
+                          sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                            textTransform: "none",
+                          }}
+                        >
+                          Từ chối
+                        </Button>
+                      </Box>
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
+          )}
+        </>
+      )}
+
+      {selectedTab === 1 && (
+        <Box>
+          {approvedCustomPlans.length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: "center" }}>
+              <Typography variant="h6" color="text.secondary">
+                Chưa có kế hoạch custom nào được duyệt
+              </Typography>
+            </Paper>
+          ) : (
+            <Grid container spacing={3}>
+              {approvedCustomPlans.map((approvedPlan) => (
+                <Grid item size={{ xs: 12, md: 6, lg: 4 }} key={approvedPlan.customRequest._id}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: 4,
+                      },
+                      border: "2px solid #4caf50",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          mb: 2,
+                        }}
+                      >
+                        <Typography
+                          variant="h6"
+                          component="h2"
+                          fontWeight="bold"
+                          gutterBottom
+                          sx={{ flex: 1, pr: 1 }}
+                        >
+                          {approvedPlan.quitPlan.title}
+                        </Typography>
+                        <Chip
+                          label={`${approvedPlan.quitPlan.status} (${approvedPlan.progress.completionPercentage}%)`}
+                          color="success"
+                          size="small"
+                          sx={{ flexShrink: 0 }}
+                        />
+                      </Box>
+
+                      {approvedPlan.quitPlan.reason && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 2 }}
+                        >
+                          {approvedPlan.quitPlan.reason}
+                        </Typography>
+                      )}
+
+                      <Box sx={{ mb: 2 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 1,
+                          }}
+                        >
+                          <PersonIcon color="primary" fontSize="small" />
+                          <Typography variant="body2" fontWeight="medium">
+                            {approvedPlan.user.userName}
+                          </Typography>
+                          <Tooltip title={approvedPlan.user.email}>
+                            <EmailIcon
+                              color="action"
+                              fontSize="small"
+                              sx={{ cursor: "help" }}
+                            />
+                          </Tooltip>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          <ScheduleIcon color="action" fontSize="small" />
+                          <Typography variant="body2" color="text.secondary">
+                            Duyệt: {formatDate(approvedPlan.customRequest.approvedAt)}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                          Tiến độ thực hiện:
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {approvedPlan.progress.completedStages}/{approvedPlan.progress.totalStages} giai đoạn ({approvedPlan.progress.completionPercentage}%)
+                        </Typography>
+                        <Box sx={{ width: "100%", mt: 1 }}>
+                          <Box
+                            sx={{
+                              height: 8,
+                              borderRadius: 4,
+                              bgcolor: "grey.300",
+                              position: "relative",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                height: "100%",
+                                borderRadius: 4,
+                                bgcolor: approvedPlan.progress.isCompleted ? "#4caf50" : "#2196f3",
+                                width: `${approvedPlan.progress.completionPercentage}%`,
+                                transition: "width 0.3s ease",
+                              }}
+                            />
+                          </Box>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Box>
       )}
 
       {/* Dialog duyệt kế hoạch với form */}
