@@ -45,8 +45,8 @@ import { getAllAccount } from "../../../store/slices/accountSlice";
 
 const getRoleBadgeColor = (role) => {
   switch (role) {
-    case "admin":
-      return "error";
+    // case "admin":
+    //   return "error";
     case "coach":
       return "primary";
     case "user":
@@ -58,8 +58,8 @@ const getRoleBadgeColor = (role) => {
 
 const getRoleIcon = (role) => {
   switch (role) {
-    case "admin":
-      return <Star fontSize="small" />;
+    // case "admin":
+    //   return <Star fontSize="small" />;
     case "coach":
       return <VerifiedUser fontSize="small" />;
     case "user":
@@ -95,7 +95,8 @@ export default function Account() {
   }, [dispatch]);
 
 
-  const userData = Array.isArray(account) ? account : [];
+  // Lọc bỏ tài khoản admin
+  const userData = Array.isArray(account) ? account.filter((u) => u.role !== "admin") : [];
 
   const filteredUsers = userData.filter((user) => {
     const matchesSearch =
@@ -116,7 +117,7 @@ export default function Account() {
 
   const stats = {
     total: userData.length,
-    admins: userData.filter((u) => u.role === "admin").length,
+    admins: userData.filter((u) => u.role === "admin").length, // Dòng này không còn admin nên sẽ luôn là 0
     coaches: userData.filter((u) => u.role === "coach").length,
     users: userData.filter((u) => u.role === "user").length,
     active: userData.filter((u) => u.isActive).length,
@@ -188,7 +189,7 @@ export default function Account() {
 
       {/* Stats Cards */}
       <Grid container spacing={2} className="account-stats rifles-grid">
-        <Grid size={3}>
+        <Grid size={4}>
           <Card className="account-stat-card account-total">
             <CardContent className="account-stat-content">
               <div>
@@ -201,20 +202,8 @@ export default function Account() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={3}>
-          <Card className="account-stat-card account-admin">
-            <CardContent className="account-stat-content">
-              <div>
-                <Typography className="account-stat-label">Admin</Typography>
-                <Typography className="account-stat-value">{stats.admins}</Typography>
-              </div>
-              <div className="account-stat-icon">
-                <Star />
-              </div>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={3}>
+   
+        <Grid size={4}>
           <Card className="account-stat-card account-coach">
             <CardContent className="account-stat-content">
               <div>
@@ -227,7 +216,7 @@ export default function Account() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={3}>
+        <Grid size={4}>
           <Card className="account-stat-card account-user">
             <CardContent className="account-stat-content">
               <div>
@@ -268,7 +257,7 @@ export default function Account() {
               fullWidth
             >
               <MenuItem value="all">Tất cả vai trò</MenuItem>
-              <MenuItem value="admin">Admin</MenuItem>
+              {/* <MenuItem value="admin">Admin</MenuItem> */}
               <MenuItem value="coach">Coach</MenuItem>
               <MenuItem value="user">Người dùng</MenuItem>
             </Select>
