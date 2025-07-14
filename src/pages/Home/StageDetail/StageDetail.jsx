@@ -7,26 +7,18 @@ import {
     Chip,
     Grid,
     Avatar,
-    List,
-    ListItem,
-    ListItemText,
-    ListItemAvatar,
     Paper,
     Stack,
     Container,
-    Badge,
     Button,
   } from "@mui/material"
   import {
     CheckCircle,
     Schedule,
-    Person,
-    SmokingRooms,
     Notes,
     CalendarToday,
     TrendingUp,
     Assessment,
-    LocalHospital,
     EmojiEvents,
     Timeline,
     Favorite,
@@ -37,6 +29,10 @@ import {
   import { useDispatch, useSelector } from "react-redux"
   import { fetchProgressRecord } from "../../../store/slices/progressSlice"
   import Loading from "../../../components/Loading/Loading"
+  import { Line } from 'react-chartjs-2'
+  import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
+
+  ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
   
   const StageDetail = () => {
     const { stageId } = useParams()
@@ -123,6 +119,48 @@ import {
     }
     
     const progressArray = getProgressArray()
+  
+    // Chuẩn bị dữ liệu cho Line Chart
+    const chartData = {
+      labels: progressArray.map(item =>
+        item.date ? new Date(item.date).toLocaleDateString("vi-VN") : "N/A"
+      ),
+      datasets: [
+        {
+          label: 'Số điếu thuốc hút',
+          data: progressArray.map(item => item.cigarettesSmoked || 0),
+          borderColor: 'rgba(255,99,132,0.7)', // màu hồng như hình
+          backgroundColor: 'rgba(255,99,132,0.2)',
+          pointBackgroundColor: 'rgba(255,99,132,1)',
+          pointBorderColor: '#fff',
+          tension: 0.4, // bo tròn đường
+          fill: false,
+        },
+      ],
+    }
+
+    const chartOptions = {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: { display: true, text: 'Tiến độ theo ngày' },
+      },
+      elements: {
+        line: {
+          borderWidth: 3,
+        },
+        point: {
+          radius: 5,
+          hoverRadius: 7,
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100, // hoặc để tự động nếu muốn
+        },
+      },
+    }
   
     if (isLoading) {
       return <Loading />
@@ -508,136 +546,18 @@ import {
                     </Typography>
                   </Box>
   
-                  <List sx={{ p: 0 }}>
-                    {progressArray.length > 0 ? (
-                      progressArray.map((progressItem) => {
-                        // Kiểm tra progressItem có hợp lệ không
-                        if (!progressItem || typeof progressItem !== 'object') {
-                          return null
-                        }
-                        
-                        return (
-                          <Card
-                            key={progressItem._id || Math.random()}
-                            sx={{
-                              mb: 2,
-                              borderRadius: 2,
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                              border: "1px solid rgba(0,0,0,0.05)",
-                            }}
-                          >
-                            <ListItem sx={{ p: 3 }}>
-                              <ListItemAvatar>
-                                <Badge
-                                  badgeContent={<Favorite sx={{ fontSize: 12 }} />}
-                                  color="error"
-                                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                                >
-                                  <Avatar
-                                    sx={{
-                                      bgcolor: "linear-gradient(135deg, #667eea, #764ba2)",
-                                      width: 60,
-                                      height: 60,
-                                    }}
-                                  >
-                                    <Person sx={{ fontSize: 30 }} />
-                                  </Avatar>
-                                </Badge>
-                              </ListItemAvatar>
-                              <ListItemText
-                                sx={{ ml: 2 }}
-                                primary={
-                                  <Box display="flex" alignItems="center" gap={2} mb={1}>
-                                    <Typography variant="h6" fontWeight="600">
-                                      {progressItem.userId?.userName || progressItem.userName || "Người dùng"}
-                                    </Typography>
-                                    {progressItem.healthStatus && (
-                                      <Chip
-                                        icon={<LocalHospital />}
-                                        label={`Sức khỏe: ${progressItem.healthStatus}`}
-                                        size="small"
-                                        color={getHealthStatusColor(progressItem.healthStatus)}
-                                        sx={{ fontWeight: 500 }}
-                                      />
-                                    )}
-                                  </Box>
-                                }
-                                secondary={
-                                  <Stack spacing={2} sx={{ mt: 2 }}>
-                                    <Box display="flex" alignItems="center" gap={3}>
-                                      <Paper
-                                        sx={{
-                                          p: 1.5,
-                                          borderRadius: 2,
-                                          bgcolor: "error.light",
-                                          color: "error.contrastText",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: 1,
-                                        }}
-                                      >
-                                        <SmokingRooms />
-                                        <Typography variant="body2" fontWeight="600">
-                                          {progressItem.cigarettesSmoked || 0} điếu thuốc
-                                        </Typography>
-                                      </Paper>
-
-                                      <Paper
-                                        sx={{
-                                          p: 1.5,
-                                          borderRadius: 2,
-                                          bgcolor: "info.light",
-                                          color: "info.contrastText",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: 1,
-                                        }}
-                                      >
-                                        <CalendarToday />
-                                        <Typography variant="body2" fontWeight="500">
-                                          {progressItem.date ? formatDate(progressItem.date) : "N/A"}
-                                        </Typography>
-                                      </Paper>
-                                    </Box>
-
-                                    {progressItem.notes && (
-                                      <Paper
-                                        sx={{
-                                          p: 2,
-                                          borderRadius: 2,
-                                          bgcolor: "grey.100",
-                                          border: "1px solid rgba(0,0,0,0.1)",
-                                        }}
-                                      >
-                                        <Box display="flex" alignItems="center" gap={1}>
-                                          <Notes color="action" />
-                                          <Typography variant="body2" fontWeight="500" color="text.secondary">
-                                            Ghi chú:
-                                          </Typography>
-                                        </Box>
-                                        <Typography variant="body1" sx={{ mt: 1 }}>
-                                          {progressItem.notes}
-                                        </Typography>
-                                      </Paper>
-                                    )}
-                                  </Stack>
-                                }
-                              />
-                            </ListItem>
-                          </Card>
-                        )
-                      }).filter(Boolean) // Lọc bỏ các item null
-                    ) : (
-                      <Box sx={{ textAlign: 'center', py: 4 }}>
-                        <Typography variant="h6" color="text.secondary" gutterBottom>
-                          Chưa có dữ liệu cập nhật
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Hãy cập nhật tình trạng của bạn để xem nhật ký tiến độ
-                        </Typography>
-                      </Box>
-                    )}
-                  </List>
+                  {progressArray.length > 0 ? (
+                    <Line data={chartData} options={chartOptions} />
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <Typography variant="h6" color="text.secondary" gutterBottom>
+                        Chưa có dữ liệu cập nhật
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Hãy cập nhật tình trạng của bạn để xem nhật ký tiến độ
+                      </Typography>
+                    </Box>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
