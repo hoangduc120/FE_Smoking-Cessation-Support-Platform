@@ -192,7 +192,9 @@ const FollowPage = () => {
   const handleGoBack = () => {
     navigate(`/author/${userId}`);
   };
-
+  const handleProfileClick = (profileUserId) => {
+    navigate(`/author/${profileUserId}`);
+  };
   const authorData = {
     name: author?.name || "Không xác định",
     username: author?.email?.split("@")[0] || "",
@@ -276,10 +278,10 @@ const FollowPage = () => {
 
         <Grid container spacing={4}>
           {/* Left Profile Section */}
-          <Grid item xs={12} md={4}>
+          <Grid item size={{ xs: 12, md: 4 }}>
             <Card
               sx={{
-                borderRadius: 16,
+                borderRadius: 4,
                 overflow: "visible",
                 position: "relative",
                 mb: 3,
@@ -439,7 +441,7 @@ const FollowPage = () => {
             {/* Achievements Card */}
             <Card
               sx={{
-                borderRadius: 16,
+                borderRadius: 4,
                 mb: 3,
                 boxShadow: "0px 2px 8px rgba(0,0,0,0.05)",
               }}
@@ -515,59 +517,13 @@ const FollowPage = () => {
             </Card>
 
             {/* Highlights Card */}
-            <Card
-              sx={{
-                borderRadius: 16,
-                boxShadow: "0px 2px 8px rgba(0,0,0,0.05)",
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                  <Star sx={{ color: "#4CAF50", mr: 1 }} />
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 600, color: "#263238" }}
-                  >
-                    Điểm nổi bật
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    mb: 2,
-                  }}
-                >
-                  <Chip
-                    label="PRO"
-                    size="small"
-                    sx={{
-                      bgcolor: "#4CAF50",
-                      color: "white",
-                      fontWeight: "bold",
-                      px: 1,
-                    }}
-                  />
-                  <Chip
-                    label="Người đóng góp hàng đầu"
-                    size="small"
-                    sx={{
-                      bgcolor: "#ffd700",
-                      color: "#000",
-                      fontWeight: "bold",
-                    }}
-                  />
-                </Box>
-              </CardContent>
-            </Card>
           </Grid>
 
           {/* Right List Section */}
           <Grid item size={{ xs: 12, md: 8 }}>
             <Card
               sx={{
-                borderRadius: 16,
+                borderRadius: 4,
                 overflow: "hidden",
                 boxShadow: "0px 2px 8px rgba(0,0,0,0.05)",
               }}

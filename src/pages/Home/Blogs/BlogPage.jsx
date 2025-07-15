@@ -565,7 +565,7 @@ const BlogPage = () => {
                     onDelete={() => handleTagClick(null)}
                     sx={{
                       bgcolor: alpha("#4caf50", 0.9),
-                      color: "#ffffff",
+                      color: "#079d4fff",
                       "& .MuiChip-deleteIcon": {
                         color: "#ffffff",
                         "&:hover": {
