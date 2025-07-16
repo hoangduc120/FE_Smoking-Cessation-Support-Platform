@@ -39,9 +39,12 @@ import {
   MoreHoriz,
   TrendingUp,
 } from "@mui/icons-material";
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import "./Account.css";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllAccount } from "../../../store/slices/accountSlice";
+import { getAllAccount,getDashBoardStart } from "../../../store/slices/accountSlice";
+import fetcher from "../../../apis/fetcher";
+import toast from "react-hot-toast";
 
 const getRoleBadgeColor = (role) => {
   switch (role) {
@@ -81,7 +84,7 @@ const ITEMS_PER_PAGE = 10;
 
 export default function Account() {
   const dispatch = useDispatch();
-  const { account, isLoading, isError } = useSelector((state) => state.account);
+  const { account,dashboardStarts, isLoading, isError } = useSelector((state) => state.account);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -92,6 +95,7 @@ export default function Account() {
 
   useEffect(() => {
     dispatch(getAllAccount());
+    dispatch(getDashBoardStart())
   }, [dispatch]);
 
 
@@ -117,7 +121,6 @@ export default function Account() {
 
   const stats = {
     total: userData.length,
-    admins: userData.filter((u) => u.role === "admin").length, // Dòng này không còn admin nên sẽ luôn là 0
     coaches: userData.filter((u) => u.role === "coach").length,
     users: userData.filter((u) => u.role === "user").length,
     active: userData.filter((u) => u.isActive).length,
@@ -147,6 +150,24 @@ export default function Account() {
   const handleMenuClose = () => {
     setAnchorEl(null);
     setSelectedUserId(null);
+  };
+
+  // Hàm export file excel
+  const handleExportExcel = async () => {
+    try {
+      const response = await fetcher.get("/admin/export/users?format=csv", {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "users.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch {
+      toast.error("Xuất file thất bại!");
+    }
   };
 
   // Hiển thị loading
@@ -184,7 +205,21 @@ export default function Account() {
               Quản lý và theo dõi {stats.total} tài khoản trên nền tảng cai thuốc lá
             </Typography>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+             
+             <Button
+               variant="contained"
+               color="primary"
+               startIcon={<ArrowDownwardIcon />}
+               onClick={handleExportExcel}
+               style={{ minWidth: 140 }}
+             >
+               Export Excel
+             </Button>
+           </div>
         </div>
+         
+ 
       </div>
 
       {/* Stats Cards */}
@@ -289,9 +324,6 @@ export default function Account() {
                 Hiển thị {paginatedUsers.length} trong tổng số {filteredUsers.length} tài khoản
               </Typography>
             </div>
-            <Typography className="account-table-page-info">
-              Trang {currentPage} / {totalPages}
-            </Typography>
           </div>
         </CardHeader>
         <CardContent className="account-table-content">
@@ -301,8 +333,6 @@ export default function Account() {
                 <TableRow className="account-table-head-row">
                   <TableCell className="account-table-head-cell">Người dùng</TableCell>
                   <TableCell className="account-table-head-cell">Vai trò</TableCell>
-                  <TableCell className="account-table-head-cell">Liên hệ</TableCell>
-                  <TableCell className="account-table-head-cell">Thông tin bổ sung</TableCell>
                   <TableCell className="account-table-head-cell">Trạng thái</TableCell>
                   <TableCell className="account-table-head-cell">Ngày tham gia</TableCell>
                   <TableCell className="account-table-head-cell account-table-center">Ngày cai thuốc</TableCell>
@@ -343,52 +373,8 @@ export default function Account() {
                         {user.role === "admin" ? "Admin" : user.role === "coach" ? "Coach" : "Người dùng"}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="account-contact-info">
-                        <div className="account-contact-item">
-                          <Email className="account-icon" />
-                          <span className="account-contact-email">{user.email}</span>
-                        </div>
-                        {user.phone && (
-                          <div className="account-contact-item">
-                            <Phone className="account-icon" />
-                            <span>{user.phone}</span>
-                          </div>
-                        )}
-                        {user.address && (
-                          <div className="account-contact-item">
-                            <LocationOn className="account-icon" />
-                            <span className="account-contact-address">{user.address}</span>
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="account-additional-info">
-                        {user.dateOfBirth && (
-                          <div className="account-info-item">
-                            <CalendarToday className="account-icon" style={{ fontSize: '0.9rem' }} />
-                            <span style={{ fontSize: '0.8rem' }}>
-                              {new Date(user.dateOfBirth).toLocaleDateString('vi-VN')}
-                            </span>
-                          </div>
-                        )}
-                        {user.gender && (
-                          <div className="account-info-item">
-                            <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>
-                              {user.gender === 'male' ? 'Nam' : user.gender === 'female' ? 'Nữ' : 'Khác'}
-                            </span>
-                          </div>
-                        )}
-                        {user.googleId && (
-                          <div className="account-info-item">
-                            <span style={{ fontSize: '0.7rem', color: '#666' }}>
-                              Đăng nhập Google
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
+                 
+              
                     <TableCell>
                       <div className="account-status">
                         <div

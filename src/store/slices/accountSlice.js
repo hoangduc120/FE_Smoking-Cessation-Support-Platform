@@ -6,10 +6,23 @@ export const getAllAccount = createAsyncThunk(
     async(_, {rejectWithValue}) => {
         try {
             const response = await fetcher.get("/users/all")
-            console.log("API response:", response.data)
             return response.data.data.user || response.data.user || response.data
         } catch (error) {
             return rejectWithValue(
+                error.response ? error.response.data : error.message
+              );
+        }
+    }
+)
+
+export const getDashBoardStart = createAsyncThunk(
+    "account/getDashBoardStart", 
+    async(_, {rejectWithValue}) => {
+        try {
+            const response = await fetcher.get("/admin/dashboard/stats")
+            return response.data
+        } catch (error) {
+             return rejectWithValue(
                 error.response ? error.response.data : error.message
               );
         }
@@ -20,6 +33,7 @@ const accountSlice = createSlice({
     name:"account",
     initialState:{
         account:[],
+        dashboardStarts:[],
         isLoading: false,
         isError: null,
     },
@@ -35,6 +49,18 @@ const accountSlice = createSlice({
             state.account = payload;
         })
         .addCase(getAllAccount.rejected, (state, {payload}) => {
+            state.isLoading = false;
+            state.isError = payload;
+        })
+        .addCase(getDashBoardStart.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getDashBoardStart.fulfilled, (state, {payload}) => {
+            state.isLoading = false;
+            state.isError = null;
+            state.dashboardStarts = payload
+        })
+        .addCase(getDashBoardStart.rejected, (state, {payload}) => {
             state.isLoading = false;
             state.isError = payload;
         })
