@@ -33,6 +33,7 @@ export const PATH = {
   PAYMENTSUCCESS: "/payment/success",
   PAYMENTFAILED: "/payment/failed",
   CUSTOMQUITPLAN: "/customPlan",
+  PAYMENTHISTORY: "/paymentHistory",
   // COACH
   COACH: "/coach",
   PLANMANAGEMEMTPAGE: "/coach/plan-management",
