@@ -85,6 +85,10 @@ const Header = () => {
     handleClose();
     navigate(PATH.ROADMAP);
   };
+  const handlePaymentHistory = () => {
+    handleClose();
+    navigate(PATH.PAYMENTHISTORY);
+  };
 
   const handleHistoryPlan = () => {
     handleClose();
@@ -162,6 +166,7 @@ const Header = () => {
           <MenuItem onClick={handleRoadmap}>Lộ trình</MenuItem>
           <MenuItem onClick={handleBlog}>Bài viết của tôi</MenuItem>
           <MenuItem onClick={handleHistoryPlan}>Lịch sử lộ trình</MenuItem>
+          <MenuItem onClick={handlePaymentHistory}>Lịch sử thanh toán</MenuItem>
           <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
         </Menu>
       </Box>
