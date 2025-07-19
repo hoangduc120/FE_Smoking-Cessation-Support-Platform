@@ -16,7 +16,7 @@ import accountSlice from "./slices/accountSlice";
 import paymentReducer from "./slices/paymentSlice";
 import customPlanReducer from "./slices/customPlanSlice";
 import userMembershipReducer from "./slices/userMembershipSlice";
-
+import adminReducer from "./slices/adminSlice";
 export const store = configureStore({
   reducer: {
     // add reducers here
@@ -36,6 +36,7 @@ export const store = configureStore({
     payment: paymentReducer,
     customPlan: customPlanReducer,
     userMembership: userMembershipReducer,
+    admin: adminReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

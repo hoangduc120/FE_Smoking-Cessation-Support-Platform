@@ -23,33 +23,35 @@ import {
 } from "@mui/material";
 import {
   CalendarToday,
-  Email,
-  Phone,
-  LocationOn,
   Search,
   FilterList,
   People,
   VerifiedUser,
   Block,
-  Star,
   Edit,
   Visibility,
   ChevronLeft,
   ChevronRight,
   MoreHoriz,
-  TrendingUp,
 } from "@mui/icons-material";
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import "./Account.css";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllAccount,getDashBoardStart } from "../../../store/slices/accountSlice";
+import { useNavigate } from "react-router-dom";
+import { PATH } from "../../../routes/path";
+import {
+  getAllAccount,
+  getDashBoardStart,
+} from "../../../store/slices/accountSlice";
+import {
+  updateAccountStatus,
+  updateAccountRole,
+} from "../../../store/slices/adminSlice";
 import fetcher from "../../../apis/fetcher";
 import toast from "react-hot-toast";
 
 const getRoleBadgeColor = (role) => {
   switch (role) {
-    // case "admin":
-    //   return "error";
     case "coach":
       return "primary";
     case "user":
@@ -61,8 +63,6 @@ const getRoleBadgeColor = (role) => {
 
 const getRoleIcon = (role) => {
   switch (role) {
-    // case "admin":
-    //   return <Star fontSize="small" />;
     case "coach":
       return <VerifiedUser fontSize="small" />;
     case "user":
@@ -84,7 +84,10 @@ const ITEMS_PER_PAGE = 10;
 
 export default function Account() {
   const dispatch = useDispatch();
-  const { account,dashboardStarts, isLoading, isError } = useSelector((state) => state.account);
+  const navigate = useNavigate();
+  const { account, dashboardStarts, isLoading, isError } = useSelector(
+    (state) => state.account
+  );
 
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -95,12 +98,13 @@ export default function Account() {
 
   useEffect(() => {
     dispatch(getAllAccount());
-    dispatch(getDashBoardStart())
+    dispatch(getDashBoardStart());
   }, [dispatch]);
 
-
   // Lọc bỏ tài khoản admin
-  const userData = Array.isArray(account) ? account.filter((u) => u.role !== "admin") : [];
+  const userData = Array.isArray(account)
+    ? account.filter((u) => u.role !== "admin")
+    : [];
 
   const filteredUsers = userData.filter((user) => {
     const matchesSearch =
@@ -117,14 +121,20 @@ export default function Account() {
 
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginatedUsers = filteredUsers.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
 
   const stats = {
     total: userData.length,
     coaches: userData.filter((u) => u.role === "coach").length,
     users: userData.filter((u) => u.role === "user").length,
     active: userData.filter((u) => u.isActive).length,
-    totalSmokingFreeDays: userData.reduce((sum, u) => sum + (u.smokingFreeDays || 0), 0),
+    totalSmokingFreeDays: userData.reduce(
+      (sum, u) => sum + (u.smokingFreeDays || 0),
+      0
+    ),
   };
 
   const handlePageChange = (page) => {
@@ -152,7 +162,11 @@ export default function Account() {
     setSelectedUserId(null);
   };
 
-  // Hàm export file excel
+  const handleViewDetail = (userId) => {
+    navigate(`${PATH.USERDETAIL.replace(":userId", userId)}`);
+    handleMenuClose();
+  };
+
   const handleExportExcel = async () => {
     try {
       const response = await fetcher.get("/admin/export/users?format=csv", {
@@ -170,22 +184,56 @@ export default function Account() {
     }
   };
 
-  // Hiển thị loading
+  const handleToggleStatus = async (userId, currentStatus) => {
+    try {
+      await dispatch(
+        updateAccountStatus({ id: userId, isActive: !currentStatus })
+      ).unwrap();
+      toast.success(
+        `Tài khoản đã được ${!currentStatus ? "kích hoạt" : "vô hiệu hóa"} thành công!`
+      );
+      dispatch(getAllAccount()); // Refresh the account list
+    } catch (error) {
+      toast.error("Cập nhật trạng thái thất bại!");
+    }
+    handleMenuClose();
+  };
+
+  const handleChangeRole = async (userId, currentRole) => {
+    const newRole = currentRole === "coach" ? "user" : "coach";
+    try {
+      await dispatch(updateAccountRole({ id: userId, role: newRole })).unwrap();
+      toast.success(
+        `Đã thay đổi vai trò thành ${newRole === "coach" ? "Coach" : "Người dùng"}!`
+      );
+      dispatch(getAllAccount()); // Refresh the account list
+    } catch (error) {
+      toast.error("Cập nhật vai trò thất bại!");
+    }
+    handleMenuClose();
+  };
+
   if (isLoading) {
     return (
       <div className="account-container">
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "50vh",
+          }}
+        >
           <CircularProgress />
         </div>
       </div>
     );
   }
 
-  // Hiển thị lỗi
   if (isError) {
     return (
       <div className="account-container">
-        <Alert severity="error" style={{ margin: '20px' }}>
+        <Alert severity="error" style={{ margin: "20px" }}>
           Có lỗi xảy ra khi tải dữ liệu: {isError}
         </Alert>
       </div>
@@ -202,24 +250,22 @@ export default function Account() {
               Quản lý tài khoản
             </Typography>
             <Typography className="account-subtitle">
-              Quản lý và theo dõi {stats.total} tài khoản trên nền tảng cai thuốc lá
+              Quản lý và theo dõi {stats.total} tài khoản trên nền tảng cai
+              thuốc lá
             </Typography>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-             
-             <Button
-               variant="contained"
-               color="primary"
-               startIcon={<ArrowDownwardIcon />}
-               onClick={handleExportExcel}
-               style={{ minWidth: 140 }}
-             >
-               Export Excel
-             </Button>
-           </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<ArrowDownwardIcon />}
+              onClick={handleExportExcel}
+              style={{ minWidth: 140 }}
+            >
+              Export Excel
+            </Button>
+          </div>
         </div>
-         
- 
       </div>
 
       {/* Stats Cards */}
@@ -229,7 +275,9 @@ export default function Account() {
             <CardContent className="account-stat-content">
               <div>
                 <Typography className="account-stat-label">Tổng số</Typography>
-                <Typography className="account-stat-value">{stats.total}</Typography>
+                <Typography className="account-stat-value">
+                  {stats.total}
+                </Typography>
               </div>
               <div className="account-stat-icon">
                 <People />
@@ -237,13 +285,15 @@ export default function Account() {
             </CardContent>
           </Card>
         </Grid>
-   
+
         <Grid size={4}>
           <Card className="account-stat-card account-coach">
             <CardContent className="account-stat-content">
               <div>
                 <Typography className="account-stat-label">Coach</Typography>
-                <Typography className="account-stat-value">{stats.coaches}</Typography>
+                <Typography className="account-stat-value">
+                  {stats.coaches}
+                </Typography>
               </div>
               <div className="account-stat-icon">
                 <VerifiedUser />
@@ -255,8 +305,12 @@ export default function Account() {
           <Card className="account-stat-card account-user">
             <CardContent className="account-stat-content">
               <div>
-                <Typography className="account-stat-label">Người dùng</Typography>
-                <Typography className="account-stat-value">{stats.users}</Typography>
+                <Typography className="account-stat-label">
+                  Người dùng
+                </Typography>
+                <Typography className="account-stat-value">
+                  {stats.users}
+                </Typography>
               </div>
               <div className="account-stat-icon">
                 <People />
@@ -292,7 +346,6 @@ export default function Account() {
               fullWidth
             >
               <MenuItem value="all">Tất cả vai trò</MenuItem>
-              {/* <MenuItem value="admin">Admin</MenuItem> */}
               <MenuItem value="coach">Coach</MenuItem>
               <MenuItem value="user">Người dùng</MenuItem>
             </Select>
@@ -321,7 +374,8 @@ export default function Account() {
                 Danh sách tài khoản
               </Typography>
               <Typography className="account-table-subtitle">
-                Hiển thị {paginatedUsers.length} trong tổng số {filteredUsers.length} tài khoản
+                Hiển thị {paginatedUsers.length} trong tổng số{" "}
+                {filteredUsers.length} tài khoản
               </Typography>
             </div>
           </div>
@@ -331,12 +385,24 @@ export default function Account() {
             <Table>
               <TableHead>
                 <TableRow className="account-table-head-row">
-                  <TableCell className="account-table-head-cell">Người dùng</TableCell>
-                  <TableCell className="account-table-head-cell">Vai trò</TableCell>
-                  <TableCell className="account-table-head-cell">Trạng thái</TableCell>
-                  <TableCell className="account-table-head-cell">Ngày tham gia</TableCell>
-                  <TableCell className="account-table-head-cell account-table-center">Ngày cai thuốc</TableCell>
-                  <TableCell className="account-table-head-cell account-table-right">Hành động</TableCell>
+                  <TableCell className="account-table-head-cell">
+                    Người dùng
+                  </TableCell>
+                  <TableCell className="account-table-head-cell">
+                    Vai trò
+                  </TableCell>
+                  <TableCell className="account-table-head-cell">
+                    Trạng thái
+                  </TableCell>
+                  <TableCell className="account-table-head-cell">
+                    Ngày tham gia
+                  </TableCell>
+                  <TableCell className="account-table-head-cell account-table-center">
+                    Ngày cai thuốc
+                  </TableCell>
+                  <TableCell className="account-table-head-cell account-table-right">
+                    Hành động
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -348,16 +414,28 @@ export default function Account() {
                     <TableCell>
                       <div className="account-user-info">
                         <Avatar className="account-user-avatar">
-                          <img src={user.profilePicture || "/placeholder.svg"} alt={user.userName} />
+                          <img
+                            src={user.profilePicture || "/placeholder.svg"}
+                            alt={user.userName}
+                          />
                         </Avatar>
                         <div className="account-user-details">
-                          <Typography className="account-user-name">{user.userName}</Typography>
-                          <Typography className="account-user-email">{user.email}</Typography>
+                          <Typography className="account-user-name">
+                            {user.userName}
+                          </Typography>
+                          <Typography className="account-user-email">
+                            {user.email}
+                          </Typography>
                           {user.bio && (
-                            <Typography className="account-user-bio">{user.bio}</Typography>
+                            <Typography className="account-user-bio">
+                              {user.bio}
+                            </Typography>
                           )}
                           {user.quitReason && (
-                            <Typography className="account-user-quit-reason" style={{ fontSize: '0.8rem', color: '#666' }}>
+                            <Typography
+                              className="account-user-quit-reason"
+                              style={{ fontSize: "0.8rem", color: "#666" }}
+                            >
                               Lý do cai thuốc: {user.quitReason}
                             </Typography>
                           )}
@@ -370,11 +448,9 @@ export default function Account() {
                         className="account-role-badge"
                       >
                         {getRoleIcon(user.role)}
-                        {user.role === "admin" ? "Admin" : user.role === "coach" ? "Coach" : "Người dùng"}
+                        {user.role === "coach" ? "Coach" : "Người dùng"}
                       </Badge>
                     </TableCell>
-                 
-              
                     <TableCell>
                       <div className="account-status">
                         <div
@@ -395,8 +471,12 @@ export default function Account() {
                     </TableCell>
                     <TableCell className="account-table-center">
                       <div className="account-smoking-free">
-                        <Typography className="account-smoking-days">{user.smokingFreeDays || 0}</Typography>
-                        <Typography className="account-smoking-label">ngày</Typography>
+                        <Typography className="account-smoking-days">
+                          {user.smokingFreeDays || 0}
+                        </Typography>
+                        <Typography className="account-smoking-label">
+                          ngày
+                        </Typography>
                       </div>
                     </TableCell>
                     <TableCell className="account-table-right">
@@ -411,19 +491,40 @@ export default function Account() {
                         anchorEl={anchorEl}
                         open={Boolean(anchorEl) && selectedUserId === user._id}
                         onClose={handleMenuClose}
-                        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                        transformOrigin={{ vertical: "top", horizontal: "right" }}
+                        anchorOrigin={{
+                          vertical: "bottom",
+                          horizontal: "right",
+                        }}
+                        transformOrigin={{
+                          vertical: "top",
+                          horizontal: "right",
+                        }}
                       >
-                        <MenuItem disabled className="account-menu-item">Hành động</MenuItem>
-                        <MenuItem onClick={handleMenuClose} className="account-menu-item">
+                        <MenuItem disabled className="account-menu-item">
+                          Hành động
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => handleViewDetail(user._id)}
+                          className="account-menu-item"
+                        >
                           <Visibility className="account-icon" />
                           Xem chi tiết
                         </MenuItem>
-                        <MenuItem onClick={handleMenuClose} className="account-menu-item">
+                        <MenuItem
+                          onClick={() => handleChangeRole(user._id, user.role)}
+                          className="account-menu-item"
+                        >
                           <Edit className="account-icon" />
-                          Chỉnh sửa
+                          {user.role === "coach"
+                            ? "Đặt làm Người dùng"
+                            : "Đặt làm Coach"}
                         </MenuItem>
-                        <MenuItem onClick={handleMenuClose} className="account-menu-item account-menu-danger">
+                        <MenuItem
+                          onClick={() =>
+                            handleToggleStatus(user._id, user.isActive)
+                          }
+                          className="account-menu-item account-menu-danger"
+                        >
                           <Block className="account-icon" />
                           {user.isActive ? "Vô hiệu hóa" : "Kích hoạt"}
                         </MenuItem>
@@ -439,8 +540,9 @@ export default function Account() {
           {totalPages > 1 && (
             <div className="account-pagination">
               <Typography className="account-pagination-info">
-                Hiển thị {startIndex + 1} - {Math.min(startIndex + ITEMS_PER_PAGE, filteredUsers.length)} trong tổng số{" "}
-                {filteredUsers.length} kết quả
+                Hiển thị {startIndex + 1} -{" "}
+                {Math.min(startIndex + ITEMS_PER_PAGE, filteredUsers.length)}{" "}
+                trong tổng số {filteredUsers.length} kết quả
               </Typography>
               <div className="account-pagination-controls">
                 <Button
@@ -468,7 +570,9 @@ export default function Account() {
                     return (
                       <Button
                         key={pageNumber}
-                        variant={currentPage === pageNumber ? "contained" : "outlined"}
+                        variant={
+                          currentPage === pageNumber ? "contained" : "outlined"
+                        }
                         size="small"
                         onClick={() => handlePageChange(pageNumber)}
                         className="account-pagination-page"
