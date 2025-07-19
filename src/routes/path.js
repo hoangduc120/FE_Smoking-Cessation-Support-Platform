@@ -46,6 +46,7 @@ export const PATH = {
   // ADMIN
   ADMIN: "/admin",
   ACCOUNT: "/admin/account",
+  USERDETAIL: "/admin/accounts/:userId",
 
   // ERROR
   ERROR: "*",
