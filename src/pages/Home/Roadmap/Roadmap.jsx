@@ -536,7 +536,7 @@ const Roadmap = () => {
             </Badge>
             <span>{currentStage?.stage_name}</span>
           </div>
-          <div className="roadMap-footer-actions">
+          {/* <div className="roadMap-footer-actions">
             <Button
               variant="outlined"
               size="small"
@@ -572,7 +572,7 @@ const Roadmap = () => {
                 <FaTrophy size={16} className="roadMap-icon-btn" /> Thành tựu
               </Link>
             </Button>
-          </div>
+          </div> */}
         </CardActions>
       </Card>
 
@@ -825,7 +825,7 @@ const Roadmap = () => {
               <CardActions>
                 <Button variant="text" size="small" fullWidth>
                   <Link
-                    to="/member/my-roadmap/achievements"
+                    to="/profile"
                     style={{
                       textDecoration: "none",
                       display: "flex",
@@ -872,7 +872,8 @@ const Roadmap = () => {
                         Kết nối với những người khác đang trong hành trình cai thuốc lá
                       </Typography>
                       <div className="roadMap-community-actions">
-                        <Button
+                       <Link to="/chat">
+                       <Button
                           variant="outlined"
                           size="small"
                           sx={{
@@ -882,7 +883,8 @@ const Roadmap = () => {
                           }}
                         >
                           Tham gia nhóm chat
-                        </Button>
+                        </Button></Link>
+                        <Link to="/blog">
                         <Button
                           variant="outlined"
                           size="small"
@@ -893,7 +895,7 @@ const Roadmap = () => {
                           }}
                         >
                           Diễn đàn
-                        </Button>
+                        </Button></Link>
                       </div>
                     </div>
                   </Box>
