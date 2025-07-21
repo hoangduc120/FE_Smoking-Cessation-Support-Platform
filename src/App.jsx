@@ -21,11 +21,18 @@ function App() {
     const momoResultCode = searchParams.get('resultCode');
 
     if (vnpTxnRef && vnpResponseCode && location.pathname === '/') {
-
-      navigate(`/payment/success${location.search}`, { replace: true });
+      if (vnpResponseCode === '00') {
+        navigate(`/payment/success${location.search}`, { replace: true });
+      } else {
+        navigate(`/payment/failed${location.search}`, { replace: true });
+      }
     }
     else if (momoPartnerCode && momoResultCode && location.pathname === '/') {
-      navigate(`/payment/success${location.search}`, { replace: true });
+      if (momoResultCode === '0' || momoResultCode === 0) {
+        navigate(`/payment/success${location.search}`, { replace: true });
+      } else {
+        navigate(`/payment/failed${location.search}`, { replace: true });
+      }
     }
   }, [location, navigate]);
 

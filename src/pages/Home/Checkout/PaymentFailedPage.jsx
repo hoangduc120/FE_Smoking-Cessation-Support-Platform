@@ -11,24 +11,99 @@ export default function PaymentFailurePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const orderId = searchParams.get('orderId');
+    // VNPay callback parameters
+    const vnpTxnRef = searchParams.get('vnp_TxnRef');
+    const vnpResponseCode = searchParams.get('vnp_ResponseCode');
+    const vnpAmount = searchParams.get('vnp_Amount');
+    const vnpTransactionNo = searchParams.get('vnp_TransactionNo');
+
+    // MoMo callback parameters
+    const momoPartnerCode = searchParams.get('partnerCode');
+    const momoOrderId = searchParams.get('orderId');
+    const momoResultCode = searchParams.get('resultCode');
+    const momoMessage = searchParams.get('message');
+    const momoAmount = searchParams.get('amount');
+    const momoTransId = searchParams.get('transId');
+
+    // Legacy parameters
     const orderCode = searchParams.get('orderCode');
     const errorMessage = searchParams.get('error');
 
-    // Hiển thị thông tin cơ bản từ URL parameters
-    setPaymentData({
+    let paymentInfo = {
       order: {
-        orderCode: orderCode || 'N/A',
+        orderCode: 'N/A',
         memberShipPlan: { name: 'Premium' }
       },
       payment: {
         status: 'failed',
-        paymentMethod: 'vnpay',
-        amount: 0
+        paymentMethod: 'unknown',
+        amount: 0,
+        errorMessage: 'Thanh toán thất bại'
       }
-    });
+    };
+
+    // Parse VNPay failed payment
+    if (vnpTxnRef && vnpResponseCode && vnpResponseCode !== '00') {
+      paymentInfo = {
+        order: {
+          orderCode: vnpTxnRef,
+          memberShipPlan: { name: 'Premium' }
+        },
+        payment: {
+          status: 'failed',
+          paymentMethod: 'vnpay',
+          amount: vnpAmount ? parseInt(vnpAmount) / 100 : 0,
+          transactionId: vnpTransactionNo,
+          errorMessage: getVnpayErrorMessage(vnpResponseCode),
+          responseCode: vnpResponseCode
+        }
+      };
+    }
+    // Parse MoMo failed payment
+    else if (momoPartnerCode && momoResultCode && momoResultCode !== '0') {
+      paymentInfo = {
+        order: {
+          orderCode: momoOrderId,
+          memberShipPlan: { name: 'Premium' }
+        },
+        payment: {
+          status: 'failed',
+          paymentMethod: 'momo',
+          amount: momoAmount ? parseInt(momoAmount) : 0,
+          transactionId: momoTransId,
+          errorMessage: decodeURIComponent(momoMessage || 'Thanh toán MoMo thất bại'),
+          resultCode: momoResultCode
+        }
+      };
+    }
+    // Legacy fallback
+    else if (orderCode || errorMessage) {
+      paymentInfo.order.orderCode = orderCode || 'N/A';
+      paymentInfo.payment.errorMessage = errorMessage || 'Thanh toán thất bại';
+    }
+
+    setPaymentData(paymentInfo);
     setLoading(false);
   }, [searchParams]);
+
+  // Helper function để translate VNPay error codes
+  const getVnpayErrorMessage = (responseCode) => {
+    const errorMessages = {
+      '07': 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).',
+      '09': 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng.',
+      '10': 'Giao dịch không thành công do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần',
+      '11': 'Giao dịch không thành công do: Đã hết hạn chờ thanh toán. Xin quý khách vui lòng thực hiện lại giao dịch.',
+      '12': 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng bị khóa.',
+      '13': 'Giao dịch không thành công do Quý khách nhập sai mật khẩu xác thực giao dịch (OTP).',
+      '24': 'Giao dịch không thành công do: Khách hàng hủy giao dịch',
+      '51': 'Giao dịch không thành công do: Tài khoản của quý khách không đủ số dư để thực hiện giao dịch.',
+      '65': 'Giao dịch không thành công do: Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày.',
+      '75': 'Ngân hàng thanh toán đang bảo trì.',
+      '79': 'Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định.',
+      '99': 'Các lỗi khác (lỗi còn lại, không có trong danh sách mã lỗi đã liệt kê)'
+    };
+    return errorMessages[responseCode] || `Lỗi thanh toán VNPay (Mã: ${responseCode})`;
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 relative overflow-hidden">
       {/* Background decorations */}
@@ -87,7 +162,7 @@ export default function PaymentFailurePage() {
                     <Cancel className="h-5 w-5 text-white" />
                   </Box>
                   <AlertTitle className="text-red-800 font-medium">
-                    <strong>Lỗi:</strong> Thẻ tín dụng bị từ chối. Vui lòng kiểm tra thông tin thẻ hoặc thử phương thức thanh toán khác.
+                    <strong>Lỗi:</strong> {paymentData?.payment?.errorMessage || 'Thanh toán thất bại. Vui lòng thử lại.'}
                   </AlertTitle>
                 </Box>
               </Alert>

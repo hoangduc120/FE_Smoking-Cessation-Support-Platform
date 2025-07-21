@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Container, Box, Card, CardContent, Button, Typography, CircularProgress } from '@mui/material';
 import { CheckCircle, ArrowRightAlt, CalendarToday, Group, EmojiEvents, Star, CardGiftcard } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { getPaymentStatusByOrderCode, verifyVnpayCallback, verifyMomoCallback } from '../../../store/slices/paymentSlice';
-import { buildApiUrl, API_ENDPOINTS } from '../../../config/api';
+import fetcher from '../../../apis/fetcher';
 
 export default function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [paymentData, setPaymentData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -77,6 +78,11 @@ export default function PaymentSuccessPage() {
 
       try {
         if (filteredVnpParams.vnp_TxnRef && filteredVnpParams.vnp_ResponseCode) {
+          if (filteredVnpParams.vnp_ResponseCode !== '00') {
+            navigate(`/payment/failed${location.search}`, { replace: true });
+            return;
+          }
+
           setVerificationStatus('verifying');
 
           try {
@@ -107,8 +113,8 @@ export default function PaymentSuccessPage() {
 
             try {
               const quickFixParams = new URLSearchParams(filteredVnpParams).toString();
-              const quickFixResponse = await fetch(`${buildApiUrl(API_ENDPOINTS.PAYMENT.QUICK_FIX_VNPAY)}?${quickFixParams}`);
-              const quickFixResult = await quickFixResponse.json();
+              const quickFixResponse = await fetcher.get(`/payment/quick-fix-vnpay?${quickFixParams}`);
+              const quickFixResult = quickFixResponse.data;
 
               if (quickFixResult.success) {
                 console.log('✅ Quick-fix successful:', quickFixResult);
@@ -135,8 +141,13 @@ export default function PaymentSuccessPage() {
             }
           }
         }
-        // Nếu có MoMo callback parameters, verify trước
         else if (filteredMomoParams.partnerCode && filteredMomoParams.resultCode) {
+          if (filteredMomoParams.resultCode !== '0' && filteredMomoParams.resultCode !== 0) {
+            console.log('MoMo payment failed, redirecting to failure page');
+            navigate(`/payment/failed${location.search}`, { replace: true });
+            return;
+          }
+
           console.log('MoMo callback detected, verifying...');
           setVerificationStatus('verifying');
 
@@ -173,8 +184,8 @@ export default function PaymentSuccessPage() {
             // Fallback: sử dụng quick-fix endpoint cho MoMo
             try {
               const quickFixParams = new URLSearchParams(filteredMomoParams).toString();
-              const quickFixResponse = await fetch(`${buildApiUrl(API_ENDPOINTS.PAYMENT.QUICK_FIX_MOMO)}?${quickFixParams}`);
-              const quickFixResult = await quickFixResponse.json();
+              const quickFixResponse = await fetcher.get(`/payment/quick-fix-momo?${quickFixParams}`);
+              const quickFixResult = quickFixResponse.data;
 
               if (quickFixResult.success) {
                 console.log('✅ MoMo Quick-fix successful:', quickFixResult);
@@ -224,7 +235,7 @@ export default function PaymentSuccessPage() {
     };
 
     handlePaymentCallback();
-  }, [searchParams, dispatch]);
+  }, [searchParams, dispatch, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
