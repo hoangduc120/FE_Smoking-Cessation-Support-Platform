@@ -106,7 +106,7 @@ export default function PaymentSuccessPage() {
 
             try {
               const quickFixParams = new URLSearchParams(filteredVnpParams).toString();
-              const quickFixResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/payment/quick-fix-vnpay?${quickFixParams}`);
+              const quickFixResponse = await fetch(`${import.meta.env.VITE_API_URL || 'https://smoking-cessation-support-platform-liart.vercel.app/api'}/payment/quick-fix-vnpay?${quickFixParams}`);
               const quickFixResult = await quickFixResponse.json();
 
               if (quickFixResult.success) {
@@ -172,7 +172,7 @@ export default function PaymentSuccessPage() {
             // Fallback: sử dụng quick-fix endpoint cho MoMo
             try {
               const quickFixParams = new URLSearchParams(filteredMomoParams).toString();
-              const quickFixResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/payment/quick-fix-momo?${quickFixParams}`);
+              const quickFixResponse = await fetch(`${import.meta.env.VITE_API_URL || 'https://smoking-cessation-support-platform-liart.vercel.app/api'}/payment/quick-fix-momo?${quickFixParams}`);
               const quickFixResult = await quickFixResponse.json();
 
               if (quickFixResult.success) {
