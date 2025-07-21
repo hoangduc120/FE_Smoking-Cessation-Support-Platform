@@ -204,7 +204,7 @@ export default function HomePage() {
             </Box>
           </Box>
           <Box className="banner_girdRight">
-            <img src={image} alt="hình ảnh" />
+            <img src={"https://png.pngtree.com/png-clipart/20220430/original/pngtree-no-smoking-prohibition-sign-quit-png-image_7613411.png"} alt="hình ảnh" />
           </Box>
         </Box>
 
