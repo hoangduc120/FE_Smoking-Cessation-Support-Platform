@@ -33,7 +33,7 @@ class SocketService {
             return this.socket;
         }
 
-        const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const serverUrl = import.meta.env.VITE_API_URL || 'https://be-smoking-cessation-support-platform-w1tg.onrender.com';
 
         try {
             const sanitizedUserId = typeof userId === 'string' ? userId : String(userId);
