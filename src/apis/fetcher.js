@@ -2,7 +2,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://be-smoking-cessation-support-platform-w1tg.onrender.com/api';
 
 const fetcher = axios.create({
   baseURL: BASE_URL,

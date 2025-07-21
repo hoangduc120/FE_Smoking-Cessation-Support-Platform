@@ -4,6 +4,7 @@ import { Container, Box, Card, CardContent, Button, Typography, CircularProgress
 import { CheckCircle, ArrowRightAlt, CalendarToday, Group, EmojiEvents, Star, CardGiftcard } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { getPaymentStatusByOrderCode, verifyVnpayCallback, verifyMomoCallback } from '../../../store/slices/paymentSlice';
+import { buildApiUrl, API_ENDPOINTS } from '../../../config/api';
 
 export default function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
@@ -106,7 +107,7 @@ export default function PaymentSuccessPage() {
 
             try {
               const quickFixParams = new URLSearchParams(filteredVnpParams).toString();
-              const quickFixResponse = await fetch(`${import.meta.env.VITE_API_URL || 'https://be-smoking-cessation-support-platform-w1tg.onrender.com/api'}/payment/quick-fix-vnpay?${quickFixParams}`);
+              const quickFixResponse = await fetch(`${buildApiUrl(API_ENDPOINTS.PAYMENT.QUICK_FIX_VNPAY)}?${quickFixParams}`);
               const quickFixResult = await quickFixResponse.json();
 
               if (quickFixResult.success) {
@@ -172,7 +173,7 @@ export default function PaymentSuccessPage() {
             // Fallback: sử dụng quick-fix endpoint cho MoMo
             try {
               const quickFixParams = new URLSearchParams(filteredMomoParams).toString();
-              const quickFixResponse = await fetch(`${import.meta.env.VITE_API_URL || 'https://be-smoking-cessation-support-platform-w1tg.onrender.com/api'}/payment/quick-fix-momo?${quickFixParams}`);
+              const quickFixResponse = await fetch(`${buildApiUrl(API_ENDPOINTS.PAYMENT.QUICK_FIX_MOMO)}?${quickFixParams}`);
               const quickFixResult = await quickFixResponse.json();
 
               if (quickFixResult.success) {
