@@ -33,22 +33,6 @@ export const verifyVnpayCallback = createAsyncThunk(
     }
 );
 
-// Thunk để verify MoMo callback
-export const verifyMomoCallback = createAsyncThunk(
-    "payment/verifyMomoCallback",
-    async (momoParams, { rejectWithValue }) => {
-        try {
-            const response = await PaymentService.verifyMomoCallback(momoParams);
-            return response;
-        } catch (error) {
-            console.error("Verify MoMo callback error:", error);
-            return rejectWithValue(
-                error.response?.data?.message || error.message || "Có lỗi xảy ra khi xác thực thanh toán MoMo"
-            );
-        }
-    }
-);
-
 // Thunk để lấy trạng thái thanh toán bằng orderCode
 export const getPaymentStatusByOrderCode = createAsyncThunk(
     "payment/getPaymentStatusByOrderCode",
@@ -170,22 +154,6 @@ const paymentSlice = createSlice({
                 // Có thể lưu kết quả verify nếu cần
             })
             .addCase(verifyVnpayCallback.rejected, (state, action) => {
-                state.isLoading = false;
-                state.isError = true;
-                state.errorMessage = action.payload;
-            })
-            // Verify MoMo Callback
-            .addCase(verifyMomoCallback.pending, (state) => {
-                state.isLoading = true;
-                state.isError = false;
-                state.errorMessage = null;
-            })
-            .addCase(verifyMomoCallback.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.isError = false;
-                // Có thể lưu kết quả verify nếu cần
-            })
-            .addCase(verifyMomoCallback.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.errorMessage = action.payload;

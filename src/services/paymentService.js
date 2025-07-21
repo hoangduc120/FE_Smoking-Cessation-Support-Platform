@@ -28,17 +28,6 @@ class PaymentService {
         }
     }
 
-    // Verify MoMo callback
-    static async verifyMomoCallback(momoParams) {
-        try {
-            const response = await fetcher.post('/payment/momo-callback', momoParams);
-            return response.data;
-        } catch (error) {
-            console.error('Verify MoMo callback error:', error);
-            throw error;
-        }
-    }
-
     static async getPaymentStatusByOrderCode(orderCode) {
         try {
             const response = await fetcher.get(`/payment/status-by-code/${orderCode}`);

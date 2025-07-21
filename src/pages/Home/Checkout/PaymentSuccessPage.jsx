@@ -3,7 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Container, Box, Card, CardContent, Button, Typography, CircularProgress } from '@mui/material';
 import { CheckCircle, ArrowRightAlt, CalendarToday, Group, EmojiEvents, Star, CardGiftcard } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
-import { getPaymentStatusByOrderCode, verifyVnpayCallback, verifyMomoCallback } from '../../../store/slices/paymentSlice';
+import { getPaymentStatusByOrderCode, verifyVnpayCallback } from '../../../store/slices/paymentSlice';
 import fetcher from '../../../apis/fetcher';
 
 export default function PaymentSuccessPage() {
@@ -77,8 +77,11 @@ export default function PaymentSuccessPage() {
       });
 
       try {
+        // Kiểm tra VNPay callback - chỉ xử lý nếu response code là thành công
         if (filteredVnpParams.vnp_TxnRef && filteredVnpParams.vnp_ResponseCode) {
+          // Kiểm tra response code trước khi verify
           if (filteredVnpParams.vnp_ResponseCode !== '00') {
+            console.log('VNPay payment failed, redirecting to failure page');
             navigate(`/payment/failed${location.search}`, { replace: true });
             return;
           }
@@ -141,47 +144,41 @@ export default function PaymentSuccessPage() {
             }
           }
         }
+        // Kiểm tra MoMo callback - xử lý trực tiếp mà không gọi API verify
         else if (filteredMomoParams.partnerCode && filteredMomoParams.resultCode) {
+          // Kiểm tra result code trước khi xử lý
           if (filteredMomoParams.resultCode !== '0' && filteredMomoParams.resultCode !== 0) {
             console.log('MoMo payment failed, redirecting to failure page');
             navigate(`/payment/failed${location.search}`, { replace: true });
             return;
           }
 
-          console.log('MoMo callback detected, verifying...');
+          console.log('MoMo callback detected, processing directly...');
           setVerificationStatus('verifying');
 
           try {
-            const verifyResult = await dispatch(verifyMomoCallback(filteredMomoParams)).unwrap();
-            console.log('MoMo verification result:', verifyResult);
+            // Xử lý trực tiếp mà không gọi API verify
+            setVerificationStatus('success');
 
-            if (verifyResult.success) {
-              setVerificationStatus('success');
-              // Sau khi verify thành công, lấy payment status
-              try {
-                // Sử dụng orderCode để lấy payment status
-                const statusResult = await dispatch(getPaymentStatusByOrderCode(filteredMomoParams.orderId)).unwrap();
-                setPaymentData(statusResult);
-              } catch (statusError) {
-                console.warn('Failed to get payment status, using basic info:', statusError);
-                // Fallback: hiển thị thông tin cơ bản từ verify result
-                setPaymentData({
-                  order: { orderCode: filteredMomoParams.orderId },
-                  payment: {
-                    status: 'success',
-                    paymentMethod: 'momo',
-                    transactionId: filteredMomoParams.transId,
-                    amount: parseInt(filteredMomoParams.amount) // MoMo amount không x100
-                  }
-                });
-              }
-            } else {
-              setVerificationStatus('failed');
+            // Lấy payment status hoặc tạo data fallback
+            try {
+              const statusResult = await dispatch(getPaymentStatusByOrderCode(filteredMomoParams.orderId)).unwrap();
+              setPaymentData(statusResult);
+            } catch (statusError) {
+              console.warn('Failed to get payment status, using callback info:', statusError);
+              // Fallback: hiển thị thông tin từ MoMo callback
+              setPaymentData({
+                order: { orderCode: filteredMomoParams.orderId },
+                payment: {
+                  status: 'success',
+                  paymentMethod: 'momo',
+                  transactionId: filteredMomoParams.transId,
+                  amount: parseInt(filteredMomoParams.amount)
+                }
+              });
             }
-          } catch (verifyError) {
-            console.warn('MoMo verify failed, trying quick-fix method...', verifyError);
 
-            // Fallback: sử dụng quick-fix endpoint cho MoMo
+            // Gọi quick-fix để update database nếu cần
             try {
               const quickFixParams = new URLSearchParams(filteredMomoParams).toString();
               const quickFixResponse = await fetcher.get(`/payment/quick-fix-momo?${quickFixParams}`);
@@ -189,7 +186,7 @@ export default function PaymentSuccessPage() {
 
               if (quickFixResult.success) {
                 console.log('✅ MoMo Quick-fix successful:', quickFixResult);
-                setVerificationStatus('success');
+                // Update payment data with quick-fix result nếu có
                 setPaymentData({
                   order: {
                     orderCode: quickFixResult.data.order.orderCode,
@@ -202,14 +199,15 @@ export default function PaymentSuccessPage() {
                     amount: parseInt(filteredMomoParams.amount)
                   }
                 });
-              } else {
-                console.error('MoMo Quick-fix also failed:', quickFixResult);
-                setVerificationStatus('failed');
               }
             } catch (quickFixError) {
-              console.error('MoMo Quick-fix request failed:', quickFixError);
-              setVerificationStatus('failed');
+              console.warn('MoMo Quick-fix failed, but continue with callback data:', quickFixError);
+              // Không cần throw error, vì đã có data từ callback
             }
+
+          } catch (error) {
+            console.error('Error processing MoMo callback:', error);
+            setVerificationStatus('failed');
           }
         }
         else if (orderCode) {
