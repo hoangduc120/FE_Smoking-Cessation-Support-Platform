@@ -46,6 +46,7 @@ import { infoCompleteQuitPlan } from "../../../store/slices/planeSlice";
 import toast from "react-hot-toast";
 import { FaTrophy } from "react-icons/fa";
 import { getMyBadge } from '../../../store/slices/badgeSlice';
+import { selectUser } from '../../../store/slices/chatSlice';
 
 // Validation schema using Yup
 const validationSchema = Yup.object().shape({
@@ -309,6 +310,16 @@ const Roadmap = () => {
   useEffect(() => {
     dispatch(getMyBadge());
   }, [dispatch]);
+
+  const handleChatWithCoach = () => {
+    const coachId = plan?.plan?.coachId?._id || plan?.coachId?._id || plan?.plan?.coachId || plan?.coachId;
+    if (coachId) {
+      dispatch(selectUser(coachId));
+      navigate('/chat');
+    } else {
+      toast.error('Không tìm thấy huấn luyện viên của lộ trình!');
+    }
+  };
 
   if (isLoading) {
     return <Typography><Loading /></Typography>;
@@ -921,6 +932,7 @@ const Roadmap = () => {
                             border: "1px solid #e7e7e7",
                             textTransform: "none",
                           }}
+                          onClick={handleChatWithCoach}
                         >
                           Nhắn với huấn luyện viên
                         </Button>
