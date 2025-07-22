@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import StairsIcon from "@mui/icons-material/Stairs";
+import WalletIcon from '@mui/icons-material/Wallet';
 import "../Sidebar-Coach/SidebarCoach.css";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "../../store/slices/userSlice";
@@ -24,10 +25,10 @@ const SIDEBAR_ITEMS = [
     href: "/admin/account",
   },
   {
-    name: "Settings",
-    icon: Settings,
-    color: "#6EE7B7",
-    href: "/admin/settings",
+    name: "Transition ",
+    icon: WalletIcon,
+    color: "#6967ac",
+    href: "/admin/transition",
   },
 ];
 
