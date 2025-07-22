@@ -34,6 +34,7 @@ export const fetchPaymentStats = createAsyncThunk(
   async(_,{rejectWithValue}) => {
     try {
       const response = await fetcher.get("/admin/revenue/payment-stats");
+     
       return response.data
     } catch (error) {
       return rejectWithValue(

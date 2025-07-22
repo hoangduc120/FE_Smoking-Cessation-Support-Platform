@@ -88,6 +88,11 @@ export default function DashBoardAdmin() {
   const { revenueByPeriod } = useSelector((state) => state.dashboard);
   const revenueByPeriodData = Array.isArray(revenueByPeriod?.data?.revenueByPeriod) ? revenueByPeriod.data.revenueByPeriod : [];
 
+  const { data } = paymentStarts
+  const totalLostRevenue = data?.failedPayments.reduce((sum, p) => sum + p.lostRevenue, 0)
+
+
+
   const getLabel = (item) => {
     if (!item._id) return '';
     if (item._id.day) {
@@ -129,7 +134,7 @@ export default function DashBoardAdmin() {
                 Tổng doanh thu
               </Typography>
               <span style={{ color: "#23368f", fontSize: "40px", fontWeight: "bold" }}>
-                {dashboard?.data?.membershipRevenue.toLocaleString()} VND
+                {dashboard?.data?.totalRevenue.toLocaleString()} VND
               </span>
             </Box>
             <Box className="dashboard-card-icons">
@@ -142,7 +147,7 @@ export default function DashBoardAdmin() {
                 Tổng giao dịch
               </Typography>
               <span style={{ color: "#0f5835", fontSize: "40px", fontWeight: "bold" }}>
-                {dashboard?.data?.membershipSales}
+                {paymentStarts?.data?.totalPayments}
               </span>
             </Box>
             <Box className="dashboard-card-icons-user">
@@ -166,7 +171,7 @@ export default function DashBoardAdmin() {
           <Grid size={3} className="dashboard-grid-plan-today">
             <Box className="dashboard-card-content">
               <Typography sx={{ color: "#f69037", fontSize: "20px", fontWeight: "bold" }}>
-                Giao dịch gần đây
+                Gói thành viên đã bán
               </Typography>
               <span style={{ color: "#7e2d11", fontSize: "40px", fontWeight: "bold" }}>
                 {paymentStats.recentPayments && paymentStats.recentPayments[0]?.count}
@@ -317,14 +322,14 @@ export default function DashBoardAdmin() {
                     {paymentStats.successfulPayments}
                   </span>
                 </Box>
-                <Box className="grid-warning-content-medium">
+                {/* <Box className="grid-warning-content-medium">
                   <Typography className="grid-warning-text-medium">
                     <PaymentIcon sx={{ marginRight: "15px", color: "#b39438" }} /> Giao dịch gần đây
                   </Typography>
                   <span className="grid-warning-text-medium-sup">
                     {paymentStats.recentPayments && paymentStats.recentPayments[1]?.count}
                   </span>
-                </Box>
+                </Box> */}
                 <Box className="grid-warning-content-high">
                   <Typography className="grid-warning-text-high">
                     <PaymentIcon sx={{ marginRight: "15px", color: "#d46926" }} /> Thanh toán thất bại
@@ -338,9 +343,7 @@ export default function DashBoardAdmin() {
                     <PaymentIcon sx={{ marginRight: "15px", color: "#d65861" }} /> Doanh thu bị mất
                   </Typography>
                   <span className="grid-warning-text-danger-sup">
-                    {paymentStats.failedPayments && paymentStats.failedPayments[0]?.lostRevenue
-                      ? paymentStats.failedPayments[0].lostRevenue.toLocaleString() + " VND"
-                      : "0 VND"}
+                   {totalLostRevenue + " " + "VNĐ"}
                   </span>
                 </Box>
               </Box>

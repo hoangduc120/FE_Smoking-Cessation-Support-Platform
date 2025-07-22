@@ -46,6 +46,7 @@ import CustomQuitPlan from "../pages/Home/CustomQuitPlan/CustomQuitPlan";
 import CoachQuitPlans from "../pages/Coacher/CoachQuitPlan/CoachQuitPlans";
 import PaymentHistory from "../pages/Home/PaymentHistory/PaymentHistory";
 import UserDetail from "../pages/Admin/UserDetail/UserDetail";
+import Transition from "../pages/Admin/Transition/Transition";
 
 export default function useRouterElement() {
   const element = useRoutes([
@@ -279,6 +280,7 @@ export default function useRouterElement() {
         { index: true, element: <DashBoardAdmin /> },
         { path: PATH.ACCOUNT, element: <Account /> },
         { path: PATH.USERDETAIL, element: <UserDetail /> },
+        { path: PATH.TRANSITION, element: <Transition /> },
       ],
     },
     // ROUTE NOT FOUND
