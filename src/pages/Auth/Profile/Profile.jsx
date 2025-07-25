@@ -42,6 +42,7 @@ import {
   PersonAdd,
   PersonRemove,
   EmojiEvents,
+  WorkspacePremium,
 } from "@mui/icons-material";
 import "./Profile.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -61,6 +62,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import toast, { Toaster } from "react-hot-toast";
+import { fetchUserMembership } from "../../../store/slices/userMembershipSlice";
 
 export const profileSchema = yup.object().shape({
   userName: yup
@@ -134,6 +136,7 @@ export default function ProfilePage() {
   const [followProcessing, setFollowProcessing] = useState({});
   const hasFetchedAssessment = useRef(false);
   const fileInputRef = useRef(null);
+  const { userMembershipData } = useSelector((state) => state.userMembership);
 
   const {
     register,
@@ -152,6 +155,11 @@ export default function ProfilePage() {
       profilePicture: null,
     },
   });
+  useEffect(() => {
+    if (user?._id) {
+      dispatch(fetchUserMembership(user._id));
+    }
+  }, [dispatch, user]);
 
   useEffect(() => {
     if (user) {
@@ -290,40 +298,40 @@ export default function ProfilePage() {
       if (result.success) {
         toast.success(isFollowing ? "Đã bỏ theo dõi!" : "Đã theo dõi!");
 
+        // Cập nhật danh sách id đang theo dõi
         setLocalViewerFollowing((prev) =>
           isFollowing
             ? prev.filter((id) => id !== targetUserId)
             : [...prev, targetUserId]
         );
 
-        setLocalFollowers((prev) =>
-          isFollowing ? prev.filter((u) => u._id !== user._id) : [...prev, user]
-        );
+        // ✅ Chỉ cập nhật localFollowing, KHÔNG động vào localFollowers
+        if (isFollowing) {
+          // Bỏ theo dõi
+          setLocalFollowing((prev) =>
+            prev.filter((u) => u._id !== targetUserId)
+          );
+        } else {
+          // Theo dõi lại
+          const knownUser = [...localFollowers, ...localFollowing].find(
+            (u) => u._id === targetUserId
+          );
 
-        if (user._id === user._id) {
-          if (isFollowing) {
-            setLocalFollowing((prev) =>
-              prev.filter((u) => u._id !== targetUserId)
-            );
-          } else {
-            const foundUser = currentData.find((u) => u._id === targetUserId);
-            const newUser = foundUser
-              ? normalizeUser(foundUser)
-              : {
-                  _id: targetUserId,
-                  id: targetUserId,
-                  name: "Người dùng",
-                  username: "unknown",
-                  avatar:
-                    "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
-                  role: "user",
-                };
-            setLocalFollowing((prev) =>
-              prev.some((u) => u._id === targetUserId)
-                ? prev
-                : [...prev, newUser]
-            );
-          }
+          const newUser = knownUser
+            ? knownUser
+            : {
+                _id: targetUserId,
+                id: targetUserId,
+                name: "Người dùng",
+                username: "unknown",
+                avatar:
+                  "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
+                role: "user",
+              };
+
+          setLocalFollowing((prev) =>
+            prev.some((u) => u._id === targetUserId) ? prev : [...prev, newUser]
+          );
         }
       }
     } catch (err) {
@@ -574,6 +582,55 @@ export default function ProfilePage() {
                   </Box>
                 </CardContent>
               </Card>
+              {/*gói đăng kí*/}
+              {userMembershipData?.currentPlan?.name && (
+                <Card
+                  sx={{
+                    borderRadius: 4,
+                    mb: 3,
+                    boxShadow: "0px 2px 8px rgba(0,0,0,0.05)",
+                  }}
+                  className="profile-card card-margin"
+                >
+                  <CardContent>
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                      <WorkspacePremium sx={{ color: "#4CAF50", mr: 1 }} />
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 600, color: "#263238" }}
+                      >
+                        Gói đăng ký
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        bgcolor: "#E8F5E9",
+                        border: "1px solid #A5D6A7",
+                        borderRadius: 2,
+                        px: 2,
+                        py: 1.5,
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ color: "#2E7D32", fontWeight: 600 }}
+                      >
+                        {userMembershipData.currentPlan.name}
+                      </Typography>
+                      {userMembershipData?.daysLeft && (
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "#4CAF50", mt: 0.5 }}
+                        >
+                          Còn lại {userMembershipData.daysLeft} ngày
+                        </Typography>
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Achievements Card */}
               <Card
