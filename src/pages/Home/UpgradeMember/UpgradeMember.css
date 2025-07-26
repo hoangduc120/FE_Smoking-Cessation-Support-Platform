@@ -367,6 +367,53 @@ button.continue-button {
   font-size: 1.3em;
 }
 
+/* Section: Gói hiện tại */
+.current-plan-section {
+  background: #eafaf1;
+  padding: 40px 20px;
+  text-align: center;
+  margin-bottom: 0;
+}
+.current-plan-title {
+  font-size: 1.8rem !important;
+  font-weight: 700 !important;
+  color: #183a2c !important;
+  margin-bottom: 24px !important;
+}
+.current-plan-card {
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(111,207,151,0.15);
+  border: 2px solid #56c596;
+  background: #fff;
+}
+.current-plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.current-plan-name {
+  font-size: 1.4rem !important;
+  font-weight: 700 !important;
+  color: #1c9f47 !important;
+}
+.current-plan-desc {
+  color: #2d5942;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  text-align: left;
+}
+.current-plan-features {
+  color: #2d5942;
+  font-size: 0.95rem;
+  text-align: left;
+  line-height: 1.5;
+}
+
 /* Section: Tại Sao Chọn Chúng Tôi */
 .why-choose-section {
   background: #eafaf1;
@@ -448,6 +495,16 @@ button.continue-button {
   border: 2.5px solid #1c9f47;
   box-shadow: 0 12px 36px rgba(28,159,71,0.18);
 }
+.plan-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f8f8f8;
+  border: 2px solid #e0e0e0;
+}
+.plan-card.current-plan {
+  border: 2.5px solid #ff6b35;
+  background: #fff5f2;
+}
 .popular-badge {
   position: absolute;
   top: 18px;
@@ -461,6 +518,34 @@ button.continue-button {
   padding: 4px 18px;
   z-index: 2;
   box-shadow: 0 2px 8px rgba(86,197,150,0.13);
+}
+.current-plan-badge {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff6b35;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 4px 18px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(255,107,53,0.13);
+}
+.disabled-badge {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #999;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 4px 18px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(153,153,153,0.13);
 }
 .plan-icon-wrap {
   display: flex;
@@ -525,6 +610,10 @@ button.continue-button {
 }
 .choose-button.chosen {
   background: #1c9f47 !important;
+}
+.choose-button.current-plan-btn {
+  background: #ff6b35 !important;
+  color: #fff !important;
 }
 .choose-button:disabled {
   background: #eafaf1 !important;
