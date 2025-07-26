@@ -17,10 +17,12 @@ import {
   Alert,
   LinearProgress,
   Grid,
+  Chip,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMembership } from "../../../store/slices/membershipSlice";
 import { createPaymentUrl, clearPaymentState } from "../../../store/slices/paymentSlice";
+import { fetchUserMembership } from "../../../store/slices/userMembershipSlice";
 import "./UpgradeMember.css";
 import { fetchUser } from "../../../store/slices/userSlice";
 import PaymentService from "../../../services/paymentService";
@@ -42,6 +44,7 @@ const bankOptions = [
 const UpgradeMember = () => {
   const dispatch = useDispatch();
   const { membershipData } = useSelector((state) => state.membership);
+  const { userMembershipData } = useSelector((state) => state.userMembership);
   const { isLoading: paymentLoading, isError: paymentError, errorMessage: paymentErrorMessage } = useSelector((state) => state.payment);
 
   const user = useSelector((state) => state.user);
@@ -57,7 +60,10 @@ const UpgradeMember = () => {
   useEffect(() => {
     dispatch(fetchMembership());
     dispatch(fetchUser());
-  }, [dispatch]);
+    if (info?.userId) {
+      dispatch(fetchUserMembership(info.userId));
+    }
+  }, [dispatch, info?.userId]);
 
   useEffect(() => {
     // Clear payment state khi component unmount
@@ -71,16 +77,32 @@ const UpgradeMember = () => {
   };
 
   const handleCardSelect = (index) => {
-    setSelectedCard(index);
-    setShowNoSelectionError(false);
+    // Nếu người dùng chưa có gói, cho phép chọn bất kỳ gói nào
+    // Nếu đã có gói, chỉ cho phép chọn gói có level cao hơn gói hiện tại
+    const currentPlan = membershipData[index];
+    const userCurrentLevel = userMembershipData?.currentPlan?.level || 0;
+    
+    if (!userMembershipData?.hasActiveMembership || (currentPlan && currentPlan.level > userCurrentLevel)) {
+      setSelectedCard(index);
+      setShowNoSelectionError(false);
+    }
   };
 
   const handleOpenModal = () => {
     if (selectedCard === null) {
       setShowNoSelectionError(true);
     } else {
-      setOpenModal(true);
-      setShowNoSelectionError(false);
+      // Nếu người dùng chưa có gói, cho phép chọn bất kỳ gói nào
+      // Nếu đã có gói, kiểm tra xem gói được chọn có level cao hơn gói hiện tại không
+      const selectedPlan = membershipData[selectedCard];
+      const userCurrentLevel = userMembershipData?.currentPlan?.level || 0;
+      
+      if (!userMembershipData?.hasActiveMembership || (selectedPlan && selectedPlan.level > userCurrentLevel)) {
+        setOpenModal(true);
+        setShowNoSelectionError(false);
+      } else {
+        setShowNoSelectionError(true);
+      }
     }
   };
 
@@ -104,20 +126,41 @@ const UpgradeMember = () => {
   };
 
   const handleConfirm = async () => {
-    if (selectedCard !== null && plans[selectedCard] && selectedBank && membershipData) {
+    if (selectedCard !== null && plans[selectedCard] && membershipData) {
       try {
         const selectedPlan = membershipData[selectedCard];
+        const userCurrentLevel = userMembershipData?.currentPlan?.level || 0;
+        
+        // Kiểm tra xem gói được chọn có level cao hơn gói hiện tại không (chỉ khi đã có gói)
+        if (userMembershipData?.hasActiveMembership && selectedPlan.level <= userCurrentLevel) {
+          console.error("Không thể nâng cấp lên gói có level thấp hơn hoặc bằng gói hiện tại");
+          return;
+        }
 
-        // Dispatch action để tạo payment URL
-        const result = await dispatch(createPaymentUrl({
-          memberShipPlanId: selectedPlan._id,
-          paymentMethod: selectedBank.value, // "VNPay" hoặc "MoMo"
-          amount: selectedPlan.price
-        })).unwrap();
+        // Nếu gói miễn phí (price = 0), không cần thanh toán
+        if (selectedPlan.price === 0) {
+          // TODO: Gọi API để kích hoạt gói miễn phí trực tiếp
+          console.log("Kích hoạt gói miễn phí:", selectedPlan.name);
+          // Có thể thêm thông báo thành công ở đây
+          alert("Đăng ký gói miễn phí thành công!");
+        } else {
+          // Gói có phí, cần thanh toán
+          if (!selectedBank) {
+            console.error("Vui lòng chọn phương thức thanh toán");
+            return;
+          }
 
-        // Nếu thành công, redirect đến payment gateway
-        if (result.paymentUrl) {
-          PaymentService.redirectToPayment(result.paymentUrl);
+          // Dispatch action để tạo payment URL
+          const result = await dispatch(createPaymentUrl({
+            memberShipPlanId: selectedPlan._id,
+            paymentMethod: selectedBank.value, // "VNPay" hoặc "MoMo"
+            amount: selectedPlan.price
+          })).unwrap();
+
+          // Nếu thành công, redirect đến payment gateway
+          if (result.paymentUrl) {
+            PaymentService.redirectToPayment(result.paymentUrl);
+          }
         }
       } catch (error) {
         console.error("Payment error:", error);
@@ -132,9 +175,12 @@ const UpgradeMember = () => {
   const plans = Array.isArray(membershipData)
     ? membershipData.map((plan) => ({
       title: plan.name,
-      price: `${plan.price.toLocaleString()}₫`,
-      duration: `${plan.duration} ngày`,
+      price: plan.price === 0 ? "Miễn phí" : `${plan.price.toLocaleString()}₫`,
+      duration: plan.duration === 0 ? "Vĩnh viễn" : `${plan.duration} ngày`,
       features: plan.features || [],
+      level: plan.level || 0,
+      isDisabled: userMembershipData?.hasActiveMembership && userMembershipData?.currentPlan?.level && plan.level <= userMembershipData.currentPlan.level,
+      isCurrentPlan: userMembershipData?.currentPlan?._id === plan._id,
     }))
     : [];
 
@@ -167,6 +213,45 @@ const UpgradeMember = () => {
           <Box className="benefit-item"><span className="benefit-icon">📈</span> Theo dõi sức khỏe 24/7</Box>
         </Box>
       </Box>
+
+      {/* Hiển thị gói hiện tại nếu có */}
+      {userMembershipData?.hasActiveMembership && userMembershipData?.currentPlan && (
+        <Box className="current-plan-section">
+          <Typography className="current-plan-title" variant="h5">
+            Gói Hiện Tại Của Bạn
+          </Typography>
+          <Card className="current-plan-card">
+            <CardContent>
+              <Box className="current-plan-header">
+                <Typography className="current-plan-name" variant="h6">
+                  {userMembershipData.currentPlan.name}
+                </Typography>
+                <Chip 
+                  label={`Còn ${userMembershipData.daysLeft} ngày`}
+                  color="primary"
+                  variant="outlined"
+                />
+              </Box>
+              <Typography className="current-plan-desc">
+                {userMembershipData.currentPlan.description}
+              </Typography>
+              <Typography className="current-plan-features">
+                <strong>Level hiện tại:</strong> {userMembershipData.currentPlan.level}
+              </Typography>
+              <Typography className="current-plan-features">
+                <strong>Tính năng:</strong> {userMembershipData.currentPlan.features.join(", ")}
+              </Typography>
+              <Typography className="current-plan-features">
+                <strong>Thời hạn:</strong> {userMembershipData.currentPlan.duration === 0 ? "Vĩnh viễn" : `${userMembershipData.currentPlan.duration} ngày`}
+              </Typography>
+              <Typography className="current-plan-features">
+                <strong>Ngày hết hạn:</strong> {userMembershipData.currentPlan.duration === 0 ? "Vĩnh viễn" : new Date(userMembershipData.endDate).toLocaleDateString('vi-VN')}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
+
       {/* Section: Tại Sao Chọn Chúng Tôi */}
       <Box className="why-choose-section">
         <Typography className="why-choose-title" variant="h4">Tại Sao Chọn Chúng Tôi?</Typography>
@@ -189,6 +274,7 @@ const UpgradeMember = () => {
           </Box>
         </Box>
       </Box>
+
       {/* Section: Gói thành viên */}
       <Box className="subscription-container">
         <Tabs value={value} onChange={handleChange} centered className="tabs">
@@ -197,12 +283,26 @@ const UpgradeMember = () => {
         </Tabs>
         {showNoSelectionError && (
           <Alert severity="warning" sx={{ mt: 2 }}>
-            Vui lòng chọn một gói trước khi tiếp tục thanh toán.
+            {selectedCard !== null && membershipData[selectedCard] && userMembershipData?.hasActiveMembership && userMembershipData?.currentPlan?.level && membershipData[selectedCard].level <= userMembershipData.currentPlan.level
+              ? "Bạn chỉ có thể nâng cấp lên gói có level cao hơn gói hiện tại."
+              : "Vui lòng chọn một gói trước khi tiếp tục thanh toán."}
           </Alert>
         )}
         {paymentError && (
           <Alert severity="error" sx={{ mt: 2 }}>
             {paymentErrorMessage || "Có lỗi xảy ra khi xử lý thanh toán"}
+          </Alert>
+        )}
+        {userMembershipData?.hasActiveMembership && userMembershipData?.currentPlan && 
+         membershipData && membershipData.length > 0 && 
+         Math.max(...membershipData.map(plan => plan.level || 0)) <= (userMembershipData.currentPlan.level || 0) && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Bạn đã có gói thành viên cao nhất! Không có gói nào để nâng cấp.
+          </Alert>
+        )}
+        {!userMembershipData?.hasActiveMembership && membershipData && membershipData.length > 0 && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Chào mừng! Bạn có thể chọn bất kỳ gói nào để bắt đầu hành trình cai thuốc lá.
           </Alert>
         )}
         {value === 0 ? (
@@ -212,10 +312,21 @@ const UpgradeMember = () => {
                 plans.map((plan, index) => (
                   <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <Card
-                      className={`plan-card ${selectedCard === index ? "highlighted" : ""} ${index === 1 ? "popular" : ""}`}
-                      onClick={() => handleCardSelect(index)}
+                      className={`plan-card ${selectedCard === index ? "highlighted" : ""} ${index === 1 ? "popular" : ""} ${plan.isDisabled ? "disabled" : ""} ${plan.isCurrentPlan ? "current-plan" : ""}`}
+                      onClick={() => !plan.isDisabled && handleCardSelect(index)}
+                      sx={{
+                        opacity: plan.isDisabled ? 0.6 : 1,
+                        cursor: plan.isDisabled ? 'not-allowed' : 'pointer',
+                        position: 'relative',
+                      }}
                     >
-                      {index === 1 && <div className="popular-badge">🌟 Được Chọn Nhiều Nhất</div>}
+                      {plan.isCurrentPlan && (
+                        <div className="current-plan-badge">🎯 Gói Hiện Tại</div>
+                      )}
+                      {index === 1 && !plan.isCurrentPlan && <div className="popular-badge">🌟 Được Chọn Nhiều Nhất</div>}
+                      {plan.isDisabled && !plan.isCurrentPlan && (
+                        <div className="disabled-badge">🔒 Không Khả Dụng</div>
+                      )}
                       <CardContent>
                         <Box className="plan-icon-wrap">
                           <img src={index === 0 ? "https://cdn-icons-png.flaticon.com/512/2910/2910791.png" : index === 1 ? "https://cdn-icons-png.flaticon.com/512/2910/2910788.png" : "https://cdn-icons-png.flaticon.com/512/2910/2910782.png"} alt="icon" className="plan-icon" />
@@ -229,10 +340,12 @@ const UpgradeMember = () => {
                         </ul>
                         <Button
                           variant="contained"
-                          className={`choose-button ${selectedCard === index ? "chosen" : ""}`}
-                          disabled={selectedCard === index}
+                          className={`choose-button ${selectedCard === index ? "chosen" : ""} ${plan.isCurrentPlan ? "current-plan-btn" : ""}`}
+                          disabled={plan.isDisabled || selectedCard === index}
                         >
-                          {selectedCard === index ? "✓ Đã Chọn" : "Chọn Gói Này"}
+                          {plan.isCurrentPlan ? "🎯 Gói Hiện Tại" : 
+                           selectedCard === index ? "✓ Đã Chọn" : 
+                           plan.isDisabled ? "Không Khả Dụng" : "Chọn Gói Này"}
                         </Button>
                       </CardContent>
                     </Card>
@@ -248,9 +361,20 @@ const UpgradeMember = () => {
               variant="contained"
               className="continue-button"
               onClick={handleOpenModal}
-              disabled={plans.length === 0}
+              disabled={
+                plans.length === 0 || 
+                selectedCard === null ||
+                (userMembershipData?.hasActiveMembership && userMembershipData?.currentPlan && 
+                 membershipData && membershipData.length > 0 && 
+                 Math.max(...membershipData.map(plan => plan.level || 0)) <= (userMembershipData.currentPlan.level || 0))
+              }
             >
-              Bắt Đầu Hành Trình
+              {userMembershipData?.hasActiveMembership && userMembershipData?.currentPlan && 
+               membershipData && membershipData.length > 0 && 
+               Math.max(...membershipData.map(plan => plan.level || 0)) <= (userMembershipData.currentPlan.level || 0)
+                ? "Đã Có Gói Cao Nhất"
+                : "Bắt Đầu Hành Trình"
+              }
             </Button>
           </Box>
         ) : (
@@ -264,7 +388,28 @@ const UpgradeMember = () => {
                   <TableCell>Tính năng</TableCell>
                   {plans.map((plan, index) => (
                     <TableCell key={index} align="center">
-                      {plan.title}
+                      <Box>
+                        {plan.title}
+                        <Typography variant="caption" display="block" sx={{ color: '#666', mt: 0.5 }}>
+                          Level: {plan.level}
+                        </Typography>
+                        {plan.isCurrentPlan && (
+                          <Chip 
+                            label="Gói Hiện Tại" 
+                            size="small" 
+                            color="primary" 
+                            sx={{ mt: 1 }}
+                          />
+                        )}
+                        {plan.isDisabled && !plan.isCurrentPlan && (
+                          <Chip 
+                            label="Không Khả Dụng" 
+                            size="small" 
+                            color="default" 
+                            sx={{ mt: 1 }}
+                          />
+                        )}
+                      </Box>
                     </TableCell>
                   ))}
                 </TableRow>
@@ -346,6 +491,9 @@ const UpgradeMember = () => {
                   Gói thành viên: {plans[selectedCard].title}
                 </Typography>
                 <Typography className="modal-info">
+                  Level: {plans[selectedCard].level}
+                </Typography>
+                <Typography className="modal-info">
                   Giá: {plans[selectedCard].price}
                 </Typography>
                 <Typography className="modal-info">
@@ -359,39 +507,48 @@ const UpgradeMember = () => {
                     </li>
                   ))}
                 </ul>
-                <Typography className="modal-info-title" sx={{ mt: 2 }}>
-                  Chọn phương thức thanh toán
-                </Typography>
-                <div className="bank-grid">
-                  {bankOptions.map((bank) => (
-                    <div
-                      key={bank.value}
-                      className={`bank-option ${selectedBank?.value === bank.value
-                        ? "bank-option-selected"
-                        : ""
-                        }`}
-                      onClick={() => handleSelectBank(bank)}
-                    >
-                      <img
-                        src={bank.logo}
-                        alt={bank.name}
-                        className="bank-logo"
-                      />
-                      <Typography
-                        className={`bank-name ${selectedBank?.value === bank.value ? "bank-name-selected" : ""}`}
-                      >
-                        {bank.name}
-                      </Typography>
+                {membershipData[selectedCard]?.price > 0 && (
+                  <>
+                    <Typography className="modal-info-title" sx={{ mt: 2 }}>
+                      Chọn phương thức thanh toán
+                    </Typography>
+                    <div className="bank-grid">
+                      {bankOptions.map((bank) => (
+                        <div
+                          key={bank.value}
+                          className={`bank-option ${selectedBank?.value === bank.value
+                            ? "bank-option-selected"
+                            : ""
+                            }`}
+                          onClick={() => handleSelectBank(bank)}
+                        >
+                          <img
+                            src={bank.logo}
+                            alt={bank.name}
+                            className="bank-logo"
+                          />
+                          <Typography
+                            className={`bank-name ${selectedBank?.value === bank.value ? "bank-name-selected" : ""}`}
+                          >
+                            {bank.name}
+                          </Typography>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                )}
+                {membershipData[selectedCard]?.price === 0 && (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    Gói này hoàn toàn miễn phí! Bạn sẽ được kích hoạt ngay lập tức.
+                  </Alert>
+                )}
               </Box>
             )}
 
             {step === 3 &&
               selectedCard !== null &&
               plans[selectedCard] &&
-              selectedBank && (
+              (membershipData[selectedCard]?.price === 0 || selectedBank) && (
                 <Box className="step3-container">
                   <Card className="step3-card">
                     <CardContent>
@@ -418,6 +575,9 @@ const UpgradeMember = () => {
                         Gói: {plans[selectedCard].title}
                       </Typography>
                       <Typography className="step3-card-text">
+                        Level: {plans[selectedCard].level}
+                      </Typography>
+                      <Typography className="step3-card-text">
                         Giá: {plans[selectedCard].price}
                       </Typography>
                       <Typography className="step3-card-text">
@@ -435,16 +595,30 @@ const UpgradeMember = () => {
                       </ul>
                     </CardContent>
                   </Card>
-                  <Card className="step3-card">
-                    <CardContent>
-                      <Typography className="step3-card-title">
-                        Phương thức thanh toán
-                      </Typography>
-                      <Typography className="step3-card-text">
-                        Phương thức: {selectedBank.name}
-                      </Typography>
-                    </CardContent>
-                  </Card>
+                  {membershipData[selectedCard]?.price > 0 && (
+                    <Card className="step3-card">
+                      <CardContent>
+                        <Typography className="step3-card-title">
+                          Phương thức thanh toán
+                        </Typography>
+                        <Typography className="step3-card-text">
+                          Phương thức: {selectedBank.name}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  )}
+                  {membershipData[selectedCard]?.price === 0 && (
+                    <Card className="step3-card">
+                      <CardContent>
+                        <Typography className="step3-card-title">
+                          Thông tin thanh toán
+                        </Typography>
+                        <Typography className="step3-card-text">
+                          Gói miễn phí - Không cần thanh toán
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  )}
                 </Box>
               )}
 
@@ -464,7 +638,7 @@ const UpgradeMember = () => {
                 <Button
                   className="modal-next-button"
                   onClick={handleNextStep}
-                  disabled={step === 2 && !selectedBank}
+                  disabled={step === 2 && membershipData[selectedCard]?.price > 0 && !selectedBank}
                 >
                   Tiếp theo
                 </Button>
@@ -472,7 +646,7 @@ const UpgradeMember = () => {
                 <Button
                   className="modal-confirm-button"
                   onClick={handleConfirm}
-                  disabled={!selectedBank || paymentLoading}
+                  disabled={paymentLoading || (membershipData[selectedCard]?.price > 0 && !selectedBank)}
                 >
                   {paymentLoading ? (
                     <>
@@ -480,7 +654,7 @@ const UpgradeMember = () => {
                       Đang xử lý...
                     </>
                   ) : (
-                    "Xác nhận"
+                    membershipData[selectedCard]?.price === 0 ? "Kích Hoạt Miễn Phí" : "Xác nhận"
                   )}
                 </Button>
               )}
