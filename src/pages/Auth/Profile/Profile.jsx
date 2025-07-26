@@ -619,14 +619,14 @@ export default function ProfilePage() {
                       >
                         {userMembershipData.currentPlan.name}
                       </Typography>
-                      {userMembershipData?.daysLeft && (
-                        <Typography
-                          variant="body2"
-                          sx={{ color: "#4CAF50", mt: 0.5 }}
-                        >
-                          Còn lại {userMembershipData.daysLeft} ngày
-                        </Typography>
-                      )}
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "#4CAF50", mt: 0.5 }}
+                      >
+                        {userMembershipData?.currentPlan?.name === "Base"
+                          ? "Thời hạn vĩnh viễn"
+                          : `Còn lại ${userMembershipData?.daysLeft || 0} ngày`}
+                      </Typography>
                     </Box>
                   </CardContent>
                 </Card>

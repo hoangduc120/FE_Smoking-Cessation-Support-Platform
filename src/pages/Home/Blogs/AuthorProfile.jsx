@@ -81,11 +81,25 @@ export default function AuthorProfile() {
   const [localComments, setLocalComments] = useState({});
 
   // Đồng bộ localFollowState
+  // useEffect(() => {
+  //   if (Array.isArray(viewerFollowing) && userId) {
+  //     setLocalFollowState(viewerFollowing.some((f) => f._id === userId));
+  //   }
+  // }, [viewerFollowing, userId]);
   useEffect(() => {
-    if (Array.isArray(viewerFollowing) && userId) {
-      setLocalFollowState(viewerFollowing.some((f) => f._id === userId));
+    if (!hasFetchedFollowing.current && user?._id) {
+      dispatch(fetchFollowing(user._id))
+        .unwrap()
+        .then((res) => {
+          const isFollowed = res?.some((f) => f._id === userId);
+          setLocalFollowState(isFollowed);
+          hasFetchedFollowing.current = true;
+        })
+        .catch((error) => {
+          console.error("Lỗi khi tải danh sách đang theo dõi:", error);
+        });
     }
-  }, [viewerFollowing, userId]);
+  }, [dispatch, user?._id, userId]);
 
   const isFollowing =
     localFollowState ?? viewerFollowing.some((f) => f._id === userId);
@@ -593,23 +607,6 @@ export default function AuthorProfile() {
                           borderTop: `1px solid ${alpha("#4CAF50", 0.2)}`,
                         }}
                       >
-                        {/* <Box
-                          sx={{ display: "flex", alignItems: "center", mb: 2 }}
-                        >
-                          <IconButton
-                            onClick={() => handleToggleLike(post.id)}
-                            color={post.isLiked ? "primary" : "default"}
-                          >
-                            {post.isLiked ? (
-                              <ThumbUpIcon />
-                            ) : (
-                              <ThumbUpOutlinedIcon />
-                            )}
-                          </IconButton>
-                          <Typography variant="body2" sx={{ ml: 1 }}>
-                            {post.likeCount} lượt thích
-                          </Typography>
-                        </Box> */}
                         <Box
                           sx={{ display: "flex", alignItems: "center", mb: 2 }}
                         >

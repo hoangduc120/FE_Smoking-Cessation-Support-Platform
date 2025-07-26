@@ -496,19 +496,31 @@ const BlogDetail = () => {
                     >
                       <Avatar
                         alt={comment.author?.name || "Người dùng"}
-                        src={
-                          comment.author?.profilePicture || "/placeholder.svg"
-                        }
+                        src={comment.author?.avatar || "/placeholder.svg"}
                         sx={{
                           width: 40,
                           height: 40,
                           border: `1px solid ${alpha("#4CAF50", 0.2)}`,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          if (comment.author?.id)
+                            navigate(`/author/${comment.author.id}`);
                         }}
                       />
                       <Box>
                         <Typography
                           variant="subtitle2"
-                          sx={{ color: "#2E7D32", fontWeight: 600 }}
+                          sx={{
+                            color: "#2E7D32",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            "&:hover": { textDecoration: "underline" },
+                          }}
+                          onClick={() => {
+                            if (comment.author?.id)
+                              navigate(`/author/${comment.author.id}`);
+                          }}
                         >
                           {comment.author?.name || "Người dùng"}
                         </Typography>

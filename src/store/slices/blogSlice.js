@@ -25,7 +25,7 @@ const normalizeBlog = (blog, currentUserId) => ({
         comment.author?.name ||
         comment.author?.email?.split("@")[0] ||
         "Người dùng",
-      avatar: comment.author?.avatar || "/placeholder.svg",
+      avatar: comment.author?.profilePicture || "/placeholder.svg",
     },
     createdAt: comment.createdAt || new Date().toISOString(),
   })),
