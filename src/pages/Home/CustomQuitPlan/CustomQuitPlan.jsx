@@ -46,6 +46,8 @@ const CustomQuitPlan = () => {
   const [planData, setPlanData] = useState({
     title: "",
     description: "",
+    goal: "",
+    targetCigarettesPerDay: "",
     rules: [],
   });
 
@@ -133,6 +135,8 @@ const CustomQuitPlan = () => {
     if (
       !planData.title ||
       !planData.description ||
+      !planData.goal ||
+      planData.targetCigarettesPerDay === "" ||
       planData.rules.length === 0
     ) {
       setNotification({
@@ -158,7 +162,13 @@ const CustomQuitPlan = () => {
           message: "Kế hoạch cai thuốc đã được tạo thành công!",
           severity: "success",
         });
-        setPlanData({ title: "", description: "", rules: [] });
+        setPlanData({
+          title: "",
+          description: "",
+          goal: "",
+          targetCigarettesPerDay: "",
+          rules: [],
+        });
       } else {
         throw new Error(
           resultAction.payload?.message || "Có lỗi xảy ra khi tạo kế hoạch"
@@ -251,6 +261,33 @@ const CustomQuitPlan = () => {
                   handleInputChange("description", e.target.value)
                 }
                 placeholder="Mô tả chi tiết về kế hoạch cai thuốc của bạn..."
+                required
+              />
+            </Grid>
+            <Grid item size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label="Mục tiêu kế hoạch"
+                variant="outlined"
+                value={planData.goal}
+                onChange={(e) => handleInputChange("goal", e.target.value)}
+                placeholder="VD: Bỏ thuốc phù hợp : 25→15→0 điếu trong 3 tuần"
+                required
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label="Mục tiêu số điếu/ngày"
+                variant="outlined"
+                type="number"
+                inputProps={{ min: 0 }}
+                value={planData.targetCigarettesPerDay}
+                onChange={(e) =>
+                  handleInputChange("targetCigarettesPerDay", e.target.value)
+                }
+                placeholder="VD: 5 điếu"
                 required
               />
             </Grid>
@@ -411,6 +448,8 @@ const CustomQuitPlan = () => {
             isLoading ||
             !planData.title ||
             !planData.description ||
+            !planData.goal ||
+            planData.targetCigarettesPerDay === "" ||
             planData.rules.length === 0
           }
           sx={{

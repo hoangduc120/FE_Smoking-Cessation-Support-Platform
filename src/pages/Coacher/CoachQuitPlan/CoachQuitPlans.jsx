@@ -56,9 +56,13 @@ const NoTransition = React.forwardRef(function NoTransition(props, ref) {
 
 const CoachQuitPlans = () => {
   const dispatch = useDispatch();
-  const { customPlansList, approvedCustomPlans, isLoading, isError, errorMessage } = useSelector(
-    (state) => state.customPlan
-  );
+  const {
+    customPlansList,
+    approvedCustomPlans,
+    isLoading,
+    isError,
+    errorMessage,
+  } = useSelector((state) => state.customPlan);
   const [filteredPlans, setFilteredPlans] = useState([]);
   const [selectedTab, setSelectedTab] = useState(0);
   const [confirmDialog, setConfirmDialog] = useState({
@@ -76,11 +80,15 @@ const CoachQuitPlans = () => {
       reason: "",
       duration: "",
       image: "",
+      goal: "",
+      targetCigarettesPerDay: "",
     },
     stagesData: [
       {
         stage_name: "",
         description: "",
+        goal: "",
+        targetCigarettesPerDay: "",
         order_index: 1,
         duration: "",
       },
@@ -146,11 +154,19 @@ const CoachQuitPlans = () => {
             quitPlanData: {
               ...approvalDialog.quitPlanData,
               duration: parseInt(approvalDialog.quitPlanData.duration) || 0,
+              targetCigarettesPerDay:
+                parseInt(approvalDialog.quitPlanData.targetCigarettesPerDay) ||
+                0,
+              goal: approvalDialog.quitPlanData.goal || "",
             },
             stagesData: approvalDialog.stagesData.map((stage) => ({
               ...stage,
               order_index: parseInt(stage.order_index) || 0,
               duration: parseInt(stage.duration) || 0,
+
+              goal: stage.goal || "",
+              targetCigarettesPerDay:
+                parseInt(stage.targetCigarettesPerDay) || 0,
             })),
           })
         ).unwrap();
@@ -205,11 +221,15 @@ const CoachQuitPlans = () => {
         reason: "",
         duration: "",
         image: "",
+        goal: "",
+        targetCigarettesPerDay: "",
       },
       stagesData: [
         {
           stage_name: "",
           description: "",
+          goal: "",
+          targetCigarettesPerDay: "",
           order_index: 1,
           duration: "",
         },
@@ -228,11 +248,15 @@ const CoachQuitPlans = () => {
           reason: "",
           duration: "",
           image: "",
+          goal: "",
+          targetCigarettesPerDay: "",
         },
         stagesData: [
           {
             stage_name: "",
             description: "",
+            goal: "",
+            targetCigarettesPerDay: "",
             order_index: 1,
             duration: "",
           },
@@ -282,11 +306,15 @@ const CoachQuitPlans = () => {
         reason: "",
         duration: "",
         image: "",
+        goal: "",
+        targetCigarettesPerDay: "",
       },
       stagesData: [
         {
           stage_name: "",
           description: "",
+          goal: "",
+          targetCigarettesPerDay: "",
           order_index: 1,
           duration: "",
         },
@@ -326,9 +354,9 @@ const CoachQuitPlans = () => {
       stagesData: prev.stagesData.map((stage, i) =>
         i === index
           ? {
-            ...stage,
-            [field]: value,
-          }
+              ...stage,
+              [field]: value,
+            }
           : stage
       ),
     }));
@@ -342,6 +370,8 @@ const CoachQuitPlans = () => {
         {
           stage_name: "",
           description: "",
+          goal: "",
+          targetCigarettesPerDay: "",
           order_index: prev.stagesData.length + 1,
           duration: "",
         },
@@ -407,6 +437,8 @@ const CoachQuitPlans = () => {
         (stage) =>
           !stage.stage_name.trim() ||
           !stage.description.trim() ||
+          !stage.goal.trim() ||
+          stage.targetCigarettesPerDay === "" ||
           !stage.duration
       )
     ) {
@@ -424,6 +456,17 @@ const CoachQuitPlans = () => {
         setNotification({
           open: true,
           message: `Giai đoạn ${i + 1}: Thời gian phải là số từ 1 đến 365 ngày!`,
+          severity: "error",
+        });
+        return;
+      }
+      const targetCigs = parseInt(
+        approvalDialog.stagesData[i].targetCigarettesPerDay
+      );
+      if (isNaN(targetCigs) || targetCigs < 0 || targetCigs > 100) {
+        setNotification({
+          open: true,
+          message: `Giai đoạn ${i + 1}: Số điếu/ngày mục tiêu phải là số từ 0 đến 100!`,
           severity: "error",
         });
         return;
@@ -580,7 +623,13 @@ const CoachQuitPlans = () => {
             </Typography>
           </Box>
           <Tooltip title="Làm mới dữ liệu">
-            <IconButton onClick={() => { fetchPlans(); fetchApprovedPlans(); }} sx={{ color: "white" }}>
+            <IconButton
+              onClick={() => {
+                fetchPlans();
+                fetchApprovedPlans();
+              }}
+              sx={{ color: "white" }}
+            >
               <RefreshIcon />
             </IconButton>
           </Tooltip>
@@ -670,6 +719,18 @@ const CoachQuitPlans = () => {
                           {plan.description}
                         </Typography>
                       )}
+                      {plan.goal && (
+                        <Typography variant="body2" color="text.secondary">
+                          🎯 <strong>Mục tiêu:</strong> {plan.goal}
+                        </Typography>
+                      )}
+
+                      {plan.targetCigarettesPerDay !== undefined && (
+                        <Typography variant="body2" color="text.secondary">
+                          🚭 <strong>Số điếu/ngày mục tiêu:</strong>{" "}
+                          {plan.targetCigarettesPerDay}
+                        </Typography>
+                      )}
 
                       <Box sx={{ mb: 2 }}>
                         <Box
@@ -707,7 +768,11 @@ const CoachQuitPlans = () => {
                       </Box>
 
                       <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="bold"
+                          gutterBottom
+                        >
                           Quy tắc yêu cầu:
                         </Typography>
                         <List dense sx={{ py: 0 }}>
@@ -820,7 +885,11 @@ const CoachQuitPlans = () => {
           ) : (
             <Grid container spacing={3}>
               {approvedCustomPlans.map((approvedPlan) => (
-                <Grid item size={{ xs: 12, md: 6, lg: 4 }} key={approvedPlan.customRequest._id}>
+                <Grid
+                  item
+                  size={{ xs: 12, md: 6, lg: 4 }}
+                  key={approvedPlan.customRequest._id}
+                >
                   <Card
                     sx={{
                       height: "100%",
@@ -870,6 +939,28 @@ const CoachQuitPlans = () => {
                           {approvedPlan.quitPlan.reason}
                         </Typography>
                       )}
+                      {approvedPlan.quitPlan.goal && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 1 }}
+                        >
+                          🎯 <strong>Mục tiêu:</strong>{" "}
+                          {approvedPlan.quitPlan.goal}
+                        </Typography>
+                      )}
+
+                      {approvedPlan.quitPlan.targetCigarettesPerDay !==
+                        undefined && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 2 }}
+                        >
+                          🚭 <strong>Số điếu/ngày mục tiêu:</strong>{" "}
+                          {approvedPlan.quitPlan.targetCigarettesPerDay}
+                        </Typography>
+                      )}
 
                       <Box sx={{ mb: 2 }}>
                         <Box
@@ -901,17 +992,24 @@ const CoachQuitPlans = () => {
                         >
                           <ScheduleIcon color="action" fontSize="small" />
                           <Typography variant="body2" color="text.secondary">
-                            Duyệt: {formatDate(approvedPlan.customRequest.approvedAt)}
+                            Duyệt:{" "}
+                            {formatDate(approvedPlan.customRequest.approvedAt)}
                           </Typography>
                         </Box>
                       </Box>
 
                       <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight="bold"
+                          gutterBottom
+                        >
                           Tiến độ thực hiện:
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {approvedPlan.progress.completedStages}/{approvedPlan.progress.totalStages} giai đoạn ({approvedPlan.progress.completionPercentage}%)
+                          {approvedPlan.progress.completedStages}/
+                          {approvedPlan.progress.totalStages} giai đoạn (
+                          {approvedPlan.progress.completionPercentage}%)
                         </Typography>
                         <Box sx={{ width: "100%", mt: 1 }}>
                           <Box
@@ -926,7 +1024,9 @@ const CoachQuitPlans = () => {
                               sx={{
                                 height: "100%",
                                 borderRadius: 4,
-                                bgcolor: approvedPlan.progress.isCompleted ? "#4caf50" : "#2196f3",
+                                bgcolor: approvedPlan.progress.isCompleted
+                                  ? "#4caf50"
+                                  : "#2196f3",
                                 width: `${approvedPlan.progress.completionPercentage}%`,
                                 transition: "width 0.3s ease",
                               }}
@@ -1024,6 +1124,38 @@ const CoachQuitPlans = () => {
                       <Typography variant="body2" sx={{ mb: 2, color: "#555" }}>
                         {approvalDialog.planData.description}
                       </Typography>
+                      {approvalDialog.planData.goal && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography
+                            variant="subtitle2"
+                            fontWeight="bold"
+                            sx={{ color: "#667eea" }}
+                          >
+                            Mục tiêu kế hoạch:
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: "#555" }}>
+                            {approvalDialog.planData.goal}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {approvalDialog.planData.targetCigarettesPerDay !==
+                        undefined && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography
+                            variant="subtitle2"
+                            fontWeight="bold"
+                            sx={{ color: "#667eea" }}
+                          >
+                            Số điếu/ngày mục tiêu:
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: "#555" }}>
+                            {approvalDialog.planData.targetCigarettesPerDay}{" "}
+                            điếu
+                          </Typography>
+                        </Box>
+                      )}
+
                       <Box sx={{ mb: 2 }}>
                         <Typography
                           variant="subtitle2"
@@ -1232,6 +1364,48 @@ const CoachQuitPlans = () => {
                             "& .MuiInputLabel-root": { color: "#667eea" },
                           }}
                         />
+                        <TextField
+                          label="Mục tiêu tổng thể"
+                          value={approvalDialog.quitPlanData.goal}
+                          onChange={(e) =>
+                            handleQuitPlanDataChange("goal", e.target.value)
+                          }
+                          fullWidth
+                          required
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              "& fieldset": { borderColor: "#667eea" },
+                              "&:hover fieldset": { borderColor: "#764ba2" },
+                            },
+                            "& .MuiInputLabel-root": { color: "#667eea" },
+                          }}
+                        />
+
+                        <TextField
+                          label="Mục tiêu số điếu/ngày"
+                          type="number"
+                          value={
+                            approvalDialog.quitPlanData.targetCigarettesPerDay
+                          }
+                          onChange={(e) =>
+                            handleQuitPlanDataChange(
+                              "targetCigarettesPerDay",
+                              e.target.value
+                            )
+                          }
+                          fullWidth
+                          required
+                          inputProps={{ min: 0 }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              "& fieldset": { borderColor: "#667eea" },
+                              "&:hover fieldset": { borderColor: "#764ba2" },
+                            },
+                            "& .MuiInputLabel-root": { color: "#667eea" },
+                          }}
+                        />
                       </Stack>
                     </Box>
 
@@ -1354,6 +1528,56 @@ const CoachQuitPlans = () => {
                                 "& .MuiInputLabel-root": { color: "#667eea" },
                               }}
                             />
+                            <TextField
+                              label="Mục tiêu giai đoạn"
+                              value={stage.goal}
+                              onChange={(e) =>
+                                handleStageDataChange(
+                                  index,
+                                  "goal",
+                                  e.target.value
+                                )
+                              }
+                              fullWidth
+                              size="small"
+                              sx={{
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: 2,
+                                  "& fieldset": { borderColor: "#667eea" },
+                                  "&:hover fieldset": {
+                                    borderColor: "#764ba2",
+                                  },
+                                },
+                                "& .MuiInputLabel-root": { color: "#667eea" },
+                              }}
+                            />
+
+                            <TextField
+                              label="Số điếu/ngày mục tiêu"
+                              type="number"
+                              value={stage.targetCigarettesPerDay}
+                              onChange={(e) =>
+                                handleStageDataChange(
+                                  index,
+                                  "targetCigarettesPerDay",
+                                  e.target.value
+                                )
+                              }
+                              fullWidth
+                              size="small"
+                              inputProps={{ min: 0 }}
+                              sx={{
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: 2,
+                                  "& fieldset": { borderColor: "#667eea" },
+                                  "&:hover fieldset": {
+                                    borderColor: "#764ba2",
+                                  },
+                                },
+                                "& .MuiInputLabel-root": { color: "#667eea" },
+                              }}
+                            />
+
                             <Grid container spacing={1}>
                               <Grid item size={{ xs: 6 }}>
                                 <TextField
