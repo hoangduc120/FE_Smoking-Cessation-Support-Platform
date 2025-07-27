@@ -26,7 +26,7 @@ import { fetchUserMembership } from "../../../store/slices/userMembershipSlice";
 import "./UpgradeMember.css";
 import { fetchUser } from "../../../store/slices/userSlice";
 import PaymentService from "../../../services/paymentService";
-
+import toast from "react-hot-toast";
 // Bank data with image URLs (using placeholder CDN images for demo)
 const bankOptions = [
   {
@@ -140,9 +140,8 @@ const UpgradeMember = () => {
         // Nếu gói miễn phí (price = 0), không cần thanh toán
         if (selectedPlan.price === 0) {
           // TODO: Gọi API để kích hoạt gói miễn phí trực tiếp
-          console.log("Kích hoạt gói miễn phí:", selectedPlan.name);
           // Có thể thêm thông báo thành công ở đây
-          alert("Đăng ký gói miễn phí thành công!");
+          toast.success("Đăng ký gói miễn phí thành công!");
         } else {
           // Gói có phí, cần thanh toán
           if (!selectedBank) {
