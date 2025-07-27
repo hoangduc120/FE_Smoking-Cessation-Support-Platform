@@ -468,8 +468,10 @@ const Roadmap = () => {
                   {formatDate(plan?.plan?.startDate || plan?.startDate)} - {formatDate(plan?.plan?.endDate || plan?.endDate)}
                 </Badge>
                 <Badge color="secondary" className="roadMap-badge">
-                  <Clock size={12} className="roadMap-icon" /> Còn lại:{" "}
-                  {calculateRemainingDays(plan?.plan?.endDate || plan?.endDate)} ngày
+                  <Clock size={12} className="roadMap-icon" /> Còn lại: {calculateRemainingDays(plan?.plan?.endDate || plan?.endDate)} ngày
+                </Badge>
+                <Badge color="secondary" className="roadMap-badge">
+                  🎯 Mục tiêu bỏ thuốc: {plan?.plan?.targetCigarettesPerDay || plan?.targetCigarettesPerDay  || "Chưa đặt"}
                 </Badge>
               </div>
             </div>
@@ -624,6 +626,9 @@ const Roadmap = () => {
                     }
                   />
                   <CardContent>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: "bold", fontSize: "16px" }}>
+                      Mục tiêu bỏ thuốc của giai đoạn: {stage.targetCigarettesPerDay ?? "Chưa đặt"}
+                    </Typography>
                     {stageProgress.length > 0 && (
                       <Box
                         className="roadMap-history"

@@ -37,13 +37,9 @@ const schema = yup.object().shape({
     .number()
     .required("Thời gian là bắt buộc")
     .min(1, "Thời gian phải lớn hơn 0"),
-  //   "is-future-date",
-  //   "Ngày bắt đầu không được trước ngày hiện tại",
-  //   (value) => {
-  //     const today = format(new Date(), "yyyy-MM-dd");
-  //     return value >= today;
-  //   }
-  // ),
+  goal: yup.string().required("Mục tiêu là bắt buộc"),
+  targetCigarettesPerDay:yup.number().required("Mục tiêu số lượng thuốc lá cần cai là bắt buộc"),
+
 });
 
 export default function CreatePlanDialog({
@@ -70,6 +66,8 @@ export default function CreatePlanDialog({
       reason: "",
       image: "",
       duration: "",
+      goal: "",
+      targetCigarettesPerDay: "",
       status: "template",
     },
     resolver: yupResolver(schema),
@@ -83,6 +81,8 @@ export default function CreatePlanDialog({
         reason: planToEdit.reason || "",
         image: planToEdit.image || "",
         duration: planToEdit.duration || 1,
+        goal: planToEdit.goal || "",
+        targetCigarettesPerDay: planToEdit.targetCigarettesPerDay || "",
         status: planToEdit.status || "template",
       });
     } else {
@@ -91,6 +91,8 @@ export default function CreatePlanDialog({
         reason: "",
         image: "",
         duration: "",
+        goal: "",
+        targetCigarettesPerDay: "",
         status: "template",
       });
     }
@@ -239,6 +241,35 @@ export default function CreatePlanDialog({
               />
             )}
           />
+
+          {/* Goal field */}
+          <Controller
+            name="goal"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                margin="dense"
+                label="Mục tiêu"
+                type="text"
+                fullWidth
+                error={!!errors.goal}
+                helperText={errors.goal?.message}
+                sx={{ mb: 2, borderRadius: 2, background: '#fff',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  },
+                  '& label.Mui-focused': {
+                    color: '#19a14c',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#19a14c',
+                  },
+                }}
+              />
+            )}
+          />
+
           <Controller
             name="duration"
             control={control}
@@ -251,6 +282,34 @@ export default function CreatePlanDialog({
                 fullWidth
                 error={!!errors.duration}
                 helperText={errors.duration?.message}
+                sx={{ mb: 2, borderRadius: 2, background: '#fff',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  },
+                  '& label.Mui-focused': {
+                    color: '#19a14c',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#19a14c',
+                  },
+                }}
+              />
+            )}
+          />
+
+          {/* targetCigarettesPerDay field */}
+          <Controller
+            name="targetCigarettesPerDay"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                margin="dense"
+                label="Số điếu thuốc mục tiêu cần cai"
+                type="number"
+                fullWidth
+                error={!!errors.targetCigarettesPerDay}
+                helperText={errors.targetCigarettesPerDay?.message}
                 sx={{ mb: 2, borderRadius: 2, background: '#fff',
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,

@@ -49,6 +49,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif !important;
 }
 
 .roadMap-subtitle {
@@ -119,6 +120,7 @@ button.roadMap-action-button[aria-label="cancel"] {
   font-weight: 800 !important;
   color: #1e293b;
   letter-spacing: -0.5px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif !important;
 }
 
 .roadMap-card-description {
