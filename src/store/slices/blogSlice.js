@@ -11,8 +11,11 @@ const normalizeBlog = (blog, currentUserId) => ({
   tags: blog.tags?.map((tag) => tag.tagName) || [],
   createdAt: blog.createdAt,
   userId: blog.user?._id || "unknown",
-  authorName: blog.user?.email?.split("@")[0] || "Người dùng ẩn danh",
-  avatar: "/placeholder.svg?height=40&width=40",
+  authorName: blog.user?.userName || "Người dùng ẩn danh",
+  avatar:
+    blog.user?.profilePicture ||
+    blog.user?.avatar ||
+    "/placeholder.svg?height=40&width=40",
   likes: blog.likes,
   likeCount: blog.likes?.length || 0,
   isLiked: currentUserId ? blog.likes?.includes(currentUserId) : false,
@@ -22,7 +25,7 @@ const normalizeBlog = (blog, currentUserId) => ({
     author: {
       id: comment.author?._id || "unknown",
       name:
-        comment.author?.name ||
+        comment.author?.userName ||
         comment.author?.email?.split("@")[0] ||
         "Người dùng",
       avatar: comment.author?.profilePicture || "/placeholder.svg",
@@ -207,10 +210,15 @@ export const addCommentApi = createAsyncThunk(
           author: {
             id: comment.author?._id || currentUserId,
             name:
+              comment.author?.userName ||
               comment.author?.name ||
               comment.author?.email?.split("@")[0] ||
               "Người dùng",
-            avatar: comment.author?.avatar || "/placeholder.svg",
+
+            avatar:
+              comment.author?.profilePicture ||
+              comment.author?.avatar || // fallback nếu có field này
+              "/placeholder.svg",
           },
           createdAt: comment.createdAt,
         },
