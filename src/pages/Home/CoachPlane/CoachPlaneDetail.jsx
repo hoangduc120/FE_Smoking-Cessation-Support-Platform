@@ -69,41 +69,19 @@ export default function CoachPlaneDetail() {
     }
   }, [dispatch, id]);
 
-  const calculateDuration = () => {
-    if (!plan?.quitPlan?.startDate || !plan?.quitPlan?.endDate) {
-      return { value: null, error: "Thiếu ngày bắt đầu hoặc kết thúc" };
-    }
-    let start, end;
-    try {
-      start = new Date(plan.quitPlan.startDate);
-      end = new Date(plan.quitPlan.endDate);
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        start = parse(plan.quitPlan.startDate, "dd/MM/yyyy", new Date());
-        end = parse(plan.quitPlan.endDate, "dd/MM/yyyy", new Date());
-      }
-      const duration = differenceInDays(end, start);
-      return { value: duration, error: null };
-    } catch (error) {
-      console.log("Error parsing dates:", error.message);
-      return { value: null, error: "Lỗi xử lý ngày" };
-    }
-  };
 
-  const durationResult = calculateDuration();
-  const durationDisplay =
-    durationResult.value !== null
-      ? `${durationResult.value} ngày`
-      : durationResult.error;
+
+
 
   const handleRegisterPlan = () => {
     if (plan?.quitPlan?._id) {
-      setIsRegistering(true); // Bắt đầu quá trình đăng ký
+      setIsRegistering(true); 
       dispatch(selectPlan({ quitPlanId: plan.quitPlan._id }))
         .unwrap()
         .then(() => {
           toast.success("Đăng ký kế hoạch thành công!");
-          setIsRegistering(false); // Kết thúc quá trình
-          navigate("/roadmap"); // Chuyển hướng ngay lập tức
+          setIsRegistering(false); 
+          navigate("/roadmap"); 
         })
         .catch((error) => {
           setIsRegistering(false);
@@ -221,7 +199,7 @@ export default function CoachPlaneDetail() {
                     }}
                   >
                     <CalendarMonthIcon sx={{ color: "#e66f51" }} />
-                    {durationDisplay}
+                    {plan.quitPlan.duration} ngày
                   </Typography>
                   <Typography
                     variant="body2"
@@ -232,7 +210,7 @@ export default function CoachPlaneDetail() {
                     }}
                   >
                     <InsightsIcon sx={{ color: "#2a9d8e" }} />
-                    {plan.quitPlan.successRate || 98}% thành công
+                   Mục tiêu: {plan.quitPlan.targetCigarettesPerDay || 98} điếu
                   </Typography>
                 </Box>
                 <Box className="CoachPlaneDetail-steps">
@@ -275,15 +253,7 @@ export default function CoachPlaneDetail() {
                                   }}
                                 />
                                 <strong>Thời gian: </strong>
-                                {stage.start_date && stage.end_date
-                                  ? `${format(
-                                      new Date(stage.start_date),
-                                      "dd/MM/yyyy"
-                                    )} - ${format(
-                                      new Date(stage.end_date),
-                                      "dd/MM/yyyy"
-                                    )}`
-                                  : "N/A"}
+                                 {stage.duration} Ngày
                               </Typography>
                             </MenuItem>
                             <MenuItem>
@@ -309,12 +279,9 @@ export default function CoachPlaneDetail() {
                                     paddingRight: "10px",
                                   }}
                                 />
-                                <strong>Trạng thái: </strong>
-                                {stage.status === "draft"
-                                  ? "Nháp"
-                                  : stage.status === "active"
-                                    ? "Đang hoạt động"
-                                    : "Hoàn thành"}
+                                <strong>Mục tiêu: </strong>
+                                {stage.targetCigarettesPerDay || 98} điếu
+                             
                               </Typography>
                             </MenuItem>
                           </Box>
@@ -360,7 +327,7 @@ export default function CoachPlaneDetail() {
                     <PermIdentityIcon
                       sx={{ color: "#6967ac", paddingRight: "10px" }}
                     />
-                    {coach?.name || "N/A"}
+                    {plan?.quitPlan?.coachId?.userName || "N/A"}
                   </Typography>
                   <Typography
                     variant="body1"
@@ -374,7 +341,7 @@ export default function CoachPlaneDetail() {
                     <StairsIcon
                       sx={{ color: "#e8bb4b", paddingRight: "10px" }}
                     />
-                    Tổng số giai đoạn {totalStages}
+                    Tổng số giai đoạn: {totalStages}
                   </Typography>
                   <Typography
                     variant="body1"
@@ -388,7 +355,7 @@ export default function CoachPlaneDetail() {
                     <CalendarMonthIcon
                       sx={{ color: "#e66f51", paddingRight: "10px" }}
                     />
-                    Thời gian lộ trình {durationDisplay}
+                    Thời gian lộ trình: {plan.quitPlan.duration} ngày
                   </Typography>
                   <Typography
                     variant="body1"
@@ -402,7 +369,7 @@ export default function CoachPlaneDetail() {
                     <InsightsIcon
                       sx={{ color: "#2a9d8e", paddingRight: "10px" }}
                     />
-                    Tỷ lệ thành công {plan.quitPlan.successRate || 98}%
+                    Mục tiêu: {plan.quitPlan.targetCigarettesPerDay || 98} 
                   </Typography>
                 </Box>
               </Box>
