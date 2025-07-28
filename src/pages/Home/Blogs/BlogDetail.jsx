@@ -30,6 +30,7 @@ import {
   toggleLikeBlogApi,
   addCommentApi,
 } from "../../../store/slices/blogSlice";
+import { fetchUser } from "../../../store/slices/userSlice";
 import toast from "react-hot-toast";
 
 const BlogDetail = () => {
@@ -38,12 +39,20 @@ const BlogDetail = () => {
   const navigate = useNavigate();
   const { selectedBlog, isLoading } = useSelector((state) => state.blogs);
   const { currentUser } = useSelector((state) => state.auth);
+  const viewer = useSelector((state) => state.user.user); // từ userSlice
+
   const currentUserId = currentUser?.user?.id;
   const isLikedByCurrentUser = selectedBlog?.likes?.includes(currentUserId);
 
   const [comment, setComment] = useState("");
   const [isLikeProcessing, setIsLikeProcessing] = useState(false);
   const [visibleComments, setVisibleComments] = useState(5);
+
+  useEffect(() => {
+    if (!viewer) {
+      dispatch(fetchUser());
+    }
+  }, [dispatch, viewer]);
 
   const handleShowMoreComments = () => {
     setVisibleComments((prev) =>
@@ -97,9 +106,10 @@ const BlogDetail = () => {
         id: `temp-${Date.now()}`,
         text: comment,
         author: {
-          id: currentUser?.userId || "unknown",
-          name: currentUser?.email?.split("@")[0] || "Người dùng",
-          avatar: currentUser?.avatar || "/placeholder.svg",
+          id: viewer?._id || "unknown",
+          name:
+            viewer?.userName || viewer?.email?.split("@")[0] || "Người dùng",
+          avatar: viewer?.profilePicture || "/placeholder.svg",
         },
         createdAt: new Date().toISOString(),
       };
