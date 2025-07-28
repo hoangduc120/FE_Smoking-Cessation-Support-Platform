@@ -172,6 +172,7 @@ const CoachQuitPlans = () => {
         ).unwrap();
         // Update filteredPlans to remove the approved plan
         setFilteredPlans((prev) => prev.filter((plan) => plan._id !== planId));
+        await fetchApprovedPlans();
       } else {
         if (!rejectionReason.trim()) {
           setNotification({
