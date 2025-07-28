@@ -254,16 +254,22 @@ export default function PaymentStatistics() {
                           <Box display="flex" alignItems="center" gap={1}>
                             {status._id === "success" ? (
                               <CheckCircle sx={{ fontSize: 20, color: "success.main" }} />
+                            ) : status._id === "pending" ? (
+                              <Warning sx={{ fontSize: 20, color: "warning.main" }} />
                             ) : (
                               <Cancel sx={{ fontSize: 20, color: "error.main" }} />
                             )}
                             <Typography variant="body1" fontWeight="medium">
-                              {status._id === "success" ? "Thành công" : "Thất bại"}
+                              {status._id === "success"
+                                ? "Thành công"
+                                : status._id === "pending"
+                                ? "Chờ xử lý"
+                                : "Thất bại"}
                             </Typography>
                           </Box>
                           <Chip
                             label={`${status.count} giao dịch`}
-                            color={status._id === "success" ? "success" : "error"}
+                            color={status._id === "success" ? "success" : status._id === "pending" ? "warning" : "error"}
                             size="small"
                           />
                         </Box>
@@ -274,7 +280,7 @@ export default function PaymentStatistics() {
                           variant="determinate"
                           value={(status.count / data.totalPayments) * 100}
                           sx={{ height: 8, borderRadius: 4 }}
-                          color={status._id === "success" ? "success" : "error"}
+                          color={status._id === "success" ? "success" : status._id === "pending" ? "warning" : "error"}
                         />
                       </Box>
                     ))}

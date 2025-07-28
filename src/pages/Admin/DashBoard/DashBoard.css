@@ -136,7 +136,7 @@
 
 .progress-label {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   font-size: 16px;
   color: #333;
   margin-bottom: 5px;
@@ -273,3 +273,9 @@
   color: #804d47;
   font-weight: bold;
 }
+
+.progress-bar-wrapper {
+  width: 100%;
+  max-width: 750px;
+}
+
