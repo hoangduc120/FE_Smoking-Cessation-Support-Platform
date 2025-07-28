@@ -41,12 +41,12 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (data) => {
-    try {
-      dispatch(registerApi(data));
+    const resultAction = await dispatch(registerApi(data));
+    if (registerApi.fulfilled.match(resultAction)) {
       toast.success("Đăng ký thành công!");
       navigate(PATH.LOGIN);
-    } catch (error) {
-      toast.error(error.message);
+    } else {
+      toast.error(resultAction.payload?.message || "Đăng ký thất bại");
     }
   };
 

@@ -157,7 +157,7 @@ import {
       scales: {
         y: {
           beginAtZero: true,
-          max: 100, // hoặc để tự động nếu muốn
+          max: 50, // hoặc để tự động nếu muốn
         },
       },
     }

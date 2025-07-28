@@ -59,6 +59,11 @@ export default function AssessmentPage() {
       navigate(PATH.LOGIN);
       return;
     }
+    if (localStorage.getItem("hasAssessed") === "true") {
+      toast.error("Bạn đã hoàn thành đánh giá, không thể khai báo lại!");
+      navigate("/planCustomization");
+      return;
+    }
   }, [currentUser]);
 
   const {
@@ -124,6 +129,7 @@ export default function AssessmentPage() {
 
       try {
         await dispatch(saveAssessment(assessmentData)).unwrap();
+        localStorage.setItem("hasAssessed", "true"); // Lưu trạng thái đã đánh giá
         await toast.success("Đánh giá thành công!");
         setTimeout(() => {
           navigate("/planCustomization");

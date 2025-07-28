@@ -163,12 +163,12 @@ function PlanCustomizationPage() {
       setPlanSaved(true);
       setSnackbar({
         open: true,
-        title: "Kế hoạch đã được lưu",
+        title: "Tình trạng đã khai báo được lưu",
         description:
-          "Kế hoạch cai thuốc của bạn đã được lưu thành công. Vui lòng kiểm tra trước khi chuyển trang.",
+          "Tình trạng đã khai báo của bạn đã được lưu thành công. Vui lòng kiểm tra trước khi chuyển trang.",
         severity: "success",
       });
-      setTimeout(() => navigate("/coachPlan"), 2000); // Chuyển trang sau 2 giây
+      setTimeout(() => navigate("/coachPlan"), 2000); 
     } catch (error) {
       console.error("Error in handleSavePlan:", error);
       setSnackbar({
@@ -238,12 +238,9 @@ function PlanCustomizationPage() {
         <Box className="PlanCustomization-header">
           <Box>
             <Typography variant="h4" className="PlanCustomization-title">
-              Tùy chỉnh kế hoạch cai thuốc
+              Tình trạng đã khai báo
             </Typography>
-            <Typography variant="body2" color="textSecondary">
-              Dựa trên đánh giá của bạn, chúng tôi đã tạo một kế hoạch cai
-              thuốc. Hãy tùy chỉnh theo nhu cầu của bạn.
-            </Typography>
+       
           </Box>
           <Box className="PlanCustomization-header-buttons">
             {isEditing ? (
@@ -260,7 +257,7 @@ function PlanCustomizationPage() {
                 onClick={handleSavePlan}
                 disabled={isSaving}
               >
-                {isSaving ? "Đang lưu..." : "Lưu kế hoạch"}
+                {isSaving ? "Đang lưu..." : "Tiếp tục"}
               </Button>
             ) : (
               <Button
@@ -296,10 +293,11 @@ function PlanCustomizationPage() {
           className="PlanCustomization-alert"
         >
           <Typography variant="h6">
-            Kế hoạch được tạo dựa trên đánh giá của bạn
+            Tình trạng đã khai báo được tạo dựa trên đánh giá của bạn
           </Typography>
           <Typography>
-            Chúng tôi đã tạo kế hoạch cai thuốc dựa trên thông tin bạn cung cấp.
+            Chúng tôi sẽ cung cấp lộ trình cai thuốc dựa trên tình trạng đã khai
+            báo của bạn.
           </Typography>
         </Alert>
 
@@ -314,8 +312,8 @@ function PlanCustomizationPage() {
         {tabValue === "overview" && (
           <Card className="PlanCustomization-card">
             <CardHeader
-              title="Tổng quan kế hoạch"
-              subheader="Thông tin cơ bản về kế hoạch cai thuốc của bạn"
+              title="Tổng quan tình trạng đã khai báo"
+              subheader="Thông tin cơ bản về tình trạng đã khai báo"
             />
             <CardContent>
               <Box className="PlanCustomization-grid">
