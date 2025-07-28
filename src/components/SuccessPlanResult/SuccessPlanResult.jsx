@@ -340,21 +340,21 @@ export default function SuccessPlanResult({ planId: propPlanId }) {
                   <Box className="space-y-4">
                     <Box className="bg-white rounded-xl p-4 shadow-sm">
                       <Box className="flex items-center justify-between mb-2">
-                        <Box className="flex items-center gap-2">
+                        {/* <Box className="flex items-center gap-2">
                           <AttachMoney className="h-5 w-5 text-green-600" />
                           <Typography className="font-medium">Tiết kiệm</Typography>
-                        </Box>
-                        <Typography className="font-bold text-green-600">{formatCurrency(stats.moneySaved)}</Typography>
+                        </Box> */}
+                        {/* <Typography className="font-bold text-green-600">{formatCurrency(stats.moneySaved)}</Typography> */}
                       </Box>
                     </Box>
 
                     <Box className="bg-white rounded-xl p-4 shadow-sm">
                       <Box className="flex items-center justify-between mb-2">
-                        <Box className="flex items-center gap-2">
+                        {/* <Box className="flex items-center gap-2">
                           <MonitorHeart className="h-5 w-5 text-blue-600" />
                           <Typography className="font-medium">Sức khỏe</Typography>
-                        </Box>
-                        <Typography className="font-bold text-blue-600">+{stats.healthImprovement}%</Typography>
+                        </Box> */}
+                        {/* <Typography className="font-bold text-blue-600">+{stats.healthImprovement}%</Typography> */}
                       </Box>
                       <LinearProgress variant="determinate" value={stats.healthImprovement} className="h-2" />
                     </Box>
@@ -369,7 +369,7 @@ export default function SuccessPlanResult({ planId: propPlanId }) {
                       </Box>
                     </Box>
 
-                    <Box className="bg-white rounded-xl p-4 shadow-sm">
+                    {/* <Box className="bg-white rounded-xl p-4 shadow-sm">
                       <Box className="flex items-center justify-between mb-2">
                         <Box className="flex items-center gap-2">
                           <TrendingUp className="h-5 w-5 text-orange-600" />
@@ -377,7 +377,7 @@ export default function SuccessPlanResult({ planId: propPlanId }) {
                         </Box>
                         <Typography className="font-bold text-orange-600">{stats.cigarettesAvoided} điếu</Typography>
                       </Box>
-                    </Box>
+                    </Box> */}
                   </Box>
                 </CardContent>
               </Card>

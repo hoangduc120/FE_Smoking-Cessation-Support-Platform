@@ -45,6 +45,9 @@ export default function DashBoardAdmin() {
     mostPopularPlan: revenueMemberShip?.data?.mostPopularPlan || {},
   };
 
+  // Tính tổng số gói thành viên đã bán
+  const totalMembershipSales = planData.orderStatistics.reduce((sum, plan) => sum + plan.totalSales, 0);
+
  
   const paymentDoughnutData = {
     labels: dashboard?.data?.paymentMethodBreakdown
@@ -85,11 +88,15 @@ export default function DashBoardAdmin() {
   }, []);
 
   const paymentStats = paymentStarts?.data || {};
+
+
   const { revenueByPeriod } = useSelector((state) => state.dashboard);
   const revenueByPeriodData = Array.isArray(revenueByPeriod?.data?.revenueByPeriod) ? revenueByPeriod.data.revenueByPeriod : [];
 
   const { data } = paymentStarts
   const totalLostRevenue = data?.failedPayments.reduce((sum, p) => sum + p.lostRevenue, 0)
+
+
 
 
 
@@ -174,7 +181,7 @@ export default function DashBoardAdmin() {
                 Gói thành viên đã bán
               </Typography>
               <span style={{ color: "#7e2d11", fontSize: "40px", fontWeight: "bold" }}>
-                {paymentStats.recentPayments && paymentStats.recentPayments[0]?.count}
+                {totalMembershipSales}
               </span>
             </Box>
             <Box className="dashboard-card-icons-today">
@@ -322,14 +329,16 @@ export default function DashBoardAdmin() {
                     {paymentStats.successfulPayments}
                   </span>
                 </Box>
-                {/* <Box className="grid-warning-content-medium">
+                <Box className="grid-warning-content-medium">
                   <Typography className="grid-warning-text-medium">
-                    <PaymentIcon sx={{ marginRight: "15px", color: "#b39438" }} /> Giao dịch gần đây
+                    <PaymentIcon sx={{ marginRight: "15px", color: "#b39438" }} /> Giao dịch chờ xử lý
                   </Typography>
                   <span className="grid-warning-text-medium-sup">
-                    {paymentStats.recentPayments && paymentStats.recentPayments[1]?.count}
+                    {
+                      paymentStats.recentPayments?.find(item => item._id === "pending")?.count || 0
+                    }
                   </span>
-                </Box> */}
+                </Box>
                 <Box className="grid-warning-content-high">
                   <Typography className="grid-warning-text-high">
                     <PaymentIcon sx={{ marginRight: "15px", color: "#d46926" }} /> Thanh toán thất bại
