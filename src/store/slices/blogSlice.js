@@ -202,6 +202,7 @@ export const addCommentApi = createAsyncThunk(
         comment: commentText,
       });
       const comment = response.data.data;
+      const viewer = getState().user?.user;
       return {
         blogId,
         comment: {
@@ -211,13 +212,12 @@ export const addCommentApi = createAsyncThunk(
             id: comment.author?._id || currentUserId,
             name:
               comment.author?.userName ||
-              comment.author?.name ||
+              viewer?.userName ||
               comment.author?.email?.split("@")[0] ||
               "Người dùng",
-
             avatar:
               comment.author?.profilePicture ||
-              comment.author?.avatar || // fallback nếu có field này
+              viewer?.profilePicture ||
               "/placeholder.svg",
           },
           createdAt: comment.createdAt,
