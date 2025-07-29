@@ -40,6 +40,8 @@ const getStatusIcon = (status) => {
       return <PlayCircleOutlineIcon sx={{ fontSize: 20, color: 'white' }} />;
     case 'failed':
       return <Cancel sx={{ fontSize: 20, color: 'white' }} />;
+    case 'cancelled':
+      return <Cancel sx={{ fontSize: 20, color: 'white' }} />;
     default:
       return <Description sx={{ fontSize: 20, color: 'white' }} />;
   }
@@ -53,6 +55,8 @@ const getStatusColor = (status) => {
       return { backgroundColor: '#3b82f6', color: 'white', borderColor: '#3b82f6' };
     case 'failed':
       return { backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' };
+    case 'cancelled':
+      return { backgroundColor: '#9ca3af', color: 'white', borderColor: '#9ca3af' };
     default:
       return { backgroundColor: '#6b7280', color: 'white', borderColor: '#6b7280' };
   }
@@ -75,6 +79,11 @@ const getCardHeaderColor = (status) => {
         background: 'linear-gradient(to right, #ef4444, #dc2626)',
         color: 'white',
       };
+    case 'cancelled':
+      return {
+        background: 'linear-gradient(to right, #9ca3af, #6b7280)',
+        color: 'white',
+      };
     default:
       return {
         background: 'linear-gradient(to right, #6b7280, #4b5563)',
@@ -95,10 +104,12 @@ const getStatusText = (status) => {
   switch (status) {
     case 'completed':
       return 'Hoàn thành';
-      case 'ongoing':
-        return 'Đang diễn ra';
+    case 'ongoing':
+      return 'Đang diễn ra';
     case 'failed':
       return 'Thất bại';
+    case 'cancelled':
+      return 'Đã huỷ';
     default:
       return 'Mẫu';
   }
@@ -156,8 +167,9 @@ console.log("historyData",historyData)
             { icon: <CheckCircle />, value: summaryHistory?.completedPlans, label: 'Hoàn thành', color: '#1f9d4b' },
             { icon: <PlayCircleOutlineIcon />, value: summaryHistory?.ongoingPlans, label: 'Đang diễn ra', color: '#3c67e5' },
             { icon: <Cancel />, value: summaryHistory?.failedPlans, label: 'Thất bại', color: '#ef4444' },
+            { icon: <Cancel />, value: summaryHistory?.cancelledPlans, label: 'Đã huỷ', color: '#9ca3af' },
           ].map((item, index) => (
-            <Grid item size={3} key={index}>
+            <Grid item size={{xs:12, sm:6, md:2.4}} key={index}>
               <Card
                 sx={{
                   textAlign: 'center',
@@ -192,6 +204,7 @@ console.log("historyData",historyData)
                 { label: 'Hoàn thành', value: 'completed', color: '#1f9d4b' },
                 { label: 'Đang diễn ra', value: 'ongoing', color: '#3c67e5' },
                 { label: 'Thất bại', value: 'failed', color: '#ef4444' },
+                { label: 'Đã huỷ', value: 'cancelled', color: '#9ca3af' },
               ].map((btn) => (
                 <Button
                   key={btn.value}
