@@ -19,7 +19,7 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import "./AssessmentPage.css";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   saveAssessment,
@@ -47,7 +47,6 @@ const schema = yup.object().shape({
 export default function AssessmentPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isLoading } = useSelector((state) => state.quitSmoking);
   const [step, setStep] = useState(1);
   const totalSteps = 3; // Cập nhật thành 3 bước
 
@@ -59,12 +58,22 @@ export default function AssessmentPage() {
       navigate(PATH.LOGIN);
       return;
     }
-    if (localStorage.getItem("hasAssessed") === "true") {
-      toast.error("Bạn đã hoàn thành đánh giá, không thể khai báo lại!");
-      navigate("/planCustomization");
-      return;
-    }
-  }, [currentUser]);
+  }, [currentUser, navigate]);
+
+  // Ngăn chặn nút back của trình duyệt nếu đã hoàn thành assessment
+  useEffect(() => {
+    const handlePopState = () => {
+      if (step === totalSteps) {
+        window.history.pushState(null, "", window.location.pathname);
+        toast("Bạn đang trong quá trình đánh giá. Vui lòng hoàn thành trước khi quay lại.");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    window.history.pushState(null, "", window.location.pathname);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [step, totalSteps]);
 
   const {
     control,
@@ -129,12 +138,12 @@ export default function AssessmentPage() {
 
       try {
         await dispatch(saveAssessment(assessmentData)).unwrap();
-        localStorage.setItem("hasAssessed", "true"); // Lưu trạng thái đã đánh giá
+        localStorage.setItem("hasAssessed", "true"); 
         await toast.success("Đánh giá thành công!");
         setTimeout(() => {
           navigate("/planCustomization");
         }, 2000);
-      } catch (error) {
+      } catch {
         toast.error("Đánh giá thất bại! Vui lòng thử lại.");
       }
     } else {

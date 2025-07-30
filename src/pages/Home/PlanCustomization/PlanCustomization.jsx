@@ -26,6 +26,8 @@ import {
   updateAssment,
 } from "../../../store/slices/quitSmokingSlice";
 import "./PlanCustomization.css";
+import toast from "react-hot-toast";
+import { PATH } from "../../../routes/path";
 
 function PlanCustomizationPage() {
   const navigate = useNavigate();
@@ -67,6 +69,38 @@ function PlanCustomizationPage() {
   useEffect(() => {
     dispatch(fetchAssessment("1"));
   }, [dispatch]);
+
+  // Kiểm tra xem người dùng đã hoàn thành assessment chưa
+  useEffect(() => {
+    // Chỉ chuyển hướng nếu không có dữ liệu assessment và không có hasAssessed
+    const hasAssessed = localStorage.getItem("hasAssessed");
+    if (!assessmentData?.data?.length && hasAssessed !== "true") {
+      toast.error("Vui lòng hoàn thành đánh giá trước khi tùy chỉnh kế hoạch!");
+      navigate(PATH.ASSESSMENTPAGE);
+      return;
+    }
+  }, [navigate, assessmentData]);
+
+  // Ngăn chặn nút back của trình duyệt để quay lại trang assessment
+  useEffect(() => {
+    const handlePopState = () => {
+      const hasAssessed = localStorage.getItem("hasAssessed");
+      // Chỉ ngăn chặn nếu thực sự đã hoàn thành assessment
+      if (hasAssessed === "true" && assessmentData?.data?.length > 0) {
+        // Nếu người dùng cố gắng quay lại, chuyển hướng về trang hiện tại
+        window.history.pushState(null, "", window.location.pathname);
+        toast("Bạn đã hoàn thành đánh giá. Không thể quay lại trang trước đó.");
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    // Thêm một entry vào history để có thể bắt sự kiện popstate
+    window.history.pushState(null, "", window.location.pathname);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [assessmentData]);
 
   useEffect(() => {
     console.log("assessmentData in useEffect:", assessmentData);
@@ -212,25 +246,7 @@ function PlanCustomizationPage() {
     );
   }
 
-  if (!assessmentData?.data?.length) {
-    return (
-      <Box className="PlanCustomization-container">
-        <Alert severity="warning">
-          <Typography variant="h6">Không tìm thấy dữ liệu</Typography>
-          <Typography>
-            Vui lòng hoàn thành đánh giá trước khi tùy chỉnh kế hoạch.
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={() => navigate("/assessment")}
-            className="PlanCustomization-mt-4"
-          >
-            Quay lại trang đánh giá
-          </Button>
-        </Alert>
-      </Box>
-    );
-  }
+ 
 
   return (
     <Box className="PlanCustomization-container">
