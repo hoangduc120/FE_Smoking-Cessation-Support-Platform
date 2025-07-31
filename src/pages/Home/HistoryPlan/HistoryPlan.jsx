@@ -123,7 +123,7 @@ const QuitSmokingHistory = () => {
 
   const summaryHistory = plan?.summary
 
-const historyData = plan?.planHistory
+const historyData = plan?.planHistory || [];
 console.log("historyData",historyData)
 
   useEffect(() => {
@@ -134,10 +134,11 @@ console.log("historyData",historyData)
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredPlans = historyData?.filter((item) => {
-    const matchesFilter = filter === 'all' || item.plan.status === filter;
+    if (!item || !item.quitPlan) return false;
+    const matchesFilter = filter === 'all' || item.quitPlan.status === filter;
     const matchesSearch =
-      item.plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.plan.reason.toLowerCase().includes(searchTerm.toLowerCase());
+      item.quitPlan.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.quitPlan.reason?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -249,203 +250,197 @@ console.log("historyData",historyData)
         {/* Plan History */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {filteredPlans?.map((item) => (
-            <Card
-              key={item.plan._id}
-              sx={{
-                overflow: 'hidden',
-                boxShadow: 3,
-                transition: 'transform 0.3s, box-shadow 0.3s',
-                '&:hover': { transform: 'scale(1.02)', boxShadow: 6 },
-              }}
-            >
-              <CardHeader
-                title={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {getStatusIcon(item.plan.status)}
-                    <Box>
-                      <Typography variant="h6">{item.plan.title}</Typography>
-                      <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
-                        {item.plan.reason}
-                      </Typography>
-                    </Box>
-                  </Box>
-                }
-                action={
-                  <Chip
-                    label={getStatusText(item.plan.status)}
-                    sx={{ ...getStatusColor(item.plan.status), fontWeight: 'medium' }}
-                  />
-                }
-                sx={{ ...getCardHeaderColor(item.plan.status), padding: 2 }}
-              />
-              <CardContent sx={{ padding: 3 }}>
-                <Grid container spacing={3}>
-                  {/* Left Column */}
-                  <Grid item size={6} md={6}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {/* Plan Image */}
-                      <Box sx={{ position: 'relative', height: 192, borderRadius: 1, overflow: 'hidden' }}>
-                        <img
-                          src={item.plan.image || '/placeholder.svg?height=200&width=300'}
-                          alt={item.plan.title}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      </Box>
-                      {/* Coach Info */}
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                          padding: 1,
-                          backgroundColor: '#f3f4f6',
-                          borderRadius: 1,
-                        }}
-                      >
-                        <Person sx={{ color: '#6b7280' }} />
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 'medium', color: '#111827' }}>
-                            Huấn luyện viên
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#4b5563' }}>
-                            {item.plan.coachId.userName}
-                          </Typography>
-                          {/* <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                            {item.plan.coachId.email}
-                          </Typography> */}
-                        </Box>
-                      </Box>
-                    </Box>
-                  </Grid>
-                  {/* Right Column */}
-                  <Grid item size={6} md={6}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {/* Progress */}
+            item && item.quitPlan ? (
+              <Card key={item.quitPlan._id}>
+                <CardHeader
+                  title={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      {getStatusIcon(item.quitPlan.status)}
                       <Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="body2" sx={{ fontWeight: 'medium', color: '#374151' }}>
-                            Tiến độ hoàn thành
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: 'bold',
-                              color:
-                                item.plan.status === 'completed'
-                                  ? '#1f9d4b'
-                                  : item.plan.status === 'ongoing'
-                                  ? '#3b82f6'
-                                  : '#ef4444',
-                            }}
-                          >
-                            {item.completionPercentage}%
-                          </Typography>
-                        </Box>
-                        <LinearProgress
-                          variant="determinate"
-                          value={item.completionPercentage}
-                          sx={{ height: 8, borderRadius: 4 }}
-                        />
-                        <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                          {item.completedStages}/{item.totalStages} giai đoạn hoàn thành
+                        <Typography variant="h6">{item.quitPlan.title}</Typography>
+                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                          {item.quitPlan.reason}
                         </Typography>
                       </Box>
-                      <Divider />
-                      {/* Timeline */}
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Event sx={{ fontSize: 16, color: '#6b7280' }} />
-                          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                            Ngày bắt đầu:
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: '#4b5563' }}>
-                            {formatDate(item.plan.startDate)}
-                          </Typography>
+                    </Box>
+                  }
+                  action={
+                    <Chip
+                      label={getStatusText(item.quitPlan.status)}
+                      sx={{ ...getStatusColor(item.quitPlan.status), fontWeight: 'medium' }}
+                    />
+                  }
+                  sx={{ ...getCardHeaderColor(item.quitPlan.status), padding: 2 }}
+                />
+                <CardContent sx={{ padding: 3 }}>
+                  <Grid container spacing={3}>
+                    {/* Left Column */}
+                    <Grid item size={6} md={6}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {/* Plan Image */}
+                        <Box sx={{ position: 'relative', height: 192, borderRadius: 1, overflow: 'hidden' }}>
+                          <img
+                            src={item.quitPlan.image || '/placeholder.svg?height=200&width=300'}
+                            alt={item.quitPlan.title}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
                         </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Event sx={{ fontSize: 16, color: '#6b7280' }} />
-                          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                            Ngày kết thúc:
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: '#4b5563' }}>
-                            {formatDate(item.plan.endDate)}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <AccessTime sx={{ fontSize: 16, color: '#6b7280' }} />
-                          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                            Thời gian:
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: '#4b5563' }}>
-                            {item.duration} ngày
-                          </Typography>
+                        {/* Coach Info */}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            padding: 1,
+                            backgroundColor: '#f3f4f6',
+                            borderRadius: 1,
+                          }}
+                        >
+                          <Person sx={{ color: '#6b7280' }} />
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 'medium', color: '#111827' }}>
+                              Huấn luyện viên
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#4b5563' }}>
+                              {item.quitPlan.coachId?.userName}
+                            </Typography>
+                            {/* <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                              {item.plan.coachId.email}
+                            </Typography> */}
+                          </Box>
                         </Box>
                       </Box>
-                      <Divider />
-                      {/* Badges */}
-                      {item.badges.length > 0 ? (
+                    </Grid>
+                    {/* Right Column */}
+                    <Grid item size={6} md={6}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {/* Progress */}
                         <Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 1 }}>
-                            <EmojiEvents sx={{ color: '#eab308' }} />
-                            <Typography variant="body2" sx={{ fontWeight: 'medium', color: '#111827' }}>
-                              Huy hiệu đạt được ({item.badgeCount})
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'medium', color: '#374151' }}>
+                              Tiến độ hoàn thành
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: 'bold',
+                                color:
+                                  item.quitPlan.status === 'completed'
+                                    ? '#1f9d4b'
+                                    : item.quitPlan.status === 'ongoing'
+                                    ? '#3b82f6'
+                                    : '#ef4444',
+                              }}
+                            >
+                              {item.completionPercentage}%
                             </Typography>
                           </Box>
-                          <Box sx={{ maxHeight: 160, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            {item.badges.map((badge) => (
-                              <Box
-                                key={badge._id}
-                                sx={{
-                                  display: 'flex',
-                                  gap: 1,
-                                  padding: 1,
-                                  backgroundColor: '#fefce8',
-                                  border: '1px solid #fef08a',
-                                  borderRadius: 1,
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    backgroundColor: '#fefce8',
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                  }}
-                                >
-                                  <EmojiEvents sx={{ color: '#a16207' }} />
-                                </Box>
-                                <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'medium', color: '#854d0e' }}>
-                                    {badge.name}
-                                  </Typography>
-                                  <Typography
-                                    variant="caption"
-                                    sx={{ color: '#713f12', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-                                  >
-                                    {badge.description}
-                                  </Typography>
-                                  <Typography variant="caption" sx={{ color: '#a16207' }}>
-                                    Đạt được: {formatDate(badge.updatedAt)}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            ))}
+                          <LinearProgress
+                            variant="determinate"
+                            value={item.completionPercentage}
+                            sx={{ height: 8, borderRadius: 4 }}
+                          />
+                          <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                            {item.completedStages}/{item.totalStages} giai đoạn hoàn thành
+                          </Typography>
+                        </Box>
+                        <Divider />
+                        {/* Timeline */}
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Event sx={{ fontSize: 16, color: '#6b7280' }} />
+                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                              Ngày bắt đầu:
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#4b5563' }}>
+                              {formatDate(item.quitPlan.startDate)}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Event sx={{ fontSize: 16, color: '#6b7280' }} />
+                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                              Ngày kết thúc:
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#4b5563' }}>
+                              {formatDate(item.quitPlan.endDate)}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <AccessTime sx={{ fontSize: 16, color: '#6b7280' }} />
+                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                              Thời gian:
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#4b5563' }}>
+                              {item.duration} ngày
+                            </Typography>
                           </Box>
                         </Box>
-                      ) : (
-                        <Box sx={{ textAlign: 'center', padding: 2, color: '#6b7280' }}>
-                          <EmojiEvents sx={{ fontSize: 32, color: '#9ca3af', marginBottom: 1 }} />
-                          <Typography variant="body2">Chưa có huy hiệu nào</Typography>
-                        </Box>
-                      )}
-                    </Box>
+                        <Divider />
+                        {/* Badges */}
+                        {item.badges.length > 0 ? (
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 1 }}>
+                              <EmojiEvents sx={{ color: '#eab308' }} />
+                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: '#111827' }}>
+                                Huy hiệu đạt được ({item.badgeCount})
+                              </Typography>
+                            </Box>
+                            <Box sx={{ maxHeight: 160, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              {item.badges.map((badge) => (
+                                <Box
+                                  key={badge._id}
+                                  sx={{
+                                    display: 'flex',
+                                    gap: 1,
+                                    padding: 1,
+                                    backgroundColor: '#fefce8',
+                                    border: '1px solid #fef08a',
+                                    borderRadius: 1,
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      width: 40,
+                                      height: 40,
+                                      backgroundColor: '#fefce8',
+                                      borderRadius: '50%',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                    }}
+                                  >
+                                    <EmojiEvents sx={{ color: '#a16207' }} />
+                                  </Box>
+                                  <Box sx={{ flex: 1, overflow: 'hidden' }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 'medium', color: '#854d0e' }}>
+                                      {badge.name}
+                                    </Typography>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ color: '#713f12', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                                    >
+                                      {badge.description}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: '#a16207' }}>
+                                      Đạt được: {formatDate(badge.updatedAt)}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box sx={{ textAlign: 'center', padding: 2, color: '#6b7280' }}>
+                            <EmojiEvents sx={{ fontSize: 32, color: '#9ca3af', marginBottom: 1 }} />
+                            <Typography variant="body2">Chưa có huy hiệu nào</Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    </Grid>
                   </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ) : null
           ))}
           {filteredPlans?.length === 0 && (
             <Card sx={{ textAlign: 'center', padding: 6 }}>
