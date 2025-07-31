@@ -212,9 +212,14 @@ const Roadmap = () => {
         }
       }
       const completionInfo = await dispatch(infoCompleteQuitPlan({ planId: planIdToCheck })).unwrap();
+      // Thêm kiểm tra isCompleted
+      if (completionInfo?.data?.isCompleted === "fail") {
+        navigate(`/failedPlanResult?status=failed&planId=${planIdToCheck}`);
+        return;
+      }
       if (completionInfo?.data?.plan?.status === "completed") {
         navigate(`/successPlanResult?status=success&planId=${planIdToCheck}`);
-      } else if (completionInfo?.data?.plan?.status === "failed") {
+      } else if (completionInfo?.data?.plan?.status === "fail") {
         navigate(`/failedPlanResult?status=failed&planId=${planIdToCheck}`);
       }
     } catch (error) {
@@ -232,7 +237,7 @@ const Roadmap = () => {
           if (result.data.plan.status === "completed") {
             navigate(`/successPlanResult?status=success&planId=${result.data.plan._id}`);
             return;
-          } else if (result.data.plan.status === "failed") {
+          } else if (result.data.plan.status === "fail") {
             navigate(`/failedPlanResult?status=failed&planId=${result.data.plan._id}`);
             return;
           }
@@ -240,7 +245,7 @@ const Roadmap = () => {
           if (result.data.quitPlan.status === "completed") {
             navigate(`/successPlanResult?status=success&planId=${result.data.quitPlan._id}`);
             return;
-          } else if (result.data.quitPlan.status === "failed") {
+          } else if (result.data.quitPlan.status === "fail") {
             navigate(`/failedPlanResult?status=failed&planId=${result.data.quitPlan._id}`);
             return;
           }
