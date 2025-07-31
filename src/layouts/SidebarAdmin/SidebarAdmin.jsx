@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import StairsIcon from "@mui/icons-material/Stairs";
-import WalletIcon from '@mui/icons-material/Wallet';
+import WalletIcon from "@mui/icons-material/Wallet";
+import InventoryIcon from "@mui/icons-material/Inventory";
 import "../Sidebar-Coach/SidebarCoach.css";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "../../store/slices/userSlice";
@@ -29,6 +30,12 @@ const SIDEBAR_ITEMS = [
     icon: WalletIcon,
     color: "#6967ac",
     href: "/admin/transition",
+  },
+  {
+    name: "Package ",
+    icon: InventoryIcon,
+    color: "#1d39edff",
+    href: "/admin/package",
   },
 ];
 
