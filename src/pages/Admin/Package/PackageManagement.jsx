@@ -863,7 +863,10 @@ const PackageManagement = () => {
                               fontWeight="bold"
                               color="success.main"
                             >
-                              {pkg.duration} ngày
+                              {/* {pkg.duration} ngày */}
+                              {pkg.duration === 0
+                                ? "Vĩnh viễn"
+                                : `${pkg.duration} ngày`}
                             </Typography>
                           </Box>
                         </Box>

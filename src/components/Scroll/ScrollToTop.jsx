@@ -7,7 +7,7 @@ export default function ScrollToTop() {
   useEffect(() => {
     window.scrollTo({
       top: 0,
-      behavior: "smooth", // cuộn mượt, nếu muốn cuộn nhanh thì bỏ dòng này
+      behavior: "smooth", // cuộn mượt
     });
   }, [pathname]);
 
