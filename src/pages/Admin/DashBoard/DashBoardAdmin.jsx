@@ -352,7 +352,7 @@ export default function DashBoardAdmin() {
                     <PaymentIcon sx={{ marginRight: "15px", color: "#d65861" }} /> Doanh thu bị mất
                   </Typography>
                   <span className="grid-warning-text-danger-sup">
-                   {totalLostRevenue.toLocaleString() + " " + "VNĐ"}
+                   {totalLostRevenue?.toLocaleString() + " " + "VNĐ"}
                   </span>
                 </Box>
               </Box>
